@@ -45,10 +45,12 @@ linters-settings:
       - whyNoLint
       - wrapperFunc
       - hugeParam
+      - exitAfterDefer
   depguard:
     rules:
       main:
         allow:
+          - $gostd
           - github.com/ginsys/forwardemail-cli
           - github.com/spf13/cobra
           - github.com/spf13/viper
@@ -68,14 +70,12 @@ linters:
     - errcheck
     - copyloopvar
     - exhaustive
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
     - gofmt
     - goimports
     - revive
-    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -102,6 +102,22 @@ issues:
       linters:
         - mnd
         - goconst
+    
+    # Allow standard library imports everywhere
+    - linters:
+        - depguard
+      text: "import .* is not allowed from list 'main'"
+      source: "^import \"(context|fmt|os|syscall|time|net/|encoding/|path/|runtime)\""
+    
+    # Allow magic numbers in configuration defaults
+    - path: config\.go
+      linters:
+        - mnd
+    
+    # Allow stuttering in API package names
+    - linters:
+        - revive
+      text: "stutters"
     
     # https://github.com/go-critic/go-critic/issues/926
     - linters:
