@@ -12,28 +12,28 @@
 
 ## 📋 Development Phases
 
-### Phase 1: Foundation (Weeks 1-4) - MVP
+### Phase 1: Foundation - MVP
 **Goal**: Establish core functionality and architecture
 
-#### Week 1: Core Infrastructure
+#### Phase 1.1: Core Infrastructure
 - [ ] **Authentication System**: API key management, credential validation
 - [ ] **Configuration Management**: Multi-profile support, OS keyring integration
 - [ ] **HTTP Client**: Retry logic, error handling, timeout management
 - [ ] **Basic CLI Structure**: Cobra setup, global flags, help system
 
-#### Week 2: Domain Operations
+#### Phase 1.2: Domain Operations
 - [ ] **Domain CRUD**: List, create, get, update, delete operations
 - [ ] **Domain Verification**: DNS records, SMTP verification
 - [ ] **Domain Settings**: Protections, quotas, webhooks, retention
 - [ ] **Output Formatting**: Table and JSON formats with stable ordering
 
-#### Week 3: Alias Operations  
+#### Phase 1.3: Alias Operations  
 - [ ] **Alias CRUD**: Complete lifecycle management
 - [ ] **Recipient Management**: Email/FQDN/IP/webhook URL support
 - [ ] **Advanced Features**: IMAP/PGP flags, quotas, vacation responder
 - [ ] **Password Generation**: Secure password creation with options
 
-#### Week 4: Email & Utility Operations
+#### Phase 1.4: Email & Utility Operations
 - [ ] **Email Operations**: Send (structured/raw), list, get, delete
 - [ ] **Daily Limits**: Quota checking and monitoring
 - [ ] **Log Operations**: Download with 10/day limit respect
@@ -45,28 +45,28 @@
 - Basic documentation and help system
 - Cross-platform binaries (Linux/macOS/Windows)
 
-### Phase 2: Enhancement (Weeks 5-8) - Professional Features  
+### Phase 2: Enhancement - Professional Features  
 **Goal**: Developer experience and operational efficiency
 
-#### Week 5: Interactive Experience
+#### Phase 2.1: Interactive Experience
 - [ ] **Setup Wizard**: `forward-email init` guided configuration
 - [ ] **Interactive Mode**: Guided workflows for complex operations
 - [ ] **Shell Completion**: Auto-generated completions for bash/zsh/fish
 - [ ] **Smart Suggestions**: Command recommendations and auto-complete
 
-#### Week 6: Bulk Operations
+#### Phase 2.2: Bulk Operations
 - [ ] **Batch Processing**: CSV import/export with progress tracking
 - [ ] **Concurrent Processing**: Configurable parallelism (default: 5)
 - [ ] **Transaction Support**: Rollback capabilities for failed operations
 - [ ] **Dry-run Support**: Preview operations before execution
 
-#### Week 7: Template System & Monitoring
+#### Phase 2.3: Template System & Monitoring
 - [ ] **Email Templates**: YAML-based templates with variable substitution
 - [ ] **Real-time Monitoring**: Log streaming with `--follow` flag
 - [ ] **Health Checks**: API connectivity and quota monitoring
 - [ ] **Audit Logging**: Local operation history with timestamps
 
-#### Week 8: Advanced Output & Filtering
+#### Phase 2.4: Advanced Output & Filtering
 - [ ] **Multiple Formats**: YAML, CSV, and custom Go templates
 - [ ] **Client-side Filtering**: SQL-like syntax for data filtering
 - [ ] **Sorting & Pagination**: Advanced data manipulation
@@ -78,28 +78,28 @@
 - Template system for email automation
 - Advanced monitoring and logging
 
-### Phase 3: Ecosystem (Weeks 9-12) - Community & Integration
+### Phase 3: Ecosystem - Community & Integration
 **Goal**: Platform integration and community building
 
-#### Week 9: CI/CD Integration
+#### Phase 3.1: CI/CD Integration
 - [ ] **GitHub Actions**: Pre-built actions for email automation
 - [ ] **Docker Containers**: Official images for containerized workflows
 - [ ] **Configuration Validation**: Pre-flight checks for deployments
 - [ ] **Environment Management**: Development/staging/production workflows
 
-#### Week 10: Plugin Architecture
+#### Phase 3.2: Plugin Architecture
 - [ ] **Plugin Framework**: Community extensibility system
 - [ ] **Core Plugins**: Terraform provider, webhook manager, monitoring
 - [ ] **Plugin Discovery**: Registry and installation system
 - [ ] **Plugin API**: Developer SDK for third-party extensions
 
-#### Week 11: Distribution & Packaging
+#### Phase 3.3: Distribution & Packaging
 - [ ] **Package Managers**: Homebrew, Chocolatey, Scoop, APT/YUM
 - [ ] **Container Registries**: Docker Hub, GitHub Container Registry
 - [ ] **Auto-updates**: Self-update capability with version checking
 - [ ] **Release Automation**: GoReleaser pipeline with checksums
 
-#### Week 12: Documentation & Community
+#### Phase 3.4: Documentation & Community
 - [ ] **Comprehensive Documentation**: API reference, tutorials, best practices
 - [ ] **Interactive Learning**: Built-in `forward-email learn` command
 - [ ] **Community Tools**: Issue templates, contribution guidelines
@@ -111,28 +111,28 @@
 - Professional documentation suite
 - Automated distribution pipeline
 
-### Phase 4: Enterprise (Weeks 13-16) - Advanced Features
+### Phase 4: Enterprise - Advanced Features
 **Goal**: Enterprise readiness and advanced automation
 
-#### Week 13: Advanced Security
+#### Phase 4.1: Advanced Security
 - [ ] **Credential Rotation**: Built-in API key management and rotation
 - [ ] **Multi-factor Auth**: Support for future MFA endpoints
 - [ ] **Audit Trail**: Tamper-evident operation logging
 - [ ] **Compliance Features**: GDPR/SOX audit support
 
-#### Week 14: Enterprise Integrations
+#### Phase 4.2: Enterprise Integrations
 - [ ] **LDAP/Active Directory**: User synchronization
 - [ ] **SSO Integration**: SAML/OAuth for enterprise auth
 - [ ] **Webhook Management**: Advanced webhook handling and testing
 - [ ] **Monitoring Integration**: Prometheus metrics, health endpoints
 
-#### Week 15: Advanced Automation
+#### Phase 4.3: Advanced Automation
 - [ ] **Terraform Provider**: Infrastructure as Code support
 - [ ] **Ansible Modules**: Configuration management integration  
 - [ ] **GitOps Workflows**: Git-based configuration management
 - [ ] **Policy Engine**: Rule-based automation and governance
 
-#### Week 16: Professional Support
+#### Phase 4.4: Professional Support
 - [ ] **Advanced Diagnostics**: Debug tooling and troubleshooting
 - [ ] **Performance Analytics**: Usage metrics and optimization
 - [ ] **Enterprise Documentation**: Deployment guides, best practices
@@ -187,25 +187,25 @@
 
 ## 🚀 Launch Strategy
 
-### Pre-Launch (Weeks 1-4)
+### Pre-Launch (Phase 1)
 - Build MVP with core functionality
 - Establish testing and quality processes
 - Create initial documentation and examples
 - Set up CI/CD pipeline and automated testing
 
-### Soft Launch (Weeks 5-8) 
+### Soft Launch (Phase 2) 
 - Release to limited beta users
 - Gather feedback and iterate on UX
 - Build community resources and documentation
 - Establish support processes and channels
 
-### Public Launch (Weeks 9-12)
+### Public Launch (Phase 3)
 - Announce on relevant communities (Reddit, HackerNews, Twitter)
 - Submit to package managers and registries
 - Create launch content (blog posts, demos, tutorials)
 - Engage with Forward Email community
 
-### Growth Phase (Weeks 13-16)
+### Growth Phase (Phase 4)
 - Focus on enterprise features and integrations
 - Build partnerships with complementary tools
 - Expand documentation and educational content

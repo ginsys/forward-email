@@ -4,6 +4,26 @@ A comprehensive command-line interface for managing [Forward Email](https://forw
 
 [Forward Email](https://forwardemail.net/) is a free, encrypted, and open-source email forwarding service for custom domains. This CLI provides a powerful interface to manage your domains, aliases, and email operations programmatically.
 
+## 🚧 Development Status
+
+**Current Phase**: Foundation (Phase 1.1) - Architecture & Core Infrastructure
+
+**Implemented**:
+- ✅ Project structure with clean separation (pkg/api, internal/cmd, cmd/)
+- ✅ Build system with Makefile and cross-platform support
+- ✅ Core CLI framework (Cobra + Viper)
+- ✅ Basic API client foundation with authentication interface
+- ✅ Configuration management foundation
+
+**In Progress**:
+- 🔄 Authentication system (API key management, credential validation)
+- 🔄 Domain operations (CRUD, verification, settings)
+- 🔄 HTTP client with retry logic and error handling
+
+**Next**: Alias operations, email operations, utility commands
+
+For detailed roadmap see [Implementation Plan](IMPLEMENTATION_PLAN.md). This project represents a **first-mover advantage** as Forward Email currently has no official CLI tools.
+
 ## 🚀 Quick Start
 
 ```bash
