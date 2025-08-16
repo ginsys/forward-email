@@ -38,9 +38,8 @@ func Execute(ctx context.Context) error {
 	return rootCmd.Execute()
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
-
+// initFlags initializes the root command flags and viper bindings
+func initFlags() {
 	// Global flags
 	rootCmd.PersistentFlags().String("profile", "", "Configuration profile to use")
 	rootCmd.PersistentFlags().String("output", "table", "Output format (table|json|yaml|csv)")
@@ -49,14 +48,19 @@ func init() {
 	rootCmd.PersistentFlags().Duration("timeout", 0, "Request timeout duration")
 
 	// Bind flags to viper
-	viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile"))
-	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
-	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
+	_ = viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile"))
+	_ = viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
+	_ = viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	_ = viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	_ = viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
 	// Version template
 	rootCmd.SetVersionTemplate(fmt.Sprintf("forward-email version %s\ncommit: %s\nbuilt: %s\n", version, commit, date))
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+	initFlags()
 }
 
 // initConfig reads in config file and ENV variables if set.

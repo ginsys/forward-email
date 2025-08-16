@@ -1,6 +1,8 @@
 # Forward Email CLI
 
-A comprehensive command-line interface for managing Forward Email accounts and resources through their public REST API.
+A comprehensive command-line interface for managing [Forward Email](https://forwardemail.net/) accounts and resources through their public REST API.
+
+[Forward Email](https://forwardemail.net/) is a free, encrypted, and open-source email forwarding service for custom domains. This CLI provides a powerful interface to manage your domains, aliases, and email operations programmatically.
 
 ## 🚀 Quick Start
 

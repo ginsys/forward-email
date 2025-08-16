@@ -100,11 +100,11 @@ func (c *Config) GetProfile(name string) (Profile, error) {
 }
 
 // SetProfile sets or updates a profile
-func (c *Config) SetProfile(name string, profile Profile) {
+func (c *Config) SetProfile(name string, profile *Profile) {
 	if c.Profiles == nil {
 		c.Profiles = make(map[string]Profile)
 	}
-	c.Profiles[name] = profile
+	c.Profiles[name] = *profile
 }
 
 // DeleteProfile removes a profile

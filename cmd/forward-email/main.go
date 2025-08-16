@@ -16,6 +16,7 @@ func main() {
 
 	// Execute root command
 	if err := cmd.Execute(ctx); err != nil {
+		cancel() // Ensure cleanup happens before exit
 		os.Exit(1)
 	}
 }

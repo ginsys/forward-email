@@ -4,18 +4,21 @@ run:
   tests: true
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
 linters-settings:
   govet:
-    check-shadowing: true
-  golint:
+    enable:
+      - shadow
+  revive:
     min-confidence: 0
   gocyclo:
     min-complexity: 15
-  maligned:
+  # maligned is deprecated, replaced by fieldalignment
+  fieldalignment:
     suggest-new: true
   dupl:
     threshold: 100
@@ -41,6 +44,17 @@ linters-settings:
       - octalLiteral
       - whyNoLint
       - wrapperFunc
+      - hugeParam
+  depguard:
+    rules:
+      main:
+        allow:
+          - github.com/ginsys/forwardemail-cli
+          - github.com/spf13/cobra
+          - github.com/spf13/viper
+        deny:
+          - pkg: "github.com/pkg/errors"
+            desc: "Should be replaced by standard lib errors package"
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
@@ -48,12 +62,11 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
+    - copyloopvar
     - exhaustive
     - gochecknoinits
     - goconst
@@ -61,29 +74,25 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - golint
-    - gomnd
+    - revive
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - noctx
     - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
 
 issues:
@@ -91,7 +100,7 @@ issues:
   exclude-rules:
     - path: _test\.go
       linters:
-        - gomnd
+        - mnd
         - goconst
     
     # https://github.com/go-critic/go-critic/issues/926
