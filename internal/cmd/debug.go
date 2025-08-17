@@ -115,8 +115,12 @@ func runDebugKeys(cmd *cobra.Command, args []string) error {
 		if len(apiKey) < 10 {
 			fmt.Printf("⚠️  API key seems too short (< 10 characters)\n")
 		}
-		if apiKey != apiKey {
-			fmt.Printf("⚠️  API key contains non-printable characters\n")
+		// Check for non-printable characters in API key
+		for _, r := range apiKey {
+			if r < 32 || r > 126 {
+				fmt.Printf("⚠️  API key contains non-printable characters\n")
+				break
+			}
 		}
 	}
 

@@ -41,7 +41,7 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 		u.RawQuery = params.Encode()
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -67,23 +67,28 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 	return response, nil
 }
 
-// GetDomain retrieves a specific domain by ID or name
-func (s *DomainService) GetDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
+// domainGetHelper is a generic helper for GET requests to domain endpoints
+func domainGetHelper[T any](s *DomainService, ctx context.Context, pathTemplate string, domainIDOrName, errorPrefix string) (*T, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s", url.PathEscape(domainIDOrName)),
+		Path: fmt.Sprintf(pathTemplate, url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	var domain Domain
-	if err := s.client.Do(ctx, req, &domain); err != nil {
-		return nil, fmt.Errorf("failed to get domain: %w", err)
+	var result T
+	if err := s.client.Do(ctx, req, &result); err != nil {
+		return nil, fmt.Errorf("%s: %w", errorPrefix, err)
 	}
 
-	return &domain, nil
+	return &result, nil
+}
+
+// GetDomain retrieves a specific domain by ID or name
+func (s *DomainService) GetDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
+	return domainGetHelper[Domain](s, ctx, "/v1/domains/%s", domainIDOrName, "failed to get domain")
 }
 
 // CreateDomain creates a new domain
@@ -99,7 +104,7 @@ func (s *DomainService) CreateDomain(ctx context.Context, req *CreateDomainReque
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -128,7 +133,7 @@ func (s *DomainService) UpdateDomain(ctx context.Context, domainIDOrName string,
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("PUT", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "PUT", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -148,7 +153,7 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 		Path: fmt.Sprintf("/v1/domains/%s", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	req, err := http.NewRequest("DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -166,7 +171,7 @@ func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string)
 		Path: fmt.Sprintf("/v1/domains/%s/verify", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("POST", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -185,7 +190,7 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 		Path: fmt.Sprintf("/v1/domains/%s/dns", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -200,40 +205,12 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 
 // GetDomainQuota retrieves quota information for a domain
 func (s *DomainService) GetDomainQuota(ctx context.Context, domainIDOrName string) (*DomainQuota, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/quota", url.PathEscape(domainIDOrName)),
-	})
-
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	var quota DomainQuota
-	if err := s.client.Do(ctx, req, &quota); err != nil {
-		return nil, fmt.Errorf("failed to get domain quota: %w", err)
-	}
-
-	return &quota, nil
+	return domainGetHelper[DomainQuota](s, ctx, "/v1/domains/%s/quota", domainIDOrName, "failed to get domain quota")
 }
 
 // GetDomainStats retrieves statistics for a domain
 func (s *DomainService) GetDomainStats(ctx context.Context, domainIDOrName string) (*DomainStats, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/stats", url.PathEscape(domainIDOrName)),
-	})
-
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	var stats DomainStats
-	if err := s.client.Do(ctx, req, &stats); err != nil {
-		return nil, fmt.Errorf("failed to get domain stats: %w", err)
-	}
-
-	return &stats, nil
+	return domainGetHelper[DomainStats](s, ctx, "/v1/domains/%s/stats", domainIDOrName, "failed to get domain stats")
 }
 
 // AddDomainMember adds a member to a domain
@@ -252,7 +229,7 @@ func (s *DomainService) AddDomainMember(ctx context.Context, domainIDOrName, ema
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -272,7 +249,7 @@ func (s *DomainService) RemoveDomainMember(ctx context.Context, domainIDOrName, 
 		Path: fmt.Sprintf("/v1/domains/%s/members/%s", url.PathEscape(domainIDOrName), url.PathEscape(memberID)),
 	})
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	req, err := http.NewRequest("DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

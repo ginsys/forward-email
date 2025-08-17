@@ -359,7 +359,7 @@ func runAuthStatus(cmd *cobra.Command, args []string) error {
 				fmt.Printf("  Status: ✅ API key configured\n")
 
 				// Determine source
-				source := "unknown"
+				var source string
 				if envKey := os.Getenv("FORWARDEMAIL_API_KEY"); envKey != "" {
 					source = "environment variable (FORWARDEMAIL_API_KEY)"
 				} else if envKey := os.Getenv(fmt.Sprintf("FORWARDEMAIL_%s_API_KEY", profile)); envKey != "" {

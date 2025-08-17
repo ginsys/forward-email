@@ -109,9 +109,9 @@ func runProfileList(cmd *cobra.Command, args []string) error {
 				hasAPIKey = "✓ (config)"
 			} else {
 				// Check keyring
-				kr, err := keyring.New(keyring.Config{})
-				if err == nil {
-					if apiKey, err := kr.GetAPIKey(profileName); err == nil && apiKey != "" {
+				kr, krErr := keyring.New(keyring.Config{})
+				if krErr == nil {
+					if apiKey, getErr := kr.GetAPIKey(profileName); getErr == nil && apiKey != "" {
 						hasAPIKey = "✓ (keyring)"
 					}
 				}
@@ -175,9 +175,9 @@ func runProfileShow(cmd *cobra.Command, args []string) error {
 	if profile.APIKey != "" {
 		apiKeyLocation = "config file"
 	} else {
-		kr, err := keyring.New(keyring.Config{})
-		if err == nil {
-			if apiKey, err := kr.GetAPIKey(profileName); err == nil && apiKey != "" {
+		kr, krErr := keyring.New(keyring.Config{})
+		if krErr == nil {
+			if apiKey, getErr := kr.GetAPIKey(profileName); getErr == nil && apiKey != "" {
 				apiKeyLocation = "OS keyring"
 			}
 		}
@@ -269,8 +269,8 @@ func runProfileDelete(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Are you sure you want to delete profile '%s'? This will remove all associated credentials. [y/N]: ", profileName)
 		var response string
 		fmt.Scanln(&response)
-		if strings.ToLower(response) != "y" && strings.ToLower(response) != "yes" {
-			fmt.Println("Profile deletion cancelled")
+		if !strings.EqualFold(response, "y") && !strings.EqualFold(response, "yes") {
+			fmt.Println("Profile deletion canceled")
 			return nil
 		}
 	}

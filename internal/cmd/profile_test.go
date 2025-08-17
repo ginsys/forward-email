@@ -511,6 +511,7 @@ func TestProfileInit(t *testing.T) {
 	flag := testProfileCmd.PersistentFlags().Lookup("output")
 	if flag == nil {
 		t.Error("Output flag not found")
+		return
 	}
 	if flag.DefValue != "table" {
 		t.Errorf("Expected default value 'table', got '%s'", flag.DefValue)

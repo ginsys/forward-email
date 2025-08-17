@@ -21,7 +21,7 @@ func TestForwardEmailAuth_Apply(t *testing.T) {
 		{
 			name:     "valid API key",
 			apiKey:   "test-api-key",
-			wantAuth: "Basic dGVzdC1hcGkta2V5Og==", // base64("test-api-key:")
+			wantAuth: "Basic dGVzdC1hcGkta2V5Og==", // base64 encoded "test-api-key:"
 			wantErr:  false,
 		},
 		{

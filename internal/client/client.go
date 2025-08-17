@@ -52,7 +52,8 @@ func NewAPIClient() (*api.Client, error) {
 	if profile == "" {
 		profile = cfg.CurrentProfile
 		if profile == "" {
-			return nil, fmt.Errorf("no profile configured. Use 'forward-email profile create <name>' to create a profile and 'forward-email profile switch <name>' to set it as current")
+			return nil, fmt.Errorf("no profile configured. Use 'forward-email profile create <name>' to create a profile and " +
+				"'forward-email profile switch <name>' to set it as current")
 		}
 	}
 

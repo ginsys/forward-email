@@ -17,7 +17,8 @@ func FormatDomainList(domains []api.Domain, format Format) (*TableData, error) {
 	headers := []string{"NAME", "VERIFIED", "PLAN", "ALIASES", "MEMBERS", "CREATED"}
 	table := NewTableData(headers)
 
-	for _, domain := range domains {
+	for i := range domains {
+		domain := &domains[i]
 		verified := FormatValue(domain.IsVerified)
 		plan := FormatValue(domain.Plan)
 		aliasCount := "-"
@@ -213,7 +214,8 @@ func FormatDomainMembers(members []api.DomainMember, format Format) (*TableData,
 	headers := []string{"ID", "EMAIL", "NAME", "GROUP", "JOINED"}
 	table := NewTableData(headers)
 
-	for _, member := range members {
+	for i := range members {
+		member := &members[i]
 		displayName := member.User.DisplayName
 		if displayName == "" {
 			displayName = fmt.Sprintf("%s %s", member.User.GivenName, member.User.FamilyName)

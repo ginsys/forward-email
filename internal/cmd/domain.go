@@ -213,8 +213,8 @@ func runDomainList(cmd *cobra.Command, args []string) error {
 	// Parse verified filter
 	var verified *bool
 	if domainVerified != "" {
-		v, err := strconv.ParseBool(domainVerified)
-		if err != nil {
+		v, parseErr := strconv.ParseBool(domainVerified)
+		if parseErr != nil {
 			return fmt.Errorf("invalid verified filter: %s", domainVerified)
 		}
 		verified = &v
@@ -272,7 +272,13 @@ func runDomainList(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runDomainGet(cmd *cobra.Command, args []string) error {
+// domainOperationRunner is a helper function to reduce duplication in domain operations
+func domainOperationRunner[T any](
+	args []string,
+	operation func(context.Context, *api.DomainService, string) (T, error),
+	errorMessage string,
+	formatter func(T, output.Format) (interface{}, error),
+) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -281,17 +287,30 @@ func runDomainGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	domain, err := apiClient.Domains.GetDomain(ctx, args[0])
+	result, err := operation(ctx, apiClient.Domains, args[0])
 	if err != nil {
-		return fmt.Errorf("failed to get domain: %w", err)
+		return fmt.Errorf("%s: %w", errorMessage, err)
 	}
 
-	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDomainDetails(domain, format)
-		}
-		return domain, nil
+	return formatOutput(result, viper.GetString("output"), func(format output.Format) (interface{}, error) {
+		return formatter(result, format)
 	})
+}
+
+func runDomainGet(cmd *cobra.Command, args []string) error {
+	return domainOperationRunner(
+		args,
+		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.Domain, error) {
+			return domains.GetDomain(ctx, domainID)
+		},
+		"failed to get domain",
+		func(domain *api.Domain, format output.Format) (interface{}, error) {
+			if format == output.FormatTable || format == output.FormatCSV {
+				return output.FormatDomainDetails(domain, format)
+			}
+			return domain, nil
+		},
+	)
 }
 
 func runDomainCreate(cmd *cobra.Command, args []string) error {
@@ -357,7 +376,6 @@ func runDomainUpdate(cmd *cobra.Command, args []string) error {
 		cmd.Flags().Changed("caldav-port") ||
 		cmd.Flags().Changed("carddav-port") ||
 		cmd.Flags().Changed("webhook-url") {
-
 		settings := &api.DomainSettings{}
 
 		if cmd.Flags().Changed("adult-content-protection") {
@@ -415,7 +433,7 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 		var confirmation string
 		fmt.Scanln(&confirmation)
 		if strings.ToLower(confirmation) != "yes" {
-			fmt.Println("Domain deletion cancelled")
+			fmt.Println("Domain deletion canceled")
 			return nil
 		}
 	}
@@ -465,69 +483,51 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 }
 
 func runDomainDNS(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	apiClient, err := client.NewAPIClient()
-	if err != nil {
-		return err
-	}
-
-	records, err := apiClient.Domains.GetDomainDNSRecords(ctx, args[0])
-	if err != nil {
-		return fmt.Errorf("failed to get DNS records: %w", err)
-	}
-
-	return formatOutput(records, viper.GetString("output"), func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDNSRecords(records, format)
-		}
-		return records, nil
-	})
+	return domainOperationRunner(
+		args,
+		func(ctx context.Context, domains *api.DomainService, domainID string) ([]api.DNSRecord, error) {
+			return domains.GetDomainDNSRecords(ctx, domainID)
+		},
+		"failed to get DNS records",
+		func(records []api.DNSRecord, format output.Format) (interface{}, error) {
+			if format == output.FormatTable || format == output.FormatCSV {
+				return output.FormatDNSRecords(records, format)
+			}
+			return records, nil
+		},
+	)
 }
 
 func runDomainQuota(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	apiClient, err := client.NewAPIClient()
-	if err != nil {
-		return err
-	}
-
-	quota, err := apiClient.Domains.GetDomainQuota(ctx, args[0])
-	if err != nil {
-		return fmt.Errorf("failed to get domain quota: %w", err)
-	}
-
-	return formatOutput(quota, viper.GetString("output"), func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDomainQuota(quota, format)
-		}
-		return quota, nil
-	})
+	return domainOperationRunner(
+		args,
+		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainQuota, error) {
+			return domains.GetDomainQuota(ctx, domainID)
+		},
+		"failed to get domain quota",
+		func(quota *api.DomainQuota, format output.Format) (interface{}, error) {
+			if format == output.FormatTable || format == output.FormatCSV {
+				return output.FormatDomainQuota(quota, format)
+			}
+			return quota, nil
+		},
+	)
 }
 
 func runDomainStats(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	apiClient, err := client.NewAPIClient()
-	if err != nil {
-		return err
-	}
-
-	stats, err := apiClient.Domains.GetDomainStats(ctx, args[0])
-	if err != nil {
-		return fmt.Errorf("failed to get domain stats: %w", err)
-	}
-
-	return formatOutput(stats, viper.GetString("output"), func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDomainStats(stats, format)
-		}
-		return stats, nil
-	})
+	return domainOperationRunner(
+		args,
+		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainStats, error) {
+			return domains.GetDomainStats(ctx, domainID)
+		},
+		"failed to get domain stats",
+		func(stats *api.DomainStats, format output.Format) (interface{}, error) {
+			if format == output.FormatTable || format == output.FormatCSV {
+				return output.FormatDomainStats(stats, format)
+			}
+			return stats, nil
+		},
+	)
 }
 
 func runDomainMembersList(cmd *cobra.Command, args []string) error {

@@ -121,7 +121,10 @@ func TestNewValidationError(t *testing.T) {
 	}
 }
 
-func TestNewUnauthorizedError(t *testing.T) {
+// testErrorCreator is a helper function to reduce code duplication in error creation tests
+func testErrorCreator(t *testing.T, name string, creator func(string) *ForwardEmailError, expectedType string, expectedStatus int, customMessage, customExpected, defaultExpected string) {
+	t.Helper()
+
 	tests := []struct {
 		name     string
 		message  string
@@ -129,66 +132,41 @@ func TestNewUnauthorizedError(t *testing.T) {
 	}{
 		{
 			name:     "with custom message",
-			message:  "Invalid API key",
-			expected: "Invalid API key",
+			message:  customMessage,
+			expected: customExpected,
 		},
 		{
 			name:     "with empty message",
 			message:  "",
-			expected: "Authentication required",
+			expected: defaultExpected,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := NewUnauthorizedError(tt.message)
+			err := creator(tt.message)
 
-			if err.Type != "Unauthorized" {
-				t.Errorf("Expected type 'Unauthorized', got %q", err.Type)
+			if err.Type != expectedType {
+				t.Errorf("Expected type %q, got %q", expectedType, err.Type)
 			}
 			if err.Message != tt.expected {
 				t.Errorf("Expected message %q, got %q", tt.expected, err.Message)
 			}
-			if err.StatusCode != http.StatusUnauthorized {
-				t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, err.StatusCode)
+			if err.StatusCode != expectedStatus {
+				t.Errorf("Expected status code %d, got %d", expectedStatus, err.StatusCode)
 			}
 		})
 	}
 }
 
+func TestNewUnauthorizedError(t *testing.T) {
+	testErrorCreator(t, "NewUnauthorizedError", NewUnauthorizedError, "Unauthorized", http.StatusUnauthorized,
+		"Invalid API key", "Invalid API key", "Authentication required")
+}
+
 func TestNewForbiddenError(t *testing.T) {
-	tests := []struct {
-		name     string
-		message  string
-		expected string
-	}{
-		{
-			name:     "with custom message",
-			message:  "Insufficient permissions",
-			expected: "Insufficient permissions",
-		},
-		{
-			name:     "with empty message",
-			message:  "",
-			expected: "Access forbidden",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := NewForbiddenError(tt.message)
-
-			if err.Type != "Forbidden" {
-				t.Errorf("Expected type 'Forbidden', got %q", err.Type)
-			}
-			if err.Message != tt.expected {
-				t.Errorf("Expected message %q, got %q", tt.expected, err.Message)
-			}
-			if err.StatusCode != http.StatusForbidden {
-				t.Errorf("Expected status code %d, got %d", http.StatusForbidden, err.StatusCode)
-			}
-		})
-	}
+	testErrorCreator(t, "NewForbiddenError", NewForbiddenError, "Forbidden", http.StatusForbidden,
+		"Insufficient permissions", "Insufficient permissions", "Access forbidden")
 }
 
 func TestNewRateLimitError(t *testing.T) {
@@ -230,73 +208,13 @@ func TestNewRateLimitError(t *testing.T) {
 }
 
 func TestNewServerError(t *testing.T) {
-	tests := []struct {
-		name     string
-		message  string
-		expected string
-	}{
-		{
-			name:     "with custom message",
-			message:  "Database connection failed",
-			expected: "Database connection failed",
-		},
-		{
-			name:     "with empty message",
-			message:  "",
-			expected: "Internal server error",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := NewServerError(tt.message)
-
-			if err.Type != "ServerError" {
-				t.Errorf("Expected type 'ServerError', got %q", err.Type)
-			}
-			if err.Message != tt.expected {
-				t.Errorf("Expected message %q, got %q", tt.expected, err.Message)
-			}
-			if err.StatusCode != http.StatusInternalServerError {
-				t.Errorf("Expected status code %d, got %d", http.StatusInternalServerError, err.StatusCode)
-			}
-		})
-	}
+	testErrorCreator(t, "NewServerError", NewServerError, "ServerError", http.StatusInternalServerError,
+		"Database connection failed", "Database connection failed", "Internal server error")
 }
 
 func TestNewServiceUnavailableError(t *testing.T) {
-	tests := []struct {
-		name     string
-		message  string
-		expected string
-	}{
-		{
-			name:     "with custom message",
-			message:  "Maintenance in progress",
-			expected: "Maintenance in progress",
-		},
-		{
-			name:     "with empty message",
-			message:  "",
-			expected: "Service temporarily unavailable",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := NewServiceUnavailableError(tt.message)
-
-			if err.Type != "ServiceUnavailable" {
-				t.Errorf("Expected type 'ServiceUnavailable', got %q", err.Type)
-			}
-			if err.Message != tt.expected {
-				t.Errorf("Expected message %q, got %q", tt.expected, err.Message)
-			}
-			if err.StatusCode != http.StatusServiceUnavailable {
-				t.Errorf("Expected status code %d, got %d", http.StatusServiceUnavailable, err.StatusCode)
-			}
-		})
-	}
+	testErrorCreator(t, "NewServiceUnavailableError", NewServiceUnavailableError, "ServiceUnavailable", http.StatusServiceUnavailable,
+		"Maintenance in progress", "Maintenance in progress", "Service temporarily unavailable")
 }
 
 func Test_getErrorType(t *testing.T) {
@@ -342,7 +260,12 @@ func TestErrorTypeCheckers(t *testing.T) {
 		{"IsForbidden with other error", NewNotFoundError("test"), IsForbidden, false},
 		{"IsValidation with 422 error", NewForwardEmailError(http.StatusUnprocessableEntity, "test", ""), IsValidation, true},
 		{"IsValidation with other error", NewNotFoundError("test"), IsValidation, false},
-		{"NewValidationError actually creates BadRequest error", NewValidationError("test"), func(err error) bool { return errors.Is(err, ErrBadRequest) }, true},
+		{
+			"NewValidationError actually creates BadRequest error",
+			NewValidationError("test"),
+			func(err error) bool { return errors.Is(err, ErrBadRequest) },
+			true,
+		},
 		{"IsRateLimit with RateLimit error", NewRateLimitError("60"), IsRateLimit, true},
 		{"IsRateLimit with other error", NewNotFoundError("test"), IsRateLimit, false},
 		{"IsServerError with ServerError", NewServerError("test"), IsServerError, true},
