@@ -114,16 +114,16 @@ func runAuthVerify(cmd *cobra.Command, args []string) error {
 			currentProfile = "default"
 		}
 	}
-	
+
 	fmt.Printf("✅ Authentication successful for profile '%s'\n", currentProfile)
-	
+
 	// Make a simple API call to double-check
 	_, err = apiClient.Domains.ListDomains(ctx, nil)
 	if err != nil {
 		fmt.Printf("⚠️  Authentication succeeded but API call failed: %v\n", err)
 		return fmt.Errorf("API verification failed")
 	}
-	
+
 	fmt.Printf("✅ API access verified\n")
 	return nil
 }

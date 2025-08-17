@@ -15,13 +15,13 @@ import (
 // This centralizes the authentication logic that was duplicated across commands
 func NewAPIClient() (*api.Client, error) {
 	profile := viper.GetString("profile")
-	
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
-	
+
 	// If no profile specified via flag, use current profile from config
 	if profile == "" {
 		profile = cfg.CurrentProfile
@@ -29,14 +29,14 @@ func NewAPIClient() (*api.Client, error) {
 			return nil, fmt.Errorf("no profile configured. Use 'forward-email profile create <name>' to create a profile and 'forward-email profile switch <name>' to set it as current")
 		}
 	}
-	
+
 	// Initialize keyring
 	kr, err := keyring.New(keyring.Config{})
 	if err != nil {
 		// Continue without keyring, auth will fall back to config file
 		kr = nil
 	}
-	
+
 	authProvider, err := auth.NewProvider(auth.ProviderConfig{
 		Profile: profile,
 		Config:  cfg,

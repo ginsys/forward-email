@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ginsys/forwardemail-cli/pkg/auth"
+	"github.com/ginsys/forwardemail-cli/pkg/errors"
 )
 
 // Client represents the Forward Email API client
@@ -122,25 +123,32 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 
 // handleErrorResponse parses and returns API errors
 func (c *Client) handleErrorResponse(resp *http.Response) error {
-	var apiErr APIError
-	if err := json.NewDecoder(resp.Body).Decode(&apiErr); err != nil {
-		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, resp.Status)
+	var apiResponse struct {
+		Message string `json:"message"`
+		Code    string `json:"code,omitempty"`
+		Error   string `json:"error,omitempty"`
 	}
 
-	apiErr.StatusCode = resp.StatusCode
-	return &apiErr
-}
-
-// APIError represents an API error response
-type APIError struct {
-	StatusCode int    `json:"-"`
-	Message    string `json:"message"`
-	Code       string `json:"code,omitempty"`
-}
-
-func (e *APIError) Error() string {
-	if e.Code != "" {
-		return fmt.Sprintf("API error %d (%s): %s", e.StatusCode, e.Code, e.Message)
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		// Fallback to generic error if we can't parse the response
+		return errors.NewForwardEmailError(resp.StatusCode, resp.Status, "")
 	}
-	return fmt.Sprintf("API error %d: %s", e.StatusCode, e.Message)
+
+	message := apiResponse.Message
+	if message == "" {
+		message = apiResponse.Error
+	}
+	if message == "" {
+		message = resp.Status
+	}
+
+	code := apiResponse.Code
+
+	// Handle rate limiting
+	if resp.StatusCode == http.StatusTooManyRequests {
+		retryAfter := resp.Header.Get("Retry-After")
+		return errors.NewRateLimitError(retryAfter)
+	}
+
+	return errors.NewForwardEmailError(resp.StatusCode, message, code)
 }

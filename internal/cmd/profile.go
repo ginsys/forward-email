@@ -81,7 +81,7 @@ func init() {
 
 	// Global flags for profile commands
 	profileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
-	
+
 	// Delete command flags
 	profileDeleteCmd.Flags().BoolVarP(&profileForce, "force", "f", false, "Force deletion without confirmation")
 }
@@ -206,13 +206,13 @@ func runProfileShow(cmd *cobra.Command, args []string) error {
 
 	// For JSON/YAML, include additional metadata
 	profileData := struct {
-		Name           string        `json:"name" yaml:"name"`
-		IsCurrent      bool          `json:"is_current" yaml:"is_current"`
-		BaseURL        string        `json:"base_url" yaml:"base_url"`
-		APIKeyLocation string        `json:"api_key_location" yaml:"api_key_location"`
-		Username       string        `json:"username" yaml:"username"`
-		Output         string        `json:"output" yaml:"output"`
-		Timeout        string        `json:"timeout" yaml:"timeout"`
+		Name           string `json:"name" yaml:"name"`
+		IsCurrent      bool   `json:"is_current" yaml:"is_current"`
+		BaseURL        string `json:"base_url" yaml:"base_url"`
+		APIKeyLocation string `json:"api_key_location" yaml:"api_key_location"`
+		Username       string `json:"username" yaml:"username"`
+		Output         string `json:"output" yaml:"output"`
+		Timeout        string `json:"timeout" yaml:"timeout"`
 	}{
 		Name:           profileName,
 		IsCurrent:      profileName == cfg.CurrentProfile,

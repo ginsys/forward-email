@@ -40,7 +40,8 @@
       "WebFetch(domain:forwardemail.net)",
       "Bash(go test:*)",
       "Bash(go fmt:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(./forward-email:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
