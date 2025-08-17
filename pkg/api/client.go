@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/ginsys/forwardemail-cli/pkg/auth"
 )
 
 // Client represents the Forward Email API client
 type Client struct {
 	HTTPClient *http.Client
 	BaseURL    *url.URL
-	Auth       AuthProvider
+	Auth       auth.Provider
 	UserAgent  string
 
 	// Services
@@ -25,28 +27,11 @@ type Client struct {
 	Crypto  *CryptoService
 }
 
-// AuthProvider defines the interface for authentication
-type AuthProvider interface {
-	Apply(req *http.Request) error
-}
-
-// BasicAuth implements HTTP Basic Authentication
-type BasicAuth struct {
-	Username string
-	Password string
-}
-
-// Apply sets the Authorization header for Basic Auth
-func (b BasicAuth) Apply(req *http.Request) error {
-	req.SetBasicAuth(b.Username, b.Password)
-	return nil
-}
-
 // ClientOption defines options for configuring the client
 type ClientOption func(*Client) error
 
 // NewClient creates a new Forward Email API client
-func NewClient(baseURL string, auth AuthProvider, opts ...ClientOption) (*Client, error) {
+func NewClient(baseURL string, authProvider auth.Provider, opts ...ClientOption) (*Client, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
@@ -57,7 +42,7 @@ func NewClient(baseURL string, auth AuthProvider, opts ...ClientOption) (*Client
 			Timeout: 30 * time.Second,
 		},
 		BaseURL:   u,
-		Auth:      auth,
+		Auth:      authProvider,
 		UserAgent: "forwardemail-cli/dev",
 	}
 
@@ -77,6 +62,15 @@ func NewClient(baseURL string, auth AuthProvider, opts ...ClientOption) (*Client
 	client.Crypto = &CryptoService{client: client}
 
 	return client, nil
+}
+
+// ValidateAuth validates the authentication credentials
+func (c *Client) ValidateAuth(ctx context.Context) error {
+	if c.Auth == nil {
+		return fmt.Errorf("no authentication provider configured")
+	}
+
+	return c.Auth.Validate(ctx)
 }
 
 // WithHTTPClient sets a custom HTTP client
