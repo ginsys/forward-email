@@ -4,8 +4,8 @@
 
 **Forward Email CLI** - A comprehensive command-line interface for managing Forward Email accounts and resources through their public REST API. This project represents a **first-mover advantage** as Forward Email currently has zero official CLI tools.
 
-**Current Phase**: Phase 1.2 Domain Operations → **COMPLETED** ✅  
-**Next Phase**: Phase 1.3 Alias & Email Operations → **PLANNED** ⏳
+**Current Phase**: Phase 1.3 Alias & Email Operations → **COMPLETED** ✅  
+**Next Phase**: Phase 1.4 Enhanced Features → **PLANNED** ⏳
 
 ## 🏗️ Architecture
 
@@ -17,6 +17,8 @@ internal/cmd/               # CLI command implementations
 ├── auth.go                 # Authentication commands
 ├── profile.go              # Profile management commands
 ├── domain.go               # Domain CRUD operations
+├── alias.go                # Alias CRUD operations
+├── email.go                # Email send and management operations
 └── debug.go                # Debug and troubleshooting utilities
 internal/keyring/           # OS keyring integration
 ├── keyring.go              # Keyring wrapper
@@ -29,7 +31,11 @@ pkg/api/                    # API client library
 ├── client_test.go          # Client tests
 ├── domain.go               # Domain data models
 ├── domain_service.go       # Domain service implementation
-└── domain_service_test.go  # Domain service tests
+├── domain_service_test.go  # Domain service tests
+├── alias.go                # Alias data models
+├── alias_service.go        # Alias service implementation
+├── email.go                # Email data models
+└── email_service.go        # Email service implementation
 pkg/auth/                   # Authentication system
 ├── provider.go             # Auth provider implementation
 └── provider_test.go        # Auth tests
@@ -43,7 +49,9 @@ pkg/output/                 # Output formatting system
 ├── formatter.go            # Multi-format output (table/JSON/YAML/CSV)
 ├── formatter_test.go       # Formatter tests
 ├── domain.go               # Domain-specific output formatting
-└── domain_test.go          # Domain output tests
+├── domain_test.go          # Domain output tests
+├── alias.go                # Alias-specific output formatting
+└── email.go                # Email-specific output formatting
 ```
 
 ## 🔐 Authentication System (COMPLETED)
@@ -163,6 +171,67 @@ ErrConflict           // 409 - Resource conflict
 - **Retry Information**: Rate limit retry-after headers
 - **Suggestion Engine**: Actionable next steps for error resolution
 
+## 📧 Alias & Email Management System (COMPLETED)
+
+### Features Implemented
+- **Complete Alias CRUD Operations**: List, get, create, update, delete aliases
+- **Alias Configuration**: Recipients, labels, description, IMAP/PGP settings
+- **Email Sending**: Interactive and command-line email composition
+- **Email Management**: List, get, delete sent emails
+- **Quota & Statistics**: Alias and email usage monitoring
+- **Attachment Support**: File attachments with automatic content type detection
+- **Multi-format Output**: Table, JSON, YAML, CSV formatting for all operations
+
+### Alias Commands
+```bash
+forward-email alias list --domain <domain>                     # List all aliases for domain
+forward-email alias get <alias-id> --domain <domain>           # Get detailed alias information
+forward-email alias create <name> --domain <domain> --recipients <emails>  # Create new alias
+forward-email alias update <alias-id> --domain <domain>        # Update alias settings
+forward-email alias delete <alias-id> --domain <domain>        # Delete alias
+forward-email alias enable <alias-id> --domain <domain>        # Enable alias
+forward-email alias disable <alias-id> --domain <domain>       # Disable alias
+forward-email alias recipients <alias-id> --domain <domain> --recipients <emails>  # Update recipients
+forward-email alias password <alias-id> --domain <domain>      # Generate IMAP password
+forward-email alias quota <alias-id> --domain <domain>         # Show alias quota
+forward-email alias stats <alias-id> --domain <domain>         # Show alias statistics
+```
+
+### Email Commands
+```bash
+forward-email email send                       # Interactive email composition
+forward-email email send --from <email> --to <emails> --subject <subject>  # Send with flags
+forward-email email list                       # List sent emails with filtering
+forward-email email get <email-id>             # Get detailed email information
+forward-email email delete <email-id>          # Delete sent email
+forward-email email quota                      # Show email sending quota
+forward-email email stats                      # Show email statistics
+```
+
+### Alias Management Features
+- **Recipient Management**: Multiple recipients, webhooks, FQDN forwarding
+- **IMAP Integration**: Enable/disable IMAP access with password generation
+- **PGP Encryption**: Enable PGP with public key management
+- **Labels & Organization**: Custom labels for alias categorization
+- **Vacation Responder**: Automatic vacation reply configuration
+- **Storage Quota**: Monitor storage usage and limits
+
+### Email Sending Features
+- **Interactive Mode**: User-friendly email composition wizard
+- **Command-line Mode**: Scriptable email sending with flags
+- **Attachment Support**: File attachments with base64 encoding
+- **Custom Headers**: Add custom email headers
+- **Content Flexibility**: Plain text, HTML, or both content types
+- **Dry Run Mode**: Validate email without sending
+- **Confirmation Flow**: Preview and confirm before sending
+
+### Email Management Features
+- **Sent Email History**: List and filter sent emails
+- **Email Details**: View complete email information including attachments
+- **Status Tracking**: Delivery status and bounce tracking
+- **Usage Statistics**: Email sending statistics and metrics
+- **Quota Monitoring**: Daily sending limits and usage
+
 ## 🛠️ Dependencies
 
 ### Core Dependencies
@@ -256,14 +325,23 @@ All Tests: PASSING ✅
 - [x] **Comprehensive Testing**: 100+ test cases covering all components
 - [x] **API Integration**: Full Forward Email API integration with proper error handling
 
-### ⏳ Planned (Phase 1.3 - Alias & Email Operations)
-- [ ] **Alias Management**: Complete alias lifecycle (list/create/update/delete)
-- [ ] **Email Operations**: Send, list, delete with quota management
-- [ ] **Bulk Operations**: Batch processing for multiple resources
-- [ ] **Interactive Wizards**: Setup and configuration wizards
-- [ ] **Shell Completion**: Bash/Zsh/Fish completion scripts
+### ✅ Completed (Phase 1.3 - Alias & Email Operations)
+- [x] **Alias Data Models**: Complete Go structs for Forward Email alias API
+- [x] **Alias Service Implementation**: Full AliasService with all CRUD operations
+- [x] **Alias Commands**: Complete alias lifecycle (list/get/create/update/delete/enable/disable)
+- [x] **Alias Management**: Recipients, IMAP passwords, PGP, labels, vacation responder
+- [x] **Email Data Models**: Complete Go structs for email operations and statistics
+- [x] **Email Service Implementation**: Send, list, get, delete with quota management
+- [x] **Email Commands**: Interactive and command-line email composition and management
+- [x] **Email Features**: Attachment support, custom headers, dry-run mode, status tracking
+- [x] **Output Formatting**: Multi-format output for alias and email operations
+- [x] **CLI Integration**: All commands registered and functional
 
 ### ⏳ Planned (Phase 1.4+ - Enhanced Features)
+- [ ] **Comprehensive Testing**: Alias and email service tests
+- [ ] **Bulk Operations**: Batch processing for multiple resources
+- [ ] **Interactive Wizards**: Enhanced setup and configuration wizards
+- [ ] **Shell Completion**: Bash/Zsh/Fish completion scripts
 - [ ] **CI/CD Pipeline**: Automated testing and release process
 - [ ] **Webhook Management**: Configure and test webhook endpoints
 - [ ] **Log Management**: Download and analyze email logs
@@ -277,21 +355,21 @@ All Tests: PASSING ✅
 - **Format**: `Authorization: Basic <base64(api_key + ":")>`
 - **Endpoint**: `https://api.forwardemail.net/v1/`
 
-### API Coverage Planned
-- **Account**: Profile management, quota monitoring
-- **Domains**: CRUD operations, DNS/SMTP verification
-- **Aliases**: Complete lifecycle with recipients and settings
-- **Emails**: Send operations with templates and tracking
-- **Logs**: Download with rate limit respect (10/day)
+### API Coverage Status
+- **Account**: Profile management, quota monitoring (planned)
+- **Domains**: CRUD operations, DNS/SMTP verification ✅ **IMPLEMENTED**
+- **Aliases**: Complete lifecycle with recipients and settings ✅ **IMPLEMENTED**
+- **Emails**: Send operations with attachment support ✅ **IMPLEMENTED**
+- **Logs**: Download with rate limit respect (10/day) (planned)
 
 ## 🔍 Development Notes
 
-### Next Immediate Steps (Phase 1.3)
-1. **Alias Data Models**: Define API response structures for aliases
-2. **Alias Service**: Implement complete alias CRUD operations
-3. **Email Operations**: Send, list, delete functionality
-4. **Bulk Operations**: Batch processing capabilities
-5. **Interactive Wizards**: User-friendly setup and configuration
+### Next Immediate Steps (Phase 1.4)
+1. **Testing**: Write comprehensive tests for alias and email services
+2. **Bulk Operations**: Batch processing capabilities for multiple resources
+3. **Enhanced Wizards**: User-friendly setup and configuration wizards
+4. **Shell Completion**: Bash/Zsh/Fish completion scripts
+5. **CI/CD Pipeline**: Automated testing and release automation
 
 ### Technical Decisions Made
 - **Keyring Library**: Chose 99designs/keyring for mature cross-platform support
@@ -301,14 +379,17 @@ All Tests: PASSING ✅
 - **Security Model**: Never log credentials, secure file permissions, OS keyring priority
 - **Output System**: Flexible multi-format output with table formatting as default
 - **Error Architecture**: Centralized error handling with HTTP status mapping and user-friendly messages
-- **Domain Architecture**: Complete service layer with proper separation of concerns
+- **Service Architecture**: Complete service layer with proper separation of concerns for domains, aliases, and emails
+- **CLI Pattern**: Consistent command structure across all resource types
+- **Email Architecture**: Support for both interactive and programmatic email composition
 
 ### Known Limitations
 - **API Documentation**: Limited Forward Email API docs, reverse-engineering from Auth.js examples
 - **Rate Limiting**: Must implement respectful API usage patterns (partially implemented in error handling)
 - **Offline Mode**: No offline capabilities planned for MVP
-- **Alias Operations**: Not yet implemented (planned for Phase 1.3)
-- **Email Operations**: Send/receive functionality not yet implemented
+- **Testing Coverage**: Alias and email services need comprehensive test coverage
+- **Bulk Operations**: No batch processing capabilities yet
+- **Template System**: No email template support yet
 
 ## 📊 Metrics & Quality
 
@@ -341,10 +422,12 @@ Test Coverage: Comprehensive across all components
 ### Current Capabilities
 - ✅ **Full Authentication System** with multi-source credential hierarchy
 - ✅ **Complete Domain Management** with CRUD operations and DNS verification
+- ✅ **Complete Alias Management** with CRUD operations and advanced features
+- ✅ **Email Operations** with interactive and command-line composition
 - ✅ **Profile Management** for multi-environment support
 - ✅ **Flexible Output Formatting** (table/JSON/YAML/CSV) with pagination
 - ✅ **Robust Error Handling** with user-friendly messages and retry logic
 - ✅ **Debug Utilities** for troubleshooting authentication and API issues
-- ✅ **Comprehensive Testing** with 100+ test cases across all components
+- ✅ **Comprehensive CLI** covering all major Forward Email operations
 
-This documentation reflects the current state as of **Phase 1.2 completion** with comprehensive domain management system fully implemented and ready for alias/email operations development.
+This documentation reflects the current state as of **Phase 1.3 completion** with comprehensive alias and email management systems fully implemented and ready for enhanced features development.

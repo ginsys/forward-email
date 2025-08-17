@@ -11,9 +11,35 @@ import (
 	"github.com/ginsys/forwardemail-cli/pkg/config"
 )
 
+// Test mode variables
+var (
+	testMode    bool
+	testBaseURL string
+	testAuth    auth.Provider
+)
+
+// SetTestMode configures the client for testing with a mock server
+func SetTestMode(baseURL string, authProvider auth.Provider) {
+	testMode = true
+	testBaseURL = baseURL
+	testAuth = authProvider
+}
+
+// ResetTestMode disables test mode
+func ResetTestMode() {
+	testMode = false
+	testBaseURL = ""
+	testAuth = nil
+}
+
 // NewAPIClient creates a new API client with proper authentication
 // This centralizes the authentication logic that was duplicated across commands
 func NewAPIClient() (*api.Client, error) {
+	// If in test mode, return test client
+	if testMode {
+		return api.NewClient(testBaseURL, testAuth)
+	}
+
 	profile := viper.GetString("profile")
 
 	// Load configuration

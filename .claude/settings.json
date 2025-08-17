@@ -41,7 +41,11 @@
       "Bash(go test:*)",
       "Bash(go fmt:*)",
       "Bash(git add:*)",
-      "Bash(./forward-email:*)"
+      "Bash(./forward-email:*)",
+      "Bash(export FORWARDEMAIL_API_KEY=\"test-key\")",
+      "Bash(bin/forward-email alias list:*)",
+      "Bash(tput:*)",
+      "Bash(COLUMNS=120 bin/forward-email alias list ginsys.eu --columns domain,name,enabled)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

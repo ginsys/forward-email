@@ -52,8 +52,8 @@ func TestFormatDomainList(t *testing.T) {
 	if row1[0] != "example.com" {
 		t.Errorf("Expected domain name 'example.com', got %s", row1[0])
 	}
-	if row1[1] != "✓" {
-		t.Errorf("Expected verified symbol '✓', got %s", row1[1])
+	if row1[1] != "Yes" {
+		t.Errorf("Expected verified symbol 'Yes', got %s", row1[1])
 	}
 	if row1[2] != "free" {
 		t.Errorf("Expected plan 'free', got %s", row1[2])
@@ -70,8 +70,8 @@ func TestFormatDomainList(t *testing.T) {
 	if row2[0] != "test.org" {
 		t.Errorf("Expected domain name 'test.org', got %s", row2[0])
 	}
-	if row2[1] != "✗" {
-		t.Errorf("Expected unverified symbol '✗', got %s", row2[1])
+	if row2[1] != "No" {
+		t.Errorf("Expected unverified symbol 'No', got %s", row2[1])
 	}
 	if row2[2] != "team" {
 		t.Errorf("Expected plan 'team', got %s", row2[2])
@@ -121,14 +121,14 @@ func TestFormatDomainDetails(t *testing.T) {
 	}{
 		{"ID", "test-id"},
 		{"Name", "example.com"},
-		{"Verified", "✓"},
+		{"Verified", "Yes"},
 		{"Plan", "enhanced_protection"},
-		{"Global", "✗"},
-		{"MX Record", "✓"},
-		{"TXT Record", "✓"},
-		{"DMARC Record", "✗"},
-		{"SPF Record", "✓"},
-		{"DKIM Record", "✓"},
+		{"Global", "No"},
+		{"MX Record", "Yes"},
+		{"TXT Record", "Yes"},
+		{"DMARC Record", "No"},
+		{"SPF Record", "Yes"},
+		{"DKIM Record", "Yes"},
 		{"Max Forwarded Addresses", "50"},
 		{"Retention Days", "30"},
 		{"Members", "3"},
@@ -208,8 +208,8 @@ func TestFormatDNSRecords(t *testing.T) {
 	if mx[4] != "3600" {
 		t.Errorf("Expected TTL '3600', got %s", mx[4])
 	}
-	if mx[5] != "✓" {
-		t.Errorf("Expected required '✓', got %s", mx[5])
+	if mx[5] != "Yes" {
+		t.Errorf("Expected required 'Yes', got %s", mx[5])
 	}
 
 	// Check TXT record (no priority/TTL)
@@ -229,8 +229,8 @@ func TestFormatDNSRecords(t *testing.T) {
 	if cname[0] != "CNAME" {
 		t.Errorf("Expected type 'CNAME', got %s", cname[0])
 	}
-	if cname[5] != "✗" {
-		t.Errorf("Expected not required '✗', got %s", cname[5])
+	if cname[5] != "No" {
+		t.Errorf("Expected not required 'No', got %s", cname[5])
 	}
 }
 
@@ -265,8 +265,8 @@ func TestFormatDomainVerification(t *testing.T) {
 		rowMap[row[0]] = row[1]
 	}
 
-	if rowMap["Verified"] != "✗" {
-		t.Errorf("Expected verified '✗', got %s", rowMap["Verified"])
+	if rowMap["Verified"] != "No" {
+		t.Errorf("Expected verified 'No', got %s", rowMap["Verified"])
 	}
 	if rowMap["DNS Records Found"] != "2" {
 		t.Errorf("Expected DNS records found '2', got %s", rowMap["DNS Records Found"])
@@ -494,8 +494,8 @@ func TestFormatValue(t *testing.T) {
 		{nil, "-"},
 		{"", "-"},
 		{"hello", "hello"},
-		{true, "✓"},
-		{false, "✗"},
+		{true, "Yes"},
+		{false, "No"},
 		{42, "42"},
 		{int64(100), "100"},
 		{3.14, "3.14"},

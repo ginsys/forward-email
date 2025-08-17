@@ -40,10 +40,10 @@ func Execute(ctx context.Context) error {
 
 // initFlags initializes the root command flags and viper bindings
 func initFlags() {
-	// Global flags
-	rootCmd.PersistentFlags().String("profile", "", "Configuration profile to use")
-	rootCmd.PersistentFlags().String("output", "table", "Output format (table|json|yaml|csv)")
-	rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose output")
+	// Global flags with short options
+	rootCmd.PersistentFlags().StringP("profile", "p", "", "Configuration profile to use")
+	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug output")
 	rootCmd.PersistentFlags().Duration("timeout", 0, "Request timeout duration")
 

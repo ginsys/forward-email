@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/ginsys/forwardemail-cli/internal/client"
 	"github.com/ginsys/forwardemail-cli/pkg/api"
@@ -15,14 +16,13 @@ import (
 )
 
 var (
-	domainOutputFormat string
-	domainPage         int
-	domainLimit        int
-	domainSort         string
-	domainOrder        string
-	domainSearch       string
-	domainVerified     string
-	domainPlan         string
+	domainPage     int
+	domainLimit    int
+	domainSort     string
+	domainOrder    string
+	domainSearch   string
+	domainVerified string
+	domainPlan     string
 )
 
 // domainCmd represents the domain command
@@ -167,8 +167,7 @@ func init() {
 	domainMembersCmd.AddCommand(domainMembersAddCmd)
 	domainMembersCmd.AddCommand(domainMembersRemoveCmd)
 
-	// Global flags for all domain commands
-	domainCmd.PersistentFlags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format (table, json, yaml, csv)")
+	// Note: output flag now inherited from global root command
 
 	// List command specific flags
 	domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
@@ -236,12 +235,41 @@ func runDomainList(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to list domains: %w", err)
 	}
 
-	return formatOutput(response.Domains, domainOutputFormat, func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDomainList(response.Domains, format)
+	// Handle output formatting
+	outputFormat, err := output.ParseFormat(viper.GetString("output"))
+	if err != nil {
+		return fmt.Errorf("invalid output format: %w", err)
+	}
+
+	formatter := output.NewFormatter(outputFormat, nil)
+
+	if outputFormat == output.FormatJSON || outputFormat == output.FormatYAML {
+		return formatter.Format(response.Domains)
+	}
+
+	// Format as table/CSV
+	tableData, err := output.FormatDomainList(response.Domains, outputFormat)
+	if err != nil {
+		return err
+	}
+
+	err = formatter.Format(tableData)
+	if err != nil {
+		return err
+	}
+
+	// Show pagination info for non-JSON/YAML formats
+	if len(response.Domains) > 0 {
+		fmt.Printf("\nShowing %d of %d domains (page %d of %d)\n",
+			len(response.Domains), response.Pagination.Total, response.Pagination.Page, response.Pagination.TotalPages)
+		if response.Pagination.HasNext {
+			fmt.Printf("Use --page %d to see more results\n", response.Pagination.Page+1)
 		}
-		return response.Domains, nil
-	})
+	} else {
+		fmt.Println("No domains found")
+	}
+
+	return nil
 }
 
 func runDomainGet(cmd *cobra.Command, args []string) error {
@@ -258,7 +286,7 @@ func runDomainGet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get domain: %w", err)
 	}
 
-	return formatOutput(domain, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainDetails(domain, format)
 		}
@@ -289,7 +317,7 @@ func runDomainCreate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Domain '%s' created successfully\n", domain.Name)
 
-	return formatOutput(domain, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainDetails(domain, format)
 		}
@@ -370,7 +398,7 @@ func runDomainUpdate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Domain '%s' updated successfully\n", domain.Name)
 
-	return formatOutput(domain, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainDetails(domain, format)
 		}
@@ -428,7 +456,7 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Domain '%s' verification failed ✗\n", args[0])
 	}
 
-	return formatOutput(verification, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(verification, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainVerification(verification, format)
 		}
@@ -450,7 +478,7 @@ func runDomainDNS(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get DNS records: %w", err)
 	}
 
-	return formatOutput(records, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(records, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDNSRecords(records, format)
 		}
@@ -472,7 +500,7 @@ func runDomainQuota(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get domain quota: %w", err)
 	}
 
-	return formatOutput(quota, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(quota, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainQuota(quota, format)
 		}
@@ -494,7 +522,7 @@ func runDomainStats(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get domain stats: %w", err)
 	}
 
-	return formatOutput(stats, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(stats, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainStats(stats, format)
 		}
@@ -516,7 +544,7 @@ func runDomainMembersList(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get domain: %w", err)
 	}
 
-	return formatOutput(domain.Members, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(domain.Members, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
 			return output.FormatDomainMembers(domain.Members, format)
 		}
@@ -547,7 +575,7 @@ func runDomainMembersAdd(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Member '%s' added to domain '%s' with group '%s'\n", args[1], args[0], group)
 
-	return formatOutput(member, domainOutputFormat, func(format output.Format) (interface{}, error) {
+	return formatOutput(member, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		return member, nil
 	})
 }

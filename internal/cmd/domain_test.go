@@ -141,7 +141,6 @@ and configuring domain settings and DNS records.`,
 			}
 
 			// Add flags
-			domainListCmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
 			domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
 			domainListCmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
 			domainListCmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field")
@@ -149,8 +148,6 @@ and configuring domain settings and DNS records.`,
 			domainListCmd.Flags().StringVar(&domainSearch, "search", "", "Search query")
 			domainListCmd.Flags().StringVar(&domainVerified, "verified", "", "Filter by verification status")
 			domainListCmd.Flags().StringVar(&domainPlan, "plan", "", "Filter by plan type")
-
-			domainGetCmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
 
 			// Build command hierarchy
 			domainCmd.AddCommand(domainListCmd, domainGetCmd)
@@ -358,7 +355,6 @@ func TestDomainCommandFlags(t *testing.T) {
 					Short: "List domains",
 				}
 				// Add flags as they would be in the real command
-				cmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format")
 				cmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
 				cmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
 				cmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field")
@@ -373,7 +369,6 @@ func TestDomainCommandFlags(t *testing.T) {
 					Short: "Get domain details",
 					Args:  cobra.ExactArgs(1),
 				}
-				cmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format")
 
 			default:
 				t.Fatalf("Unknown command: %s", tt.commandName)
@@ -466,11 +461,8 @@ and configuring domain settings and DNS records.`,
 			}
 
 			// Add flags
-			domainListCmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format")
 			domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
 			domainListCmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
-
-			domainGetCmd.Flags().StringVarP(&domainOutputFormat, "output", "o", "table", "Output format")
 
 			// Build command hierarchy
 			domainCmd.AddCommand(domainListCmd, domainGetCmd)
