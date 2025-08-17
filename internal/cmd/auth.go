@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/term"
 
+	"github.com/ginsys/forwardemail-cli/internal/client"
 	"github.com/ginsys/forwardemail-cli/internal/keyring"
 	"github.com/ginsys/forwardemail-cli/pkg/auth"
 	"github.com/ginsys/forwardemail-cli/pkg/config"
@@ -89,42 +90,41 @@ func runAuthVerify(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	profile := cmd.Flag("profile").Value.String()
-	if profile == "" {
-		profile = viper.GetString("profile")
+	if profile != "" {
+		// Temporarily set the profile for this verification
+		viper.Set("profile", profile)
 	}
 
-	// Load configuration
-	cfg, err := config.Load()
+	// Use centralized client creation which handles all the auth setup
+	apiClient, err := client.NewAPIClient()
 	if err != nil {
-		return fmt.Errorf("failed to load configuration: %w", err)
-	}
-
-	// Initialize keyring
-	kr, err := keyring.New(keyring.Config{})
-	if err != nil {
-		fmt.Printf("Warning: failed to initialize keyring: %v\n", err)
-		fmt.Println("Credentials will be stored in configuration file.")
-	}
-
-	// Create auth provider
-	authProvider, err := auth.NewProvider(auth.ProviderConfig{
-		Profile: profile,
-		Config:  cfg,
-		Keyring: kr,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create auth provider: %w", err)
-	}
-
-	// Validate credentials
-	fmt.Printf("Verifying credentials for profile '%s'...\n", profile)
-
-	if err := authProvider.Validate(ctx); err != nil {
 		fmt.Printf("❌ Authentication failed: %v\n", err)
 		return fmt.Errorf("authentication verification failed")
 	}
 
-	fmt.Printf("✅ Authentication successful for profile '%s'\n", profile)
+	// If we got here, authentication was successful
+	currentProfile := viper.GetString("profile")
+	if currentProfile == "" {
+		// Load config to get current profile
+		cfg, _ := config.Load()
+		if cfg != nil {
+			currentProfile = cfg.CurrentProfile
+		}
+		if currentProfile == "" {
+			currentProfile = "default"
+		}
+	}
+	
+	fmt.Printf("✅ Authentication successful for profile '%s'\n", currentProfile)
+	
+	// Make a simple API call to double-check
+	_, err = apiClient.Domains.ListDomains(ctx, nil)
+	if err != nil {
+		fmt.Printf("⚠️  Authentication succeeded but API call failed: %v\n", err)
+		return fmt.Errorf("API verification failed")
+	}
+	
+	fmt.Printf("✅ API access verified\n")
 	return nil
 }
 

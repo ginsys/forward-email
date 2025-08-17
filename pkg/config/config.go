@@ -26,6 +26,17 @@ type Profile struct {
 
 // Load loads the configuration from file and environment
 func Load() (*Config, error) {
+	return loadConfig(true)
+}
+
+// LoadWithoutDefaults loads config without applying default profiles
+// This is useful for profile management where we don't want phantom default profiles
+func LoadWithoutDefaults() (*Config, error) {
+	return loadConfig(false)
+}
+
+// loadConfig is the internal function that handles config loading
+func loadConfig(withDefaults bool) (*Config, error) {
 	// Set config file location
 	configDir, err := getConfigDir()
 	if err != nil {
@@ -41,8 +52,10 @@ func Load() (*Config, error) {
 	viper.SetEnvPrefix("FORWARDEMAIL")
 	viper.AutomaticEnv()
 
-	// Set defaults
-	setDefaults()
+	// Set defaults only if requested
+	if withDefaults {
+		setDefaults()
+	}
 
 	// Read config file if it exists
 	if err := viper.ReadInConfig(); err != nil {
@@ -146,8 +159,6 @@ func getConfigDir() (string, error) {
 
 // setDefaults sets default configuration values
 func setDefaults() {
-	viper.SetDefault("current_profile", "default")
-	viper.SetDefault("profiles.default.base_url", "https://api.forwardemail.net")
-	viper.SetDefault("profiles.default.timeout", "30s")
-	viper.SetDefault("profiles.default.output", "table")
+	// Don't set a default current_profile - let users choose explicitly
+	// Don't create any default profiles - users should create what they need
 }
