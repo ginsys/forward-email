@@ -21,7 +21,7 @@ make completions  # Generate shell completion scripts
 ```
 
 ## Coding Style & Naming Conventions
-- Go 1.21+; format with `go fmt` and imports via `goimports` (local: `github.com/ginsys/forwardemail-cli`).
+- Go 1.21+; format with `go fmt` and imports via `goimports` (local: `github.com/ginsys/forward-email`).
 - Lint with `golangci-lint` per `.golangci.yml` (vet, staticcheck, revive, etc.).
 - Packages: lowercase, short, no underscores. Exported types and funcs: `CamelCase`. Errors wrap with `fmt.Errorf("…: %w", err)`.
 - CLI commands live in `internal/cmd/<topic>.go`; group subcommands by domain (e.g., `domain`, `alias`, `email`).

@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
-	"github.com/ginsys/forwardemail-cli/pkg/errors"
+    "github.com/ginsys/forward-email/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/errors"
 )
 
 // Client represents the Forward Email API client
@@ -44,7 +44,7 @@ func NewClient(baseURL string, authProvider auth.Provider, opts ...ClientOption)
 		},
 		BaseURL:   u,
 		Auth:      authProvider,
-		UserAgent: "forwardemail-cli/dev",
+        UserAgent: "forward-email/dev",
 	}
 
 	// Apply options

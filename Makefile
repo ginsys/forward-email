@@ -4,9 +4,9 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-LDFLAGS := -ldflags "-X github.com/ginsys/forwardemail-cli/internal/version.Version=$(VERSION) \
-                     -X github.com/ginsys/forwardemail-cli/internal/version.Commit=$(COMMIT) \
-                     -X github.com/ginsys/forwardemail-cli/internal/version.Date=$(DATE)"
+LDFLAGS := -ldflags "-X github.com/ginsys/forward-email/internal/version.Version=$(VERSION) \
+                     -X github.com/ginsys/forward-email/internal/version.Commit=$(COMMIT) \
+                     -X github.com/ginsys/forward-email/internal/version.Date=$(DATE)"
 
 # Build targets
 BINARY_NAME := forward-email

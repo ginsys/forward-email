@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestNewClient(t *testing.T) {
@@ -68,8 +68,8 @@ func TestNewClient(t *testing.T) {
 				t.Error("NewClient() client.HTTPClient is nil")
 			}
 
-			if client.UserAgent != "forwardemail-cli/dev" {
-				t.Errorf("NewClient() client.UserAgent = %v, want %v", client.UserAgent, "forwardemail-cli/dev")
+			if client.UserAgent != "forward-email/dev" {
+				t.Errorf("NewClient() client.UserAgent = %v, want %v", client.UserAgent, "forward-email/dev")
 			}
 
 			// Verify services are initialized
@@ -188,8 +188,8 @@ func TestClient_Do(t *testing.T) {
 				}
 
 				// Verify other headers
-				if userAgent := r.Header.Get("User-Agent"); userAgent != "forwardemail-cli/dev" {
-					t.Errorf("Expected User-Agent header to be 'forwardemail-cli/dev', got %v", userAgent)
+				if userAgent := r.Header.Get("User-Agent"); userAgent != "forward-email/dev" {
+					t.Errorf("Expected User-Agent header to be 'forward-email/dev', got %v", userAgent)
 				}
 
 				if accept := r.Header.Get("Accept"); accept != "application/json" {

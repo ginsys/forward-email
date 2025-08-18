@@ -31,8 +31,8 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/forwardemail-cli.git
-cd forwardemail-cli
+git clone https://github.com/YOUR_USERNAME/forward-email.git
+cd forward-email
 
 # Install dependencies
 make deps
@@ -140,7 +140,7 @@ Brief description of the changes
 
 ## Reporting Bugs
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/ginsys/forwardemail-cli/issues/new?template=bug_report.md).
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/ginsys/forward-email/issues/new?template=bug_report.md).
 
 **Great Bug Reports** tend to have:
 
@@ -154,7 +154,7 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 ## Feature Requests
 
-We welcome feature requests! Please [open an issue](https://github.com/ginsys/forwardemail-cli/issues/new?template=feature_request.md) with:
+We welcome feature requests! Please [open an issue](https://github.com/ginsys/forward-email/issues/new?template=feature_request.md) with:
 
 - **Use case**: Describe the problem you're trying to solve
 - **Proposed solution**: How you envision the feature working

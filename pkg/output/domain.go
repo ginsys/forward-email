@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/api"
+    "github.com/ginsys/forward-email/pkg/api"
 )
 
 // FormatDomainList formats a list of domains for display

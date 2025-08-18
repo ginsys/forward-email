@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ginsys/forwardemail-cli/internal/client"
-	"github.com/ginsys/forwardemail-cli/pkg/api"
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
+    "github.com/ginsys/forward-email/internal/client"
+    "github.com/ginsys/forward-email/pkg/api"
+    "github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestAliasListCommand(t *testing.T) {

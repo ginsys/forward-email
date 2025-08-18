@@ -8,10 +8,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ginsys/forwardemail-cli/internal/client"
-	"github.com/ginsys/forwardemail-cli/internal/keyring"
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
-	"github.com/ginsys/forwardemail-cli/pkg/config"
+    "github.com/ginsys/forward-email/internal/client"
+    "github.com/ginsys/forward-email/internal/keyring"
+    "github.com/ginsys/forward-email/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/config"
 )
 
 // debugCmd represents the debug command

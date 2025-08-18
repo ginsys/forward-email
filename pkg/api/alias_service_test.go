@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestAliasService_ListAliases(t *testing.T) {

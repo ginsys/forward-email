@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/internal/keyring"
-	"github.com/ginsys/forwardemail-cli/pkg/config"
+    "github.com/ginsys/forward-email/internal/keyring"
+    "github.com/ginsys/forward-email/pkg/config"
 )
 
 func TestForwardEmailAuth_Apply(t *testing.T) {

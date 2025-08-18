@@ -14,7 +14,7 @@ This CLI follows a modular architecture with centralized authentication and cons
 
 **Usage Pattern**:
 ```go
-import "github.com/ginsys/forwardemail-cli/internal/client"
+import "github.com/ginsys/forward-email/internal/client"
 
 func runSomeCommand(cmd *cobra.Command, args []string) error {
     apiClient, err := client.NewAPIClient()
@@ -52,7 +52,7 @@ Consistent output formatting across all commands:
 
 **Usage Pattern**:
 ```go
-import "github.com/ginsys/forwardemail-cli/pkg/output"
+import "github.com/ginsys/forward-email/pkg/output"
 
 return formatOutput(data, outputFormat, func(format output.Format) (interface{}, error) {
     if format == output.FormatTable || format == output.FormatCSV {
@@ -83,7 +83,7 @@ When adding new commands that need API access:
 
 1. **Import the centralized client**:
    ```go
-   import "github.com/ginsys/forwardemail-cli/internal/client"
+   import "github.com/ginsys/forward-email/internal/client"
    ```
 
 2. **Use the standard pattern**:
@@ -149,7 +149,7 @@ profiles:
 ### OS Keyring Storage
 
 API keys are stored securely in the OS keyring with the pattern:
-- **Service**: `forwardemail-cli`
+- **Service**: `forward-email`
 - **Account**: `{profile}` (e.g., "ginsys", "default")
 
 ## Error Handling

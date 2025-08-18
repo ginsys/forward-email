@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ginsys/forwardemail-cli/internal/keyring"
-	"github.com/ginsys/forwardemail-cli/pkg/config"
-	"github.com/ginsys/forwardemail-cli/pkg/output"
+    "github.com/ginsys/forward-email/internal/keyring"
+    "github.com/ginsys/forward-email/pkg/config"
+    "github.com/ginsys/forward-email/pkg/output"
 )
 
 // profileCmd represents the profile command

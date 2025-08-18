@@ -30,7 +30,7 @@ linters-settings:
   lll:
     line-length: 140
   goimports:
-    local-prefixes: github.com/ginsys/forwardemail-cli
+    local-prefixes: github.com/ginsys/forward-email
   gocritic:
     enabled-tags:
       - diagnostic
@@ -51,7 +51,7 @@ linters-settings:
       main:
         allow:
           - $gostd
-          - github.com/ginsys/forwardemail-cli
+          - github.com/ginsys/forward-email
           - github.com/spf13/cobra
           - github.com/spf13/viper
         deny:

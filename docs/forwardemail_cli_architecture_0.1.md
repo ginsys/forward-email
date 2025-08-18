@@ -1,10 +1,10 @@
-# forwardemail-cli — Architecture
+# forward-email — Architecture
 
 *Status: draft v0.1*
 
 ## 1) Purpose & Goals
 
-`forwardemail-cli` is a Go-based command-line interface to manage Forward Email accounts and resources through their public REST API. The tool targets:
+`forward-email` is a Go-based command-line interface to manage Forward Email accounts and resources through their public REST API. The tool targets:
 
 - **Operators / DevOps**: automate domain and alias management, download logs, verify DNS/SMTP, send or inspect outbound emails.
 - **Developers**: scriptable, predictable CLI with stable output formats for CI/CD, GitOps, and provisioning flows.
@@ -60,7 +60,7 @@
 ## 5) High‑Level Architecture
 
 ```
-cmd/forwardemail-cli          // Cobra command tree
+cmd/forward-email             // Cobra command tree
 pkg/cli                       // command wiring, flag parsing, output formatting
 pkg/api                       // typed SDK (HTTP client, models, services)
 pkg/config                    // config loading, profiles, keyring integration
@@ -83,7 +83,7 @@ internal/testutil             // golden snapshots, mock server, fixtures
 ## 6) Command Surface (v1)
 
 ```
-forwardemail-cli (alias: fe)
+forward-email (alias: fe)
   account get|update --email --given-name --family-name --avatar-url
 
   domains list [--q --sort --paginate]
@@ -179,7 +179,7 @@ profiles:
     output: table
   staging:
     base_url: https://staging.api.forwardemail.net
-    api_key: keyring:forwardemail/staging
+    api_key: keyring:forward-email/staging
 ```
 
 **Keyring** (optional): `profiles.<name>.api_key: keyring:<service>/<account>` stored via OS keyring. CLI offers `fe auth login --store keyring` to save it.
@@ -194,7 +194,7 @@ profiles:
   - Idempotent methods (`GET`, `DELETE`, some `PUT`) retried on network errors and `429/5xx` with exponential backoff + jitter (`1s → 30s`, max 5 tries).
   - Non-idempotent (`POST /v1/emails`) retried only on explicit safe error class (e.g., connect timeouts before write) unless `--force-retry`.
 - **Rate limiting**: token bucket limiter (configurable), respecting `Retry-After` if present.
-- **User-Agent**: `forwardemail-cli/<version> (<os>/<arch>) go/<version>`.
+- **User-Agent**: `forward-email/<version> (<os>/<arch>) go/<version>`.
 - **Pagination**: helper that reads `X-Page-*` & RFC5988 `Link` headers; exposes `Pager.Next(ctx)` iterator and `--paginate` flag with page-size clamped to server limits.
 
 ---

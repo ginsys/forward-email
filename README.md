@@ -28,10 +28,10 @@ For detailed roadmap see [Implementation Plan](IMPLEMENTATION_PLAN.md). This pro
 
 ```bash
 # Install via Homebrew (coming soon)
-brew install ginsys/tap/forwardemail-cli
+brew install ginsys/tap/forward-email
 
 # Or download from releases
-curl -sSL https://github.com/ginsys/forwardemail-cli/releases/latest/download/install.sh | bash
+curl -sSL https://github.com/ginsys/forward-email/releases/latest/download/install.sh | bash
 
 # Initialize configuration
 forward-email init
@@ -97,8 +97,8 @@ forward-email health check                 # API and service status
 
 ```bash
 # Clone repository
-git clone https://github.com/ginsys/forwardemail-cli.git
-cd forwardemail-cli
+git clone https://github.com/ginsys/forward-email.git
+cd forward-email
 
 # Install dependencies
 go mod download
@@ -107,10 +107,10 @@ go mod download
 go test ./...
 
 # Build local binary
-go build -o bin/forward-email ./cmd/forwardemail-cli
+go build -o bin/forward-email ./cmd/forward-email
 
 # Install development version
-go install ./cmd/forwardemail-cli
+go install ./cmd/forward-email
 ```
 
 ## 📚 Documentation

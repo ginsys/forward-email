@@ -1,10 +1,10 @@
-# forwardemail-cli --- Enhanced Architecture Document
+# forward-email --- Enhanced Architecture Document
 
 *Status: Updated v0.2 - Incorporating API Research & Competitive Analysis*
 
 ## 1) Purpose & Goals
 
-`forwardemail-cli` is a Go-based command-line interface to manage Forward Email accounts and resources through their public REST API. The tool targets:
+`forward-email` is a Go-based command-line interface to manage Forward Email accounts and resources through their public REST API. The tool targets:
 
 - **Operators / DevOps**: automate domain and alias management, download logs, verify DNS/SMTP, send or inspect outbound emails.
 - **Developers**: scriptable, predictable CLI with stable output formats for CI/CD, GitOps, and provisioning flows.

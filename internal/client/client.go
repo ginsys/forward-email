@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/ginsys/forwardemail-cli/internal/keyring"
-	"github.com/ginsys/forwardemail-cli/pkg/api"
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
-	"github.com/ginsys/forwardemail-cli/pkg/config"
+    "github.com/ginsys/forward-email/internal/keyring"
+    "github.com/ginsys/forward-email/pkg/api"
+    "github.com/ginsys/forward-email/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/config"
 )
 
 // Test mode variables

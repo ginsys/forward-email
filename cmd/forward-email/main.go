@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ginsys/forwardemail-cli/internal/cmd"
+	"github.com/ginsys/forward-email/internal/cmd"
 )
 
 func main() {

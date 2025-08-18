@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/auth"
+    "github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestDomainService_ListDomains(t *testing.T) {

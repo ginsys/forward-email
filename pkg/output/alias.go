@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ginsys/forwardemail-cli/pkg/api"
+    "github.com/ginsys/forward-email/pkg/api"
 )
 
 // FormatAliasList formats a list of aliases for display

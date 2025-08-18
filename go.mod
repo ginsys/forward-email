@@ -1,4 +1,4 @@
-module github.com/ginsys/forwardemail-cli
+module github.com/ginsys/forward-email
 
 go 1.21
 

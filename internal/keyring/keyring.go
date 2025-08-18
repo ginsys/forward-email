@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ServiceName = "forwardemail-cli"
+	ServiceName = "forward-email"
 )
 
 // Keyring provides a wrapper around the keyring library
