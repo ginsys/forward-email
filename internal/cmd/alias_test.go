@@ -1045,8 +1045,7 @@ func createTestRootCmd() *cobra.Command {
 	testAliasCreateCmd.Flags().BoolVar(&aliasEnableFlag, "enabled", true, "Enable the alias")
 	testAliasCreateCmd.Flags().BoolVar(&aliasIMAPFlag, "imap", false, "Enable IMAP access")
 	testAliasCreateCmd.Flags().BoolVar(&aliasPGPFlag, "pgp", false, "Enable PGP encryption")
-	testAliasCreateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "PGP public key")
-	testAliasCreateCmd.MarkFlagRequired("recipients")
+    testAliasCreateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "PGP public key")
 
 	// Update command flags
 	testAliasUpdateCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "Update recipient email addresses")
@@ -1059,8 +1058,7 @@ func createTestRootCmd() *cobra.Command {
 	testAliasUpdateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "Update PGP public key")
 
 	// Recipients command flags
-	testAliasRecipientsCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "New recipient email addresses")
-	testAliasRecipientsCmd.MarkFlagRequired("recipients")
+    testAliasRecipientsCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "New recipient email addresses")
 
 	return cmd
 }

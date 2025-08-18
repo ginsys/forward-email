@@ -355,6 +355,7 @@ func TestDomainCommandFlags(t *testing.T) {
 					Short: "List domains",
 				}
 				// Add flags as they would be in the real command
+				cmd.Flags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
 				cmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
 				cmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
 				cmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field")
@@ -369,6 +370,7 @@ func TestDomainCommandFlags(t *testing.T) {
 					Short: "Get domain details",
 					Args:  cobra.ExactArgs(1),
 				}
+				cmd.Flags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
 
 			default:
 				t.Fatalf("Unknown command: %s", tt.commandName)

@@ -217,7 +217,7 @@ func runEmailSend(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to send email: %v", err)
 	}
 
-	fmt.Printf("✅ Email sent successfully!\n")
+    cmd.Printf("✅ Email sent successfully!\n")
 	fmt.Printf("Email ID: %s\n", result.ID)
 	fmt.Printf("Message ID: %s\n", result.MessageID)
 	fmt.Printf("Status: %s\n", result.Status)
@@ -364,7 +364,7 @@ func runEmailDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to delete email: %v", err)
 	}
 
-	fmt.Printf("✅ Email '%s' deleted successfully\n", email.Subject)
+    cmd.Printf("✅ Email '%s' deleted successfully\n", email.Subject)
 	return nil
 }
 

@@ -296,7 +296,7 @@ func runProfileDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	fmt.Printf("Profile '%s' deleted successfully\n", profileName)
+    cmd.Printf("Profile '%s' deleted successfully\n", profileName)
 	return nil
 }
 
@@ -336,7 +336,7 @@ func runProfileCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	fmt.Printf("Profile '%s' created successfully\n", profileName)
+    cmd.Printf("Profile '%s' created successfully\n", profileName)
 	if cfg.CurrentProfile == profileName {
 		fmt.Printf("Set as current profile\n")
 	}

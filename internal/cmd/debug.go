@@ -261,7 +261,7 @@ func runDebugAPI(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("✅ API client created successfully\n")
+    cmd.Printf("✅ API client created successfully\n")
 
 	// Try a simple API call
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

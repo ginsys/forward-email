@@ -334,7 +334,7 @@ func runDomainCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create domain: %w", err)
 	}
 
-	fmt.Printf("Domain '%s' created successfully\n", domain.Name)
+    cmd.Printf("Domain '%s' created successfully\n", domain.Name)
 
 	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
@@ -414,7 +414,7 @@ func runDomainUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update domain: %w", err)
 	}
 
-	fmt.Printf("Domain '%s' updated successfully\n", domain.Name)
+    cmd.Printf("Domain '%s' updated successfully\n", domain.Name)
 
 	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
@@ -450,7 +450,7 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to delete domain: %w", err)
 	}
 
-	fmt.Printf("Domain '%s' deleted successfully\n", args[0])
+    cmd.Printf("Domain '%s' deleted successfully\n", args[0])
 	return nil
 }
 
