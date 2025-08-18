@@ -492,18 +492,18 @@ func TestAliasDeleteCommand(t *testing.T) {
 		expectOut   []string
 	}{
 		{
-			name:        "delete with positional domain (cancelled)",
+			name:        "delete with positional domain (canceled)",
 			args:        []string{"alias", "delete", "example.com", "delete-alias-id"},
 			input:       "no\n",
 			expectError: false,
-			expectOut:   []string{"Deletion cancelled"},
+			expectOut:   []string{"Deletion canceled"},
 		},
 		{
 			name:        "delete with domain flag",
 			args:        []string{"alias", "delete", "delete-alias-id", "--domain", "example.com"},
 			input:       "no\n",
 			expectError: false,
-			expectOut:   []string{"Deletion cancelled"},
+			expectOut:   []string{"Deletion canceled"},
 		},
 		{
 			name:        "delete without domain",
