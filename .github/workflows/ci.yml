@@ -10,7 +10,9 @@ jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
+      fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         go-version: [1.21, 1.22]
@@ -20,23 +22,37 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+        cache: false  # We handle caching manually for better control
 
     - name: Cache Go modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}-v2
         restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
           ${{ runner.os }}-go-
 
-    - name: Download dependencies
-      run: go mod download
+    - name: Verify Go installation
+      run: go version
 
-    - name: Run tests
+    - name: Download dependencies
+      run: |
+        go mod download
+        go mod verify
+
+    - name: Run tests (Unix)
+      if: runner.os != 'Windows'
       run: go test -v -race -coverprofile coverage.out ./...
+
+    - name: Run tests (Windows - no race detector)
+      if: runner.os == 'Windows'
+      run: go test -v -coverprofile coverage.out ./...
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
@@ -47,14 +63,16 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - name: Check out code
       uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: 1.21
+        cache: false
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
@@ -65,15 +83,17 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [test, lint]
     steps:
     - name: Check out code
       uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: 1.21
+        cache: false
 
     - name: Build for multiple platforms
       run: make build-all
