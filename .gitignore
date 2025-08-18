@@ -36,8 +36,10 @@ ehthumbs.db
 Thumbs.db
 
 # Configuration files with secrets
-config.yaml
-config.yml
+/config.yaml
+/config.yml
+# Allow GitHub issue template config
+!.github/ISSUE_TEMPLATE/config.yml
 *.key
 *.pem
 
