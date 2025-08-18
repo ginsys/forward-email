@@ -1,6 +1,6 @@
 module github.com/ginsys/forward-email
 
-go 1.21
+go 1.24
 
 require (
 	github.com/99designs/keyring v1.2.2

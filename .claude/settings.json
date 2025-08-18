@@ -46,7 +46,13 @@
       "Bash(bin/forward-email alias list:*)",
       "Bash(tput:*)",
       "Bash(COLUMNS=120 bin/forward-email alias list ginsys.eu --columns domain,name,enabled)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "Bash(COLUMNS=120 bin/forward-email alias list ginsys.eu --columns domain,name,enabled)",
+      "Bash(mise install:*)",
+      "Bash(mise which:*)",
+      "Bash(mise trust:*)",
+      "Bash(mise exec:*)",
+      "Bash(mise current:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
