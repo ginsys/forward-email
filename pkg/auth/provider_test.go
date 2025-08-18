@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-    "github.com/ginsys/forward-email/internal/keyring"
-    "github.com/ginsys/forward-email/pkg/config"
+	"github.com/ginsys/forward-email/internal/keyring"
+	"github.com/ginsys/forward-email/pkg/config"
 )
 
 func TestForwardEmailAuth_Apply(t *testing.T) {
@@ -36,7 +36,7 @@ func TestForwardEmailAuth_Apply(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			auth := MockProvider(tt.apiKey)
 
-			req, err := http.NewRequest("GET", "https://example.com", nil)
+			req, err := http.NewRequestWithContext(context.Background(), "GET", "https://example.com", http.NoBody)
 			if err != nil {
 				t.Fatalf("failed to create request: %v", err)
 			}
@@ -326,7 +326,7 @@ func TestMockProvider(t *testing.T) {
 	}
 
 	// Test Apply
-	req, err := http.NewRequest("GET", "https://example.com", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "https://example.com", http.NoBody)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}

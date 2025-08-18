@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -15,9 +14,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/pkg/api"
-    "github.com/ginsys/forward-email/pkg/output"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/pkg/api"
+	"github.com/ginsys/forward-email/pkg/output"
 )
 
 var (
@@ -151,7 +150,7 @@ func init() {
 	emailSendCmd.Flags().BoolVar(&emailDryRun, "dry-run", false, "Validate email without sending")
 }
 
-func runEmailSend(cmd *cobra.Command, args []string) error {
+func runEmailSend(cmd *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
 	apiClient, err := client.NewAPIClient()
@@ -175,8 +174,8 @@ func runEmailSend(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate the email
-	if err := validateEmailRequest(req); err != nil {
-		return fmt.Errorf("email validation failed: %v", err)
+	if err2 := validateEmailRequest(req); err2 != nil {
+		return fmt.Errorf("email validation failed: %v", err2)
 	}
 
 	// Show email preview
@@ -202,12 +201,12 @@ func runEmailSend(cmd *cobra.Command, args []string) error {
 
 	// Confirm before sending
 	fmt.Print("Send this email? [y/N]: ")
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(cmd.InOrStdin())
 	response, _ := reader.ReadString('\n')
 	response = strings.TrimSpace(strings.ToLower(response))
 
-	if response != "y" && response != "yes" {
-		fmt.Println("❌ Email sending cancelled")
+	if response != "y" && response != yesStr {
+		fmt.Println("❌ Email sending canceled")
 		return nil
 	}
 
@@ -217,7 +216,7 @@ func runEmailSend(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to send email: %v", err)
 	}
 
-    cmd.Printf("✅ Email sent successfully!\n")
+	cmd.Printf("✅ Email sent successfully!\n")
 	fmt.Printf("Email ID: %s\n", result.ID)
 	fmt.Printf("Message ID: %s\n", result.MessageID)
 	fmt.Printf("Status: %s\n", result.Status)
@@ -226,7 +225,7 @@ func runEmailSend(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runEmailList(cmd *cobra.Command, args []string) error {
+func runEmailList(cmd *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
 	apiClient, err := client.NewAPIClient()
@@ -237,7 +236,7 @@ func runEmailList(cmd *cobra.Command, args []string) error {
 	// Parse boolean flag
 	var hasAttach *bool
 	if emailHasAttach != "" {
-		if val, err := strconv.ParseBool(emailHasAttach); err == nil {
+		if val, parseErr := strconv.ParseBool(emailHasAttach); parseErr == nil {
 			hasAttach = &val
 		}
 	}
@@ -350,12 +349,12 @@ func runEmailDelete(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Sent to: %s\n", strings.Join(email.To, ", "))
 	fmt.Printf("Sent at: %s\n", email.SentAt.Format(time.RFC3339))
 	fmt.Print("Type 'yes' to confirm: ")
+	reader := bufio.NewReader(cmd.InOrStdin())
+	line, _ := reader.ReadString('\n')
+	confirmation := strings.TrimSpace(line)
 
-	var confirmation string
-	fmt.Scanln(&confirmation)
-
-	if strings.ToLower(confirmation) != "yes" {
-		fmt.Println("❌ Deletion cancelled")
+	if !strings.EqualFold(confirmation, "yes") {
+		fmt.Println("❌ Deletion canceled")
 		return nil
 	}
 
@@ -364,11 +363,11 @@ func runEmailDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to delete email: %v", err)
 	}
 
-    cmd.Printf("✅ Email '%s' deleted successfully\n", email.Subject)
+	cmd.Printf("✅ Email '%s' deleted successfully\n", email.Subject)
 	return nil
 }
 
-func runEmailQuota(cmd *cobra.Command, args []string) error {
+func runEmailQuota(cmd *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
 	apiClient, err := client.NewAPIClient()
@@ -401,7 +400,7 @@ func runEmailQuota(cmd *cobra.Command, args []string) error {
 	return formatter.Format(tableData)
 }
 
-func runEmailStats(cmd *cobra.Command, args []string) error {
+func runEmailStats(cmd *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
 	apiClient, err := client.NewAPIClient()
@@ -434,6 +433,7 @@ func runEmailStats(cmd *cobra.Command, args []string) error {
 	return formatter.Format(tableData)
 }
 
+//nolint:unparam // returns error for future use; currently always nil
 func promptForEmail() (*api.SendEmailRequest, error) {
 	reader := bufio.NewReader(os.Stdin)
 	req := &api.SendEmailRequest{}
@@ -499,7 +499,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 
 	// Read content from files if specified
 	if emailTextFile != "" {
-		content, err := ioutil.ReadFile(emailTextFile)
+		content, err := os.ReadFile(emailTextFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read text file: %v", err)
 		}
@@ -507,7 +507,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 	}
 
 	if emailHTMLFile != "" {
-		content, err := ioutil.ReadFile(emailHTMLFile)
+		content, err := os.ReadFile(emailHTMLFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read HTML file: %v", err)
 		}
@@ -541,7 +541,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 }
 
 func processAttachment(filePath string) (*api.AttachmentData, error) {
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
 	}

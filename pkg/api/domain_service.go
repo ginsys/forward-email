@@ -41,7 +41,7 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 		u.RawQuery = params.Encode()
 	}
 
-	req, err := http.NewRequest("GET", u.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -68,7 +68,7 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 }
 
 // domainGetHelper is a generic helper for GET requests to domain endpoints
-func domainGetHelper[T any](s *DomainService, ctx context.Context, pathTemplate string, domainIDOrName, errorPrefix string) (*T, error) {
+func domainGetHelper[T any](ctx context.Context, s *DomainService, pathTemplate string, domainIDOrName, errorPrefix string) (*T, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf(pathTemplate, url.PathEscape(domainIDOrName)),
 	})
@@ -88,7 +88,7 @@ func domainGetHelper[T any](s *DomainService, ctx context.Context, pathTemplate 
 
 // GetDomain retrieves a specific domain by ID or name
 func (s *DomainService) GetDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
-	return domainGetHelper[Domain](s, ctx, "/v1/domains/%s", domainIDOrName, "failed to get domain")
+	return domainGetHelper[Domain](ctx, s, "/v1/domains/%s", domainIDOrName, "failed to get domain")
 }
 
 // CreateDomain creates a new domain
@@ -153,7 +153,7 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 		Path: fmt.Sprintf("/v1/domains/%s", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("DELETE", u.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -190,7 +190,7 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 		Path: fmt.Sprintf("/v1/domains/%s/dns", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequest("GET", u.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -205,12 +205,12 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 
 // GetDomainQuota retrieves quota information for a domain
 func (s *DomainService) GetDomainQuota(ctx context.Context, domainIDOrName string) (*DomainQuota, error) {
-	return domainGetHelper[DomainQuota](s, ctx, "/v1/domains/%s/quota", domainIDOrName, "failed to get domain quota")
+	return domainGetHelper[DomainQuota](ctx, s, "/v1/domains/%s/quota", domainIDOrName, "failed to get domain quota")
 }
 
 // GetDomainStats retrieves statistics for a domain
 func (s *DomainService) GetDomainStats(ctx context.Context, domainIDOrName string) (*DomainStats, error) {
-	return domainGetHelper[DomainStats](s, ctx, "/v1/domains/%s/stats", domainIDOrName, "failed to get domain stats")
+	return domainGetHelper[DomainStats](ctx, s, "/v1/domains/%s/stats", domainIDOrName, "failed to get domain stats")
 }
 
 // AddDomainMember adds a member to a domain
@@ -249,7 +249,7 @@ func (s *DomainService) RemoveDomainMember(ctx context.Context, domainIDOrName, 
 		Path: fmt.Sprintf("/v1/domains/%s/members/%s", url.PathEscape(domainIDOrName), url.PathEscape(memberID)),
 	})
 
-	req, err := http.NewRequest("DELETE", u.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

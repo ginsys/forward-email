@@ -47,7 +47,7 @@ func (s *AliasService) ListAliases(ctx context.Context, opts *ListAliasesOptions
 	}
 	u.RawQuery = params.Encode()
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -89,7 +89,7 @@ func (s *AliasService) GetAlias(ctx context.Context, domain, aliasID string) (*A
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s", domain, aliasID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -131,7 +131,7 @@ func (s *AliasService) CreateAlias(ctx context.Context, domain string, req *Crea
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -173,7 +173,7 @@ func (s *AliasService) UpdateAlias(ctx context.Context, domain, aliasID string, 
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("PUT", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "PUT", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -198,7 +198,7 @@ func (s *AliasService) DeleteAlias(ctx context.Context, domain, aliasID string) 
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s", domain, aliasID)})
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -221,7 +221,7 @@ func (s *AliasService) GeneratePassword(ctx context.Context, domain, aliasID str
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s/generate-password", domain, aliasID)})
 
-	req, err := http.NewRequest("POST", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -275,7 +275,7 @@ func (s *AliasService) GetAliasQuota(ctx context.Context, domain, aliasID string
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s/quota", domain, aliasID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -299,7 +299,7 @@ func (s *AliasService) GetAliasStats(ctx context.Context, domain, aliasID string
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s/stats", domain, aliasID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

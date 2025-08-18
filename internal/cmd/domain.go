@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"strconv"
@@ -10,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/pkg/api"
-    "github.com/ginsys/forward-email/pkg/output"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/pkg/api"
+	"github.com/ginsys/forward-email/pkg/output"
 )
 
 var (
@@ -201,7 +202,7 @@ func init() {
 	domainMembersAddCmd.Flags().String("group", "user", "Member group (admin, user)")
 }
 
-func runDomainList(cmd *cobra.Command, args []string) error {
+func runDomainList(_ *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -297,7 +298,7 @@ func domainOperationRunner[T any](
 	})
 }
 
-func runDomainGet(cmd *cobra.Command, args []string) error {
+func runDomainGet(_ *cobra.Command, args []string) error {
 	return domainOperationRunner(
 		args,
 		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.Domain, error) {
@@ -334,7 +335,7 @@ func runDomainCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create domain: %w", err)
 	}
 
-    cmd.Printf("Domain '%s' created successfully\n", domain.Name)
+	cmd.Printf("Domain '%s' created successfully\n", domain.Name)
 
 	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
@@ -414,7 +415,7 @@ func runDomainUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update domain: %w", err)
 	}
 
-    cmd.Printf("Domain '%s' updated successfully\n", domain.Name)
+	cmd.Printf("Domain '%s' updated successfully\n", domain.Name)
 
 	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
 		if format == output.FormatTable || format == output.FormatCSV {
@@ -428,12 +429,13 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
 
 	if !force {
-		fmt.Printf("Are you sure you want to delete domain '%s'? This action cannot be undone.\n", args[0])
-		fmt.Print("Type 'yes' to confirm: ")
-		var confirmation string
-		fmt.Scanln(&confirmation)
-		if strings.ToLower(confirmation) != "yes" {
-			fmt.Println("Domain deletion canceled")
+		cmd.Printf("Are you sure you want to delete domain '%s'? This action cannot be undone.\n", args[0])
+		cmd.Print("Type 'yes' to confirm: ")
+		reader := bufio.NewReader(cmd.InOrStdin())
+		line, _ := reader.ReadString('\n')
+		confirmation := strings.TrimSpace(line)
+		if !strings.EqualFold(confirmation, "yes") {
+			cmd.Println("Domain deletion canceled")
 			return nil
 		}
 	}
@@ -450,11 +452,11 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to delete domain: %w", err)
 	}
 
-    cmd.Printf("Domain '%s' deleted successfully\n", args[0])
+	cmd.Printf("Domain '%s' deleted successfully\n", args[0])
 	return nil
 }
 
-func runDomainVerify(cmd *cobra.Command, args []string) error {
+func runDomainVerify(_ *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -482,7 +484,7 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 	})
 }
 
-func runDomainDNS(cmd *cobra.Command, args []string) error {
+func runDomainDNS(_ *cobra.Command, args []string) error {
 	return domainOperationRunner(
 		args,
 		func(ctx context.Context, domains *api.DomainService, domainID string) ([]api.DNSRecord, error) {
@@ -498,7 +500,7 @@ func runDomainDNS(cmd *cobra.Command, args []string) error {
 	)
 }
 
-func runDomainQuota(cmd *cobra.Command, args []string) error {
+func runDomainQuota(_ *cobra.Command, args []string) error {
 	return domainOperationRunner(
 		args,
 		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainQuota, error) {
@@ -514,7 +516,7 @@ func runDomainQuota(cmd *cobra.Command, args []string) error {
 	)
 }
 
-func runDomainStats(cmd *cobra.Command, args []string) error {
+func runDomainStats(_ *cobra.Command, args []string) error {
 	return domainOperationRunner(
 		args,
 		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainStats, error) {
@@ -530,7 +532,7 @@ func runDomainStats(cmd *cobra.Command, args []string) error {
 	)
 }
 
-func runDomainMembersList(cmd *cobra.Command, args []string) error {
+func runDomainMembersList(_ *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -575,12 +577,12 @@ func runDomainMembersAdd(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Member '%s' added to domain '%s' with group '%s'\n", args[1], args[0], group)
 
-	return formatOutput(member, viper.GetString("output"), func(format output.Format) (interface{}, error) {
+	return formatOutput(member, viper.GetString("output"), func(_ output.Format) (interface{}, error) {
 		return member, nil
 	})
 }
 
-func runDomainMembersRemove(cmd *cobra.Command, args []string) error {
+func runDomainMembersRemove(_ *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

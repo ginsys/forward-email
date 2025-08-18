@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	ServiceName = "forward-email"
+	ServiceName   = "forward-email"
+	testPassConst = "test-password"
 )
 
 // Keyring provides a wrapper around the keyring library
@@ -131,12 +132,10 @@ func MockKeyring() (*Keyring, error) {
 	}
 
 	config := Config{
-		ServiceName:     ServiceName,
-		AllowedBackends: []keyring.BackendType{keyring.FileBackend},
-		FileDir:         tmpDir,
-		FilePasswordFunc: func(string) (string, error) {
-			return "test-password", nil
-		},
+		ServiceName:      ServiceName,
+		AllowedBackends:  []keyring.BackendType{keyring.FileBackend},
+		FileDir:          tmpDir,
+		FilePasswordFunc: func(string) (string, error) { return testPassConst, nil },
 	}
 
 	return New(config)

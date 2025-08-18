@@ -1,19 +1,19 @@
 package cmd
 
 import (
-    "bufio"
-    "context"
-    "fmt"
-    "sort"
-    "strconv"
-    "strings"
+	"bufio"
+	"context"
+	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/pkg/api"
-    "github.com/ginsys/forward-email/pkg/output"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/pkg/api"
+	"github.com/ginsys/forward-email/pkg/output"
 )
 
 var (
@@ -239,7 +239,7 @@ func init() {
 	aliasCreateCmd.Flags().BoolVar(&aliasPGPFlag, "pgp", false, "Enable PGP encryption")
 	aliasCreateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "PGP public key")
 	// Validation is handled in runAliasCreate to produce clear error messages
-	aliasCreateCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
+	aliasCreateCmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
 		if strings.Contains(err.Error(), "required flag(s) \"recipients\"") {
 			return fmt.Errorf("at least one recipient is required")
 		}
@@ -259,7 +259,7 @@ func init() {
 	// Recipients command flags
 	aliasRecipientsCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "New recipient email addresses")
 	// Validation is handled in runAliasRecipients to produce clear error messages
-	aliasRecipientsCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
+	aliasRecipientsCmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
 		if strings.Contains(err.Error(), "required flag(s) \"recipients\"") {
 			return fmt.Errorf("at least one recipient is required")
 		}
@@ -272,7 +272,6 @@ func init() {
 
 // formatAliasListMultiDomain formats aliases from multiple domains with proper domain resolution
 func formatAliasListMultiDomain(aliases []api.Alias, format output.Format, domainMap map[string]string) (*output.TableData, error) {
-
 	if format != output.FormatTable && format != output.FormatCSV {
 		return nil, fmt.Errorf("use direct JSON/YAML encoding for aliases")
 	}
@@ -286,15 +285,9 @@ func formatAliasListMultiDomain(aliases []api.Alias, format output.Format, domai
 
 		var recipients, labels string
 
-		// For CSV, show full data without truncation
-		if format == output.FormatCSV {
-			recipients = strings.Join(alias.Recipients, ", ")
-			labels = strings.Join(alias.Labels, ", ")
-		} else {
-			// For table, use intelligent text wrapping
-			recipients = strings.Join(alias.Recipients, ", ")
-			labels = strings.Join(alias.Labels, ", ")
-		}
+		// Build recipients/labels string (same for table and CSV)
+		recipients = strings.Join(alias.Recipients, ", ")
+		labels = strings.Join(alias.Labels, ", ")
 
 		var created string
 		if alias.CreatedAt.IsZero() {
@@ -345,7 +338,7 @@ func formatAliasListWithCustomColumns(aliases []api.Alias, format output.Format,
 
 	for _, col := range columnNames {
 		if !validColumns[col] {
-			return nil, fmt.Errorf("invalid column '%s'. Valid columns: name, domain, recipients, enabled, imap, labels, created, updated, description, pgp, id", col)
+			return nil, fmt.Errorf("invalid column '%s'. Valid columns: %s", col, validColumnsList)
 		}
 	}
 
@@ -367,21 +360,13 @@ func formatAliasListWithCustomColumns(aliases []api.Alias, format output.Format,
 			case "DOMAIN":
 				row[i] = domainName
 			case "RECIPIENTS":
-				if format == output.FormatCSV {
-					row[i] = strings.Join(alias.Recipients, ", ")
-				} else {
-					row[i] = strings.Join(alias.Recipients, ", ")
-				}
+				row[i] = strings.Join(alias.Recipients, ", ")
 			case "ENABLED":
 				row[i] = output.FormatValue(alias.IsEnabled)
 			case "IMAP":
 				row[i] = output.FormatValue(alias.HasIMAP)
 			case "LABELS":
-				if format == output.FormatCSV {
-					row[i] = strings.Join(alias.Labels, ", ")
-				} else {
-					row[i] = strings.Join(alias.Labels, ", ")
-				}
+				row[i] = strings.Join(alias.Labels, ", ")
 			case "CREATED":
 				if alias.CreatedAt.IsZero() {
 					row[i] = "-"
@@ -471,14 +456,14 @@ func parseSortCriteria(orderBy string) ([]sortCriterion, error) {
 			direction := strings.ToLower(fieldParts[1])
 			if direction == "desc" {
 				descending = true
-			} else if direction != "asc" {
+			} else if direction != sortAsc {
 				return nil, fmt.Errorf("invalid sort direction '%s'. Use 'asc' or 'desc'", direction)
 			}
 		}
 
 		fieldName = strings.ToLower(fieldName)
 		if !validFields[fieldName] {
-			return nil, fmt.Errorf("invalid sort field '%s'. Valid fields: name, domain, enabled, imap, created, updated, recipients, labels", fieldName)
+			return nil, fmt.Errorf("invalid sort field '%s'. Valid fields: %s", fieldName, "name, domain, enabled, imap, created, updated, recipients, labels")
 		}
 
 		criteria[i] = sortCriterion{
@@ -494,7 +479,7 @@ func parseSortCriteria(orderBy string) ([]sortCriterion, error) {
 // Returns: -1 if a < b, 0 if a == b, 1 if a > b
 func compareAliases(a, b api.Alias, criterion sortCriterion, domainMap map[string]string) int {
 	switch criterion.field {
-	case "name":
+	case sortFieldName:
 		return strings.Compare(a.Name, b.Name)
 	case "domain":
 		domainA := a.DomainID
@@ -613,14 +598,14 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 	// Parse boolean flags
 	var enabled *bool
 	if aliasEnabled != "" {
-		if val, err := strconv.ParseBool(aliasEnabled); err == nil {
+		if val, parseErr := strconv.ParseBool(aliasEnabled); parseErr == nil {
 			enabled = &val
 		}
 	}
 
 	var hasIMAP *bool
 	if aliasHasIMAP != "" {
-		if val, err := strconv.ParseBool(aliasHasIMAP); err == nil {
+		if val, parseErr := strconv.ParseBool(aliasHasIMAP); parseErr == nil {
 			hasIMAP = &val
 		}
 	}
@@ -647,9 +632,9 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 			HasIMAP: hasIMAP,
 		}
 
-		response, err := apiClient.Aliases.ListAliases(ctx, opts)
-		if err != nil {
-			fmt.Printf("Warning: failed to list aliases for domain %s: %v\n", domain, err)
+		response, listErr := apiClient.Aliases.ListAliases(ctx, opts)
+		if listErr != nil {
+			fmt.Printf("Warning: failed to list aliases for domain %s: %v\n", domain, listErr)
 			continue
 		}
 
@@ -677,9 +662,8 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 
 	// Apply custom sorting if specified
 	if aliasOrderBy != "" {
-		err := sortAliases(allAliases, domainMap, aliasOrderBy)
-		if err != nil {
-			return fmt.Errorf("failed to sort aliases: %v", err)
+		if sortErr := sortAliases(allAliases, domainMap, aliasOrderBy); sortErr != nil {
+			return fmt.Errorf("failed to sort aliases: %v", sortErr)
 		}
 	}
 
@@ -799,26 +783,25 @@ func runAliasCreate(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasName string
 
-    if len(args) == 2 {
-        // Domain and alias name provided as positional arguments
-        domain = args[0]
-        aliasName = args[1]
-    } else if len(args) == 1 {
-        // One argument provided; decide whether it's domain or alias name
-        if domain != "" {
-            // Domain was provided via flag; single arg must be alias name
-            aliasName = args[0]
-        } else if len(aliasRecipients) > 0 {
-            // Creating an alias (recipients given) but no domain specified
-            return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
-        } else {
-            // Likely domain provided without alias name
-            domain = args[0]
-            return fmt.Errorf("alias name is required")
-        }
-    } else {
-        return fmt.Errorf("alias name is required")
-    }
+	if len(args) == 2 {
+		// Domain and alias name provided as positional arguments
+		domain = args[0]
+		aliasName = args[1]
+	} else if len(args) == 1 {
+		// One argument provided; decide whether it's domain or alias name
+		if domain != "" {
+			// Domain was provided via flag; single arg must be alias name
+			aliasName = args[0]
+		} else if len(aliasRecipients) > 0 {
+			// Creating an alias (recipients given) but no domain specified
+			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
+		} else {
+			// Likely domain provided without alias name
+			return fmt.Errorf("alias name is required")
+		}
+	} else {
+		return fmt.Errorf("alias name is required")
+	}
 
 	if domain == "" {
 		return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
@@ -849,7 +832,7 @@ func runAliasCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create alias: %v", err)
 	}
 
-    cmd.Printf("✅ Alias '%s' created successfully\n", alias.Name)
+	cmd.Printf("✅ Alias '%s' created successfully\n", alias.Name)
 
 	format, err := output.ParseFormat(viper.GetString("output"))
 	if err != nil {
@@ -878,26 +861,25 @@ func runAliasUpdate(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-    if len(args) == 2 {
-        // Domain and alias ID provided as positional arguments
-        domain = args[0]
-        aliasID = args[1]
-    } else if len(args) == 1 {
-        if domain != "" {
-            // Domain provided via flag; single arg must be alias ID
-            aliasID = args[0]
-        } else {
-            // Decide based on argument shape: if it looks like a domain, alias ID is missing
-            if strings.Contains(args[0], ".") {
-                domain = args[0]
-                return fmt.Errorf("alias ID is required")
-            }
-            // Otherwise treat as alias ID with missing domain
-            return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
-        }
-    } else {
-        return fmt.Errorf("alias ID is required")
-    }
+	if len(args) == 2 {
+		// Domain and alias ID provided as positional arguments
+		domain = args[0]
+		aliasID = args[1]
+	} else if len(args) == 1 {
+		if domain != "" {
+			// Domain provided via flag; single arg must be alias ID
+			aliasID = args[0]
+		} else {
+			// Decide based on argument shape: if it looks like a domain, alias ID is missing
+			if strings.Contains(args[0], ".") {
+				return fmt.Errorf("alias ID is required")
+			}
+			// Otherwise treat as alias ID with missing domain
+			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
+		}
+	} else {
+		return fmt.Errorf("alias ID is required")
+	}
 
 	if domain == "" {
 		return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
@@ -943,7 +925,7 @@ func runAliasUpdate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update alias: %v", err)
 	}
 
-    cmd.Printf("✅ Alias '%s' updated successfully\n", alias.Name)
+	cmd.Printf("✅ Alias '%s' updated successfully\n", alias.Name)
 
 	format, err := output.ParseFormat(viper.GetString("output"))
 	if err != nil {
@@ -1001,24 +983,24 @@ func runAliasDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get alias: %v", err)
 	}
 
-    cmd.Printf("⚠️  Are you sure you want to delete alias '%s'? This action cannot be undone.\n", alias.Name)
-    cmd.Print("Type 'yes' to confirm: ")
+	cmd.Printf("⚠️  Are you sure you want to delete alias '%s'? This action cannot be undone.\n", alias.Name)
+	cmd.Print("Type 'yes' to confirm: ")
 
-    reader := bufio.NewReader(cmd.InOrStdin())
-    line, _ := reader.ReadString('\n')
-    confirmation := strings.TrimSpace(line)
+	reader := bufio.NewReader(cmd.InOrStdin())
+	line, _ := reader.ReadString('\n')
+	confirmation := strings.TrimSpace(line)
 
-	if strings.ToLower(confirmation) != "yes" {
-        cmd.Printf("❌ Deletion cancelled\n")
-        return nil
-    }
+	if !strings.EqualFold(confirmation, yesStr) {
+		cmd.Printf("❌ Deletion canceled\n")
+		return nil
+	}
 
 	err = apiClient.Aliases.DeleteAlias(ctx, domain, aliasID)
 	if err != nil {
 		return fmt.Errorf("failed to delete alias: %v", err)
 	}
 
-    cmd.Printf("✅ Alias '%s' deleted successfully\n", alias.Name)
+	cmd.Printf("✅ Alias '%s' deleted successfully\n", alias.Name)
 	return nil
 }
 
@@ -1057,7 +1039,7 @@ func runAliasEnable(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to enable alias: %v", err)
 	}
 
-    cmd.Printf("✅ Alias '%s' enabled successfully\n", alias.Name)
+	cmd.Printf("✅ Alias '%s' enabled successfully\n", alias.Name)
 	return nil
 }
 
@@ -1096,7 +1078,7 @@ func runAliasDisable(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to disable alias: %v", err)
 	}
 
-    cmd.Printf("✅ Alias '%s' disabled successfully\n", alias.Name)
+	cmd.Printf("✅ Alias '%s' disabled successfully\n", alias.Name)
 	return nil
 }
 
@@ -1139,8 +1121,8 @@ func runAliasRecipients(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update recipients: %v", err)
 	}
 
-    cmd.Printf("✅ Recipients updated for alias '%s'\n", alias.Name)
-    cmd.Printf("New recipients: %s\n", strings.Join(alias.Recipients, ", "))
+	cmd.Printf("✅ Recipients updated for alias '%s'\n", alias.Name)
+	cmd.Printf("New recipients: %s\n", strings.Join(alias.Recipients, ", "))
 	return nil
 }
 
@@ -1179,9 +1161,9 @@ func runAliasPassword(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to generate password: %v", err)
 	}
 
-    cmd.Printf("✅ New IMAP password generated\n")
-    cmd.Printf("Password: %s\n", response.Password)
-    cmd.Println("⚠️  Store this password securely - it cannot be retrieved again")
+	cmd.Printf("✅ New IMAP password generated\n")
+	cmd.Printf("Password: %s\n", response.Password)
+	cmd.Println("⚠️  Store this password securely - it cannot be retrieved again")
 	return nil
 }
 

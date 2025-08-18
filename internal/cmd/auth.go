@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/term"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/internal/keyring"
-    "github.com/ginsys/forward-email/pkg/auth"
-    "github.com/ginsys/forward-email/pkg/config"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/internal/keyring"
+	"github.com/ginsys/forward-email/pkg/auth"
+	"github.com/ginsys/forward-email/pkg/config"
 )
 
 // authCmd represents the auth command
@@ -85,7 +85,7 @@ func init() {
 	authLogoutCmd.Flags().Bool("all", false, "Log out from all profiles")
 }
 
-func runAuthVerify(cmd *cobra.Command, args []string) error {
+func runAuthVerify(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -111,7 +111,7 @@ func runAuthVerify(cmd *cobra.Command, args []string) error {
 			currentProfile = cfg.CurrentProfile
 		}
 		if currentProfile == "" {
-			currentProfile = "default"
+			currentProfile = defaultProfile
 		}
 	}
 
@@ -128,7 +128,7 @@ func runAuthVerify(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runAuthLogin(cmd *cobra.Command, args []string) error {
+func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -136,7 +136,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	if profile == "" {
 		profile = viper.GetString("profile")
 		if profile == "" {
-			profile = "default"
+			profile = defaultProfile
 		}
 	}
 
@@ -161,7 +161,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	fmt.Print("API Key: ")
 
 	// Read API key securely
-	apiKeyBytes, err := term.ReadPassword(int(syscall.Stdin))
+	apiKeyBytes, err := term.ReadPassword(syscall.Stdin)
 	if err != nil {
 		return fmt.Errorf("failed to read API key: %w", err)
 	}
@@ -212,7 +212,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runAuthLogout(cmd *cobra.Command, args []string) error {
+func runAuthLogout(cmd *cobra.Command, _ []string) error {
 	logoutAll := cmd.Flag("all").Value.String() == "true"
 	profile := cmd.Flag("profile").Value.String()
 
@@ -296,7 +296,7 @@ func logoutProfile(cfg *config.Config, kr *keyring.Keyring, profile string) erro
 	return fmt.Errorf("auth provider does not support credential management")
 }
 
-func runAuthStatus(cmd *cobra.Command, args []string) error {
+func runAuthStatus(_ *cobra.Command, _ []string) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {

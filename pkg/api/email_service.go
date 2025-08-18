@@ -30,7 +30,8 @@ func (s *EmailService) SendEmail(ctx context.Context, req *SendEmailRequest) (*S
 	}
 
 	// Validate email addresses
-	allRecipients := append(req.To, req.CC...)
+	allRecipients := append([]string{}, req.To...)
+	allRecipients = append(allRecipients, req.CC...)
 	allRecipients = append(allRecipients, req.BCC...)
 	for _, email := range allRecipients {
 		if strings.TrimSpace(email) == "" {
@@ -48,7 +49,7 @@ func (s *EmailService) SendEmail(ctx context.Context, req *SendEmailRequest) (*S
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -94,7 +95,7 @@ func (s *EmailService) SendBulkEmails(ctx context.Context, req *BulkEmailRequest
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -151,7 +152,7 @@ func (s *EmailService) ListEmails(ctx context.Context, opts *ListEmailsOptions) 
 		u.RawQuery = params.Encode()
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -190,7 +191,7 @@ func (s *EmailService) GetEmail(ctx context.Context, emailID string) (*Email, er
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s", emailID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -211,7 +212,7 @@ func (s *EmailService) DeleteEmail(ctx context.Context, emailID string) error {
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s", emailID)})
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", u.String(), http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -227,7 +228,7 @@ func (s *EmailService) DeleteEmail(ctx context.Context, emailID string) error {
 func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/quota"})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -244,7 +245,7 @@ func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
 func (s *EmailService) GetEmailStats(ctx context.Context) (*EmailStats, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/stats"})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -258,7 +259,7 @@ func (s *EmailService) GetEmailStats(ctx context.Context) (*EmailStats, error) {
 }
 
 // ValidateRecipients validates email addresses before sending
-func (s *EmailService) ValidateRecipients(ctx context.Context, recipients []string) error {
+func (s *EmailService) ValidateRecipients(_ context.Context, recipients []string) error {
 	if len(recipients) == 0 {
 		return fmt.Errorf("at least one recipient is required")
 	}
@@ -289,7 +290,7 @@ func (s *EmailService) GetBulkJobStatus(ctx context.Context, jobID string) (*Bul
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/bulk/%s", jobID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -313,7 +314,7 @@ func (s *EmailService) GetAttachment(ctx context.Context, emailID, attachmentID 
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s/attachments/%s", emailID, attachmentID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -337,7 +338,7 @@ func (s *EmailService) DownloadAttachment(ctx context.Context, emailID, attachme
 
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s/attachments/%s/download", emailID, attachmentID)})
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

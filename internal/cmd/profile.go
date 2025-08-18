@@ -1,14 +1,15 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-    "github.com/ginsys/forward-email/internal/keyring"
-    "github.com/ginsys/forward-email/pkg/config"
-    "github.com/ginsys/forward-email/pkg/output"
+	"github.com/ginsys/forward-email/internal/keyring"
+	"github.com/ginsys/forward-email/pkg/config"
+	"github.com/ginsys/forward-email/pkg/output"
 )
 
 // profileCmd represents the profile command
@@ -86,14 +87,14 @@ func init() {
 	profileDeleteCmd.Flags().BoolVarP(&profileForce, "force", "f", false, "Force deletion without confirmation")
 }
 
-func runProfileList(cmd *cobra.Command, args []string) error {
+func runProfileList(_ *cobra.Command, _ []string) error {
 	cfg, err := config.LoadWithoutDefaults()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Create table data for profiles
-	if profileOutputFormat == "table" {
+	if profileOutputFormat == outputTable {
 		headers := []string{"PROFILE", "CURRENT", "BASE_URL", "HAS_API_KEY", "OUTPUT", "TIMEOUT"}
 		table := output.NewTableData(headers)
 
@@ -105,13 +106,13 @@ func runProfileList(cmd *cobra.Command, args []string) error {
 
 			// Check if API key exists in keyring or config
 			hasAPIKey := "✗"
-			if profile.APIKey != "" {
+			if profile.APIKey != "" { // #nosec G101 - not a credential, a label
 				hasAPIKey = "✓ (config)"
 			} else {
 				// Check keyring
 				kr, krErr := keyring.New(keyring.Config{})
 				if krErr == nil {
-					if apiKey, getErr := kr.GetAPIKey(profileName); getErr == nil && apiKey != "" {
+					if apiKey, getErr := kr.GetAPIKey(profileName); getErr == nil && apiKey != "" { // #nosec G101 - label only
 						hasAPIKey = "✓ (keyring)"
 					}
 				}
@@ -150,7 +151,7 @@ func runProfileList(cmd *cobra.Command, args []string) error {
 	return formatter.Format(profileData)
 }
 
-func runProfileShow(cmd *cobra.Command, args []string) error {
+func runProfileShow(_ *cobra.Command, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -173,17 +174,17 @@ func runProfileShow(cmd *cobra.Command, args []string) error {
 	// Check API key location
 	apiKeyLocation := "none"
 	if profile.APIKey != "" {
-		apiKeyLocation = "config file"
+		apiKeyLocation = sourceConfigFile
 	} else {
 		kr, krErr := keyring.New(keyring.Config{})
 		if krErr == nil {
 			if apiKey, getErr := kr.GetAPIKey(profileName); getErr == nil && apiKey != "" {
-				apiKeyLocation = "OS keyring"
+				apiKeyLocation = sourceOSKeyring
 			}
 		}
 	}
 
-	if profileOutputFormat == "table" {
+	if profileOutputFormat == outputTable {
 		headers := []string{"PROPERTY", "VALUE"}
 		table := output.NewTableData(headers)
 
@@ -232,7 +233,7 @@ func runProfileShow(cmd *cobra.Command, args []string) error {
 	return formatter.Format(profileData)
 }
 
-func runProfileSwitch(cmd *cobra.Command, args []string) error {
+func runProfileSwitch(_ *cobra.Command, args []string) error {
 	profileName := args[0]
 
 	cfg, err := config.Load()
@@ -267,9 +268,10 @@ func runProfileDelete(cmd *cobra.Command, args []string) error {
 
 	if !profileForce {
 		fmt.Printf("Are you sure you want to delete profile '%s'? This will remove all associated credentials. [y/N]: ", profileName)
-		var response string
-		fmt.Scanln(&response)
-		if !strings.EqualFold(response, "y") && !strings.EqualFold(response, "yes") {
+		reader := bufio.NewReader(cmd.InOrStdin())
+		line, _ := reader.ReadString('\n')
+		response := strings.TrimSpace(line)
+		if !strings.EqualFold(response, "y") && !strings.EqualFold(response, yesStr) {
 			fmt.Println("Profile deletion canceled")
 			return nil
 		}
@@ -296,7 +298,7 @@ func runProfileDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-    cmd.Printf("Profile '%s' deleted successfully\n", profileName)
+	cmd.Printf("Profile '%s' deleted successfully\n", profileName)
 	return nil
 }
 
@@ -336,7 +338,7 @@ func runProfileCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-    cmd.Printf("Profile '%s' created successfully\n", profileName)
+	cmd.Printf("Profile '%s' created successfully\n", profileName)
 	if cfg.CurrentProfile == profileName {
 		fmt.Printf("Set as current profile\n")
 	}

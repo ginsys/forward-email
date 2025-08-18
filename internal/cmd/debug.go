@@ -8,10 +8,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/internal/keyring"
-    "github.com/ginsys/forward-email/pkg/auth"
-    "github.com/ginsys/forward-email/pkg/config"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/internal/keyring"
+	"github.com/ginsys/forward-email/pkg/auth"
+	"github.com/ginsys/forward-email/pkg/config"
 )
 
 // debugCmd represents the debug command
@@ -55,7 +55,7 @@ func init() {
 	debugCmd.AddCommand(debugAPICmd)
 }
 
-func runDebugKeys(cmd *cobra.Command, args []string) error {
+func runDebugKeys(_ *cobra.Command, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -127,7 +127,7 @@ func runDebugKeys(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runDebugAuth(cmd *cobra.Command, args []string) error {
+func runDebugAuth(_ *cobra.Command, args []string) error {
 	// Simulate the exact same flow as NewAPIClient
 	profile := viper.GetString("profile")
 	if len(args) > 0 {
@@ -261,7 +261,7 @@ func runDebugAPI(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-    cmd.Printf("✅ API client created successfully\n")
+	cmd.Printf("✅ API client created successfully\n")
 
 	// Try a simple API call
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

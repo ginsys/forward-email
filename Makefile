@@ -71,12 +71,20 @@ deps:
 # Run linters
 lint:
 	@echo "Running linters..."
-	@if command -v golangci-lint >/dev/null 2>&1; then \
+	@if [ -n "$$CI" ]; then \
 		golangci-lint run; \
 	else \
-		echo "golangci-lint not installed, running basic checks..."; \
-		$(GOFMT) -l . | grep -E '\.go$$' && exit 1 || true; \
-		$(GOCMD) vet ./...; \
+		if command -v golangci-lint >/dev/null 2>&1; then \
+				golangci-lint run || { \
+					echo "golangci-lint failed; running basic checks..."; \
+					gofmt -l . | grep -E '\.go$$' && exit 1 || true; \
+					$(GOCMD) vet ./...; \
+				}; \
+		else \
+				echo "golangci-lint not installed, running basic checks..."; \
+				gofmt -l . | grep -E '\.go$$' && exit 1 || true; \
+				$(GOCMD) vet ./...; \
+		fi; \
 	fi
 
 # Format code

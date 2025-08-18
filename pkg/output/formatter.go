@@ -14,6 +14,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	yesLabel = "Yes"
+	noLabel  = "No"
+)
+
 // Format represents the output format
 type Format string
 
@@ -84,14 +89,14 @@ func (f *Formatter) formatTable(data interface{}) error {
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			table.Append(convertToInterface(row)...)
+			table.Append(convertToInterface(row)...) //nolint:errcheck
 		}
 	case *TableData:
 		table.Header(convertToInterface(v.Headers)...)
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			table.Append(convertToInterface(row)...)
+			table.Append(convertToInterface(row)...) //nolint:errcheck
 		}
 	default:
 		return fmt.Errorf("table format requires TableData struct, got %T", data)
@@ -101,9 +106,7 @@ func (f *Formatter) formatTable(data interface{}) error {
 }
 
 // wrapTableContent intelligently wraps long content in table cells (deprecated, use wrapTableContentWithWidth)
-func (f *Formatter) wrapTableContent(rows [][]string, headers []string) [][]string {
-	return f.wrapTableContentWithWidth(rows, headers, 80) // Default width
-}
+// Removed: wrapTableContent (deprecated)
 
 // wrapTableContentWithWidth intelligently wraps long content in table cells using specified terminal width
 func (f *Formatter) wrapTableContentWithWidth(rows [][]string, headers []string, terminalWidth int) [][]string {
@@ -241,9 +244,9 @@ func (f *Formatter) distributeWidthIntelligently(headers []string, originalWidth
 		switch headerLower {
 		case "recipients":
 			// Recipients need enough space for email addresses
-			reasonableWidth = min(reasonableWidth, 30)
+			reasonableWidth = minInt(reasonableWidth, 30)
 		default:
-			reasonableWidth = min(reasonableWidth, 20)
+			reasonableWidth = minInt(reasonableWidth, 20)
 		}
 
 		if remainingWidth >= reasonableWidth {
@@ -251,8 +254,8 @@ func (f *Formatter) distributeWidthIntelligently(headers []string, originalWidth
 			remainingWidth -= reasonableWidth
 		} else {
 			// Give it what we can, but at least 8 chars
-			colWidths[i] = max(8, remainingWidth/max(1, len(otherIndices)))
-			remainingWidth = max(0, remainingWidth-colWidths[i])
+			colWidths[i] = maxInt(8, remainingWidth/maxInt(1, len(otherIndices)))
+			remainingWidth = maxInt(0, remainingWidth-colWidths[i])
 		}
 	}
 
@@ -291,14 +294,14 @@ func (f *Formatter) distributeWidthIntelligently(headers []string, originalWidth
 }
 
 // Helper functions for min/max
-func min(a, b int) int {
+func minInt(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func max(a, b int) int {
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}
@@ -396,94 +399,7 @@ func wrapText(text string, width int) string {
 	return strings.Join(lines, "\n")
 }
 
-// calculateOptimalWidthForColumn determines the best width for a specific column
-func calculateOptimalWidthForColumn(header string, rows [][]string, colIndex int) int {
-	// Start with header length
-	maxWidth := len(header)
-
-	// Analyze content in this column
-	for _, row := range rows {
-		if colIndex < len(row) {
-			cellLength := len(row[colIndex])
-			if cellLength > maxWidth {
-				maxWidth = cellLength
-			}
-		}
-	}
-
-	// Get terminal width to determine if we can be more generous with column widths
-	terminalWidth := getTerminalWidth()
-
-	// Calculate available space per column (rough estimate)
-	// Account for borders, padding, and assume this column gets 1/numColumns of space
-	numColumns := len(rows[0])
-	if numColumns == 0 {
-		numColumns = 1
-	}
-
-	// Rough calculation: terminal width minus borders and padding, divided by number of columns
-	availablePerColumn := (terminalWidth - (numColumns * 4)) / numColumns // 4 chars for borders/padding per column
-
-	// Apply content-type specific limits, but be more generous if terminal is wide
-	switch {
-	case strings.Contains(strings.ToLower(header), "recipient"):
-		limit := 40
-		if terminalWidth > 120 {
-			limit = 60 // More generous on wide terminals
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	case strings.Contains(strings.ToLower(header), "label"):
-		limit := 25
-		if terminalWidth > 120 {
-			limit = 40
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	case strings.Contains(strings.ToLower(header), "name"):
-		limit := 20
-		if terminalWidth > 120 {
-			limit = 30
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	case strings.Contains(strings.ToLower(header), "domain"):
-		limit := 25
-		if terminalWidth > 120 {
-			limit = 35
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	case strings.Contains(strings.ToLower(header), "description"):
-		limit := 60
-		if terminalWidth > 150 {
-			limit = 100
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	default:
-		// General content should not exceed 50 characters, but be more generous on wide terminals
-		limit := 50
-		if terminalWidth > 120 {
-			limit = 80
-		}
-		if maxWidth > limit && availablePerColumn < limit {
-			maxWidth = limit
-		}
-	}
-
-	// Ensure minimum readability
-	if maxWidth < 8 {
-		maxWidth = 8
-	}
-
-	return maxWidth
-}
+// calculateOptimalWidthForColumn: removed (was unused helper for column sizing)
 
 // convertToInterface converts a slice of strings to a slice of interface{}
 func convertToInterface(strings []string) []interface{} {
@@ -594,9 +510,9 @@ func FormatValue(value interface{}) string {
 		return v
 	case bool:
 		if v {
-			return "Yes"
+			return yesLabel
 		}
-		return "No"
+		return noLabel
 	case int, int64, int32:
 		return fmt.Sprintf("%d", v)
 	case float64, float32:

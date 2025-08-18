@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-    "github.com/ginsys/forward-email/internal/client"
-    "github.com/ginsys/forward-email/pkg/api"
-    "github.com/ginsys/forward-email/pkg/auth"
+	"github.com/ginsys/forward-email/internal/client"
+	"github.com/ginsys/forward-email/pkg/api"
+	"github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestAliasListCommand(t *testing.T) {
@@ -1045,7 +1045,7 @@ func createTestRootCmd() *cobra.Command {
 	testAliasCreateCmd.Flags().BoolVar(&aliasEnableFlag, "enabled", true, "Enable the alias")
 	testAliasCreateCmd.Flags().BoolVar(&aliasIMAPFlag, "imap", false, "Enable IMAP access")
 	testAliasCreateCmd.Flags().BoolVar(&aliasPGPFlag, "pgp", false, "Enable PGP encryption")
-    testAliasCreateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "PGP public key")
+	testAliasCreateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "PGP public key")
 
 	// Update command flags
 	testAliasUpdateCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "Update recipient email addresses")
@@ -1058,7 +1058,7 @@ func createTestRootCmd() *cobra.Command {
 	testAliasUpdateCmd.Flags().StringVar(&aliasPublicKey, "public-key", "", "Update PGP public key")
 
 	// Recipients command flags
-    testAliasRecipientsCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "New recipient email addresses")
+	testAliasRecipientsCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "New recipient email addresses")
 
 	return cmd
 }

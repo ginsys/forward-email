@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-    "github.com/ginsys/forward-email/pkg/auth"
+	"github.com/ginsys/forward-email/pkg/auth"
 )
 
 func TestNewClient(t *testing.T) {
@@ -214,7 +214,7 @@ func TestClient_Do(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			req, err := http.NewRequestWithContext(ctx, "GET", server.URL+"/test", nil)
+			req, err := http.NewRequestWithContext(ctx, "GET", server.URL+"/test", http.NoBody)
 			if err != nil {
 				t.Fatalf("failed to create request: %v", err)
 			}

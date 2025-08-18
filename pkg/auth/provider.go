@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-    "github.com/ginsys/forward-email/internal/keyring"
-    "github.com/ginsys/forward-email/pkg/config"
+	"github.com/ginsys/forward-email/internal/keyring"
+	"github.com/ginsys/forward-email/pkg/config"
 )
 
 // Provider defines the interface for authentication
@@ -30,11 +30,9 @@ type ExtendedProvider interface {
 
 // ForwardEmailAuth implements authentication for Forward Email API
 type ForwardEmailAuth struct {
-	profile     string
-	config      *config.Config
-	keyring     *keyring.Keyring
-	cachedToken string
-	tokenExpiry time.Time
+	profile string
+	config  *config.Config
+	keyring *keyring.Keyring
 }
 
 // ProviderConfig holds configuration for creating auth providers
@@ -91,14 +89,14 @@ func (f *ForwardEmailAuth) Validate(ctx context.Context) error {
 	}
 
 	// Create a test request to validate credentials
-	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.forwardemail.net/v1/account", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.forwardemail.net/v1/account", http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create validation request: %w", err)
 	}
 
 	// Apply authentication
-	if err := f.Apply(req); err != nil {
-		return fmt.Errorf("failed to apply authentication: %w", err)
+	if err2 := f.Apply(req); err2 != nil {
+		return fmt.Errorf("failed to apply authentication: %w", err2)
 	}
 
 	// Make the request
@@ -245,7 +243,7 @@ func (m *mockAuth) Apply(req *http.Request) error {
 	return nil
 }
 
-func (m *mockAuth) Validate(ctx context.Context) error {
+func (m *mockAuth) Validate(_ context.Context) error {
 	if m.apiKey == "" {
 		return fmt.Errorf("mock API key is empty")
 	}

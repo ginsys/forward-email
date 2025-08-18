@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-    "github.com/ginsys/forward-email/pkg/api"
+	"github.com/ginsys/forward-email/pkg/api"
 )
 
 // FormatEmailList formats a list of emails for display
