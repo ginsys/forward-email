@@ -72,20 +72,20 @@ type DNSRecord struct {
 	Type     string `json:"type"`
 	Name     string `json:"name"`
 	Value    string `json:"value"`
+	Purpose  string `json:"purpose"`
 	Priority int    `json:"priority,omitempty"`
 	TTL      int    `json:"ttl,omitempty"`
 	Required bool   `json:"required"`
-	Purpose  string `json:"purpose"`
 }
 
 // DomainVerification represents the verification status of a domain
 type DomainVerification struct {
-	IsVerified      bool        `json:"is_verified"`
+	LastCheckedAt   time.Time   `json:"last_checked_at"`
 	DNSRecords      []DNSRecord `json:"dns_records"`
 	MissingRecords  []DNSRecord `json:"missing_records"`
-	LastCheckedAt   time.Time   `json:"last_checked_at"`
-	VerificationURL string      `json:"verification_url,omitempty"`
 	Errors          []string    `json:"errors,omitempty"`
+	VerificationURL string      `json:"verification_url,omitempty"`
+	IsVerified      bool        `json:"is_verified"`
 }
 
 // CreateDomainRequest represents a request to create a new domain
@@ -103,13 +103,13 @@ type UpdateDomainRequest struct {
 
 // ListDomainsOptions represents options for listing domains
 type ListDomainsOptions struct {
-	Page     int    `json:"page,omitempty"`
-	Limit    int    `json:"limit,omitempty"`
+	Verified *bool  `json:"verified,omitempty"`
 	Sort     string `json:"sort,omitempty"`
 	Order    string `json:"order,omitempty"`
 	Search   string `json:"search,omitempty"`
-	Verified *bool  `json:"verified,omitempty"`
 	Plan     string `json:"plan,omitempty"`
+	Page     int    `json:"page,omitempty"`
+	Limit    int    `json:"limit,omitempty"`
 }
 
 // ListDomainsResponse represents the response from listing domains
@@ -144,13 +144,13 @@ type DomainQuota struct {
 
 // DomainStats represents domain statistics
 type DomainStats struct {
+	LastActivityAt time.Time `json:"last_activity_at"`
+	CreatedAt      time.Time `json:"created_at"`
 	TotalAliases   int       `json:"total_aliases"`
 	ActiveAliases  int       `json:"active_aliases"`
 	TotalMembers   int       `json:"total_members"`
 	EmailsSent     int       `json:"emails_sent"`
 	EmailsReceived int       `json:"emails_received"`
-	LastActivityAt time.Time `json:"last_activity_at"`
-	CreatedAt      time.Time `json:"created_at"`
 }
 
 // DomainGroup represents domain permission groups

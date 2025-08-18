@@ -564,12 +564,12 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 	var domains []string
 	if aliasAllDomains {
 		// Get all available domains
-		domainList, err := apiClient.Domains.ListDomains(ctx, &api.ListDomainsOptions{
+		domainList, listErr := apiClient.Domains.ListDomains(ctx, &api.ListDomainsOptions{
 			Page:  1,
 			Limit: 1000, // Get all domains
 		})
-		if err != nil {
-			return fmt.Errorf("failed to fetch domains: %v", err)
+		if listErr != nil {
+			return fmt.Errorf("failed to fetch domains: %v", listErr)
 		}
 		for _, domain := range domainList.Domains {
 			domains = append(domains, domain.Name)

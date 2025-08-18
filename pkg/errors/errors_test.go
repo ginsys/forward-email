@@ -122,7 +122,14 @@ func TestNewValidationError(t *testing.T) {
 }
 
 // testErrorCreator is a helper function to reduce code duplication in error creation tests
-func testErrorCreator(t *testing.T, name string, creator func(string) *ForwardEmailError, expectedType string, expectedStatus int, customMessage, customExpected, defaultExpected string) {
+func testErrorCreator(
+	t *testing.T,
+	name string,
+	creator func(string) *ForwardEmailError,
+	expectedType string,
+	expectedStatus int,
+	customMessage, customExpected, defaultExpected string,
+) {
 	t.Helper()
 
 	tests := []struct {

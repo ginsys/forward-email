@@ -311,8 +311,13 @@ func TestAliasCreateCommand(t *testing.T) {
 			expectOut:   []string{"created successfully", "sales"},
 		},
 		{
-			name:        "create with labels and description",
-			args:        []string{"alias", "create", "example.com", "support", "--recipients", "support@company.com", "--labels", "urgent,customer", "--description", "Customer support"},
+			name: "create with labels and description",
+			args: []string{
+				"alias", "create", "example.com", "support",
+				"--recipients", "support@company.com",
+				"--labels", "urgent,customer",
+				"--description", "Customer support",
+			},
 			expectError: false,
 			expectOut:   []string{"created successfully", "support"},
 		},

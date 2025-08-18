@@ -7,14 +7,19 @@ import (
 	"github.com/99designs/keyring"
 )
 
+const (
+	testProfile = "test-profile"
+	testAPIKey  = "test-api-key-12345"
+)
+
 func TestKeyring_SetGetAPIKey(t *testing.T) {
 	kr, err := MockKeyring()
 	if err != nil {
 		t.Fatalf("failed to create mock keyring: %v", err)
 	}
 
-	profile := "test-profile"
-	apiKey := "test-api-key-12345"
+	profile := testProfile
+	apiKey := testAPIKey
 
 	// Test SetAPIKey
 	err = kr.SetAPIKey(profile, apiKey)
@@ -49,8 +54,8 @@ func TestKeyring_DeleteAPIKey(t *testing.T) {
 		t.Fatalf("failed to create mock keyring: %v", err)
 	}
 
-	profile := "test-profile"
-	apiKey := "test-api-key-12345"
+	profile := testProfile
+	apiKey := testAPIKey
 
 	// Set initial key
 	err = kr.SetAPIKey(profile, apiKey)
@@ -156,9 +161,9 @@ func TestKeyring_MultipleProfiles(t *testing.T) {
 
 	// Verify all profiles
 	for profile, expectedKey := range profiles {
-		retrievedKey, err := kr.GetAPIKey(profile)
-		if err != nil {
-			t.Errorf("GetAPIKey(%v) error = %v", profile, err)
+		retrievedKey, getErr := kr.GetAPIKey(profile)
+		if getErr != nil {
+			t.Errorf("GetAPIKey(%v) error = %v", profile, getErr)
 			continue
 		}
 
@@ -225,7 +230,7 @@ func TestNew_WithConfig(t *testing.T) {
 				ServiceName:     "test-service",
 				AllowedBackends: []keyring.BackendType{keyring.FileBackend},
 				FilePasswordFunc: func(string) (string, error) {
-					return "test-password", nil
+					return testPassConst, nil
 				},
 			},
 			wantErr: false,
@@ -238,7 +243,7 @@ func TestNew_WithConfig(t *testing.T) {
 			tt.config.AllowedBackends = []keyring.BackendType{keyring.FileBackend}
 			if tt.config.FilePasswordFunc == nil {
 				tt.config.FilePasswordFunc = func(string) (string, error) {
-					return "test-password", nil
+					return testPassConst, nil
 				}
 			}
 

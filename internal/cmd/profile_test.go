@@ -11,6 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const testConfigContent = `current_profile: "main"
+profiles:
+  main:
+    base_url: "https://api.forwardemail.net"
+    api_key: "main-key"
+    timeout: "30s"
+    output: "table"
+`
+
 func TestProfileCommands(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -76,14 +85,7 @@ profiles:
 				os.MkdirAll(configDir, 0755)
 
 				configFile := filepath.Join(configDir, "config.yaml")
-				configContent := `current_profile: "main"
-profiles:
-  main:
-    base_url: "https://api.forwardemail.net"
-    api_key: "main-key"
-    timeout: "30s"
-    output: "table"
-`
+				configContent := testConfigContent
 				os.WriteFile(configFile, []byte(configContent), 0600)
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
@@ -242,14 +244,7 @@ profiles: {}
 				os.MkdirAll(configDir, 0755)
 
 				configFile := filepath.Join(configDir, "config.yaml")
-				configContent := `current_profile: "main"
-profiles:
-  main:
-    base_url: "https://api.forwardemail.net"
-    api_key: "main-key"
-    timeout: "30s"
-    output: "table"
-`
+				configContent := testConfigContent
 				os.WriteFile(configFile, []byte(configContent), 0600)
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir

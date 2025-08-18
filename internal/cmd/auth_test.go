@@ -94,7 +94,7 @@ profiles: {}
 			}()
 
 			// Create root command with auth subcommand
-			rootCmd := &cobra.Command{Use: "forward-email"}
+			testRootCmd := &cobra.Command{Use: "forward-email"}
 
 			// Add auth command and its subcommands
 			authCmd := &cobra.Command{
@@ -137,16 +137,16 @@ in the OS keyring or configuration file.`,
 
 			// Build command hierarchy
 			authCmd.AddCommand(authVerifyCmd, authLoginCmd)
-			rootCmd.AddCommand(authCmd)
+			testRootCmd.AddCommand(authCmd)
 
 			// Capture output
 			var output bytes.Buffer
-			rootCmd.SetOut(&output)
-			rootCmd.SetErr(&output)
-			rootCmd.SetArgs(tt.args)
+			testRootCmd.SetOut(&output)
+			testRootCmd.SetErr(&output)
+			testRootCmd.SetArgs(tt.args)
 
 			// Execute command
-			err := rootCmd.Execute()
+			err := testRootCmd.Execute()
 
 			// Check results
 			if tt.expectError {
@@ -171,7 +171,7 @@ in the OS keyring or configuration file.`,
 
 func TestAuthCommandStructure(t *testing.T) {
 	// Test that auth commands are properly structured
-	rootCmd := &cobra.Command{Use: "test-root"}
+	structureRootCmd := &cobra.Command{Use: "test-root"}
 
 	authCmd := &cobra.Command{
 		Use:   "auth",
@@ -190,14 +190,14 @@ func TestAuthCommandStructure(t *testing.T) {
 
 	// Build hierarchy
 	authCmd.AddCommand(authVerifyCmd, authLoginCmd)
-	rootCmd.AddCommand(authCmd)
+	structureRootCmd.AddCommand(authCmd)
 
 	// Test structure
-	if len(rootCmd.Commands()) != 1 {
-		t.Errorf("Expected 1 command under root, got %d", len(rootCmd.Commands()))
+	if len(structureRootCmd.Commands()) != 1 {
+		t.Errorf("Expected 1 command under root, got %d", len(structureRootCmd.Commands()))
 	}
 
-	if rootCmd.Commands()[0] != authCmd {
+	if structureRootCmd.Commands()[0] != authCmd {
 		t.Error("Auth command not properly added to root")
 	}
 
@@ -323,7 +323,7 @@ func TestAuthHelpOutput(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create root command with auth subcommand
-			rootCmd := &cobra.Command{Use: "forward-email"}
+			helpRootCmd := &cobra.Command{Use: "forward-email"}
 
 			authCmd := &cobra.Command{
 				Use:   "auth",
@@ -354,16 +354,16 @@ in the OS keyring or configuration file.`,
 
 			// Build command hierarchy
 			authCmd.AddCommand(authVerifyCmd, authLoginCmd)
-			rootCmd.AddCommand(authCmd)
+			helpRootCmd.AddCommand(authCmd)
 
 			// Capture output
 			var output bytes.Buffer
-			rootCmd.SetOut(&output)
-			rootCmd.SetErr(&output)
-			rootCmd.SetArgs(tt.args)
+			helpRootCmd.SetOut(&output)
+			helpRootCmd.SetErr(&output)
+			helpRootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			rootCmd.Execute()
+			helpRootCmd.Execute()
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

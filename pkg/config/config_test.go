@@ -248,7 +248,7 @@ func TestConfig_Save(t *testing.T) {
 
 	// Verify the file was created
 	configPath := filepath.Join(tempDir, ".config", "forwardemail", "config.yaml")
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	if _, statErr := os.Stat(configPath); os.IsNotExist(statErr) {
 		t.Fatal("Config file was not created")
 	}
 

@@ -12,6 +12,10 @@ import (
 	"github.com/ginsys/forward-email/pkg/auth"
 )
 
+const (
+	errRequiredRecipient = "at least one recipient is required"
+)
+
 func TestAliasService_ListAliases(t *testing.T) {
 	// Create mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -422,7 +426,7 @@ func TestAliasService_CreateAlias_ValidationErrors(t *testing.T) {
 	// Test with empty recipients
 	req = &CreateAliasRequest{Name: "test"}
 	_, err = client.Aliases.CreateAlias(ctx, "example.com", req)
-	if err == nil || err.Error() != "at least one recipient is required" {
+	if err == nil || err.Error() != errRequiredRecipient {
 		t.Errorf("Expected 'at least one recipient is required' error, got: %v", err)
 	}
 
@@ -769,7 +773,7 @@ func TestAliasService_UpdateRecipients_ValidationError(t *testing.T) {
 
 	// Test with empty recipients
 	_, err = client.Aliases.UpdateRecipients(ctx, "example.com", "alias-id", []string{})
-	if err == nil || err.Error() != "at least one recipient is required" {
+	if err == nil || err.Error() != errRequiredRecipient {
 		t.Errorf("Expected 'at least one recipient is required' error, got: %v", err)
 	}
 }
