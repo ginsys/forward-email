@@ -36,7 +36,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
 			},
@@ -69,7 +69,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
 			},

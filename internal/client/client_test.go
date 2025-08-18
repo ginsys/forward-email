@@ -40,7 +40,7 @@ func TestNewAPIClient(t *testing.T) {
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 
 				// Set XDG_CONFIG_HOME to point to our temp dir
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
@@ -74,7 +74,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
@@ -100,7 +100,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
@@ -132,7 +132,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
@@ -159,7 +159,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0644)
+				os.WriteFile(configFile, []byte(configContent), 0600)
 
 				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 				return tempDir
@@ -243,7 +243,7 @@ profiles:
     base_url: "https://api.forwardemail.net"
     api_key: malformed yaml content here: [
 `
-	os.WriteFile(configFile, []byte(malformedContent), 0644)
+	os.WriteFile(configFile, []byte(malformedContent), 0600)
 
 	os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 	defer func() {
