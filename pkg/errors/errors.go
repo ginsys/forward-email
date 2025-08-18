@@ -24,8 +24,8 @@ type ForwardEmailError struct {
 	Type       string `json:"type"`
 	Message    string `json:"message"`
 	Code       string `json:"code,omitempty"`
-	StatusCode int    `json:"status_code"`
 	Details    string `json:"details,omitempty"`
+	StatusCode int    `json:"status_code"`
 }
 
 func (e *ForwardEmailError) Error() string {

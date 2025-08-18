@@ -30,16 +30,16 @@ type ExtendedProvider interface {
 
 // ForwardEmailAuth implements authentication for Forward Email API
 type ForwardEmailAuth struct {
-	profile string
 	config  *config.Config
 	keyring *keyring.Keyring
+	profile string
 }
 
 // ProviderConfig holds configuration for creating auth providers
 type ProviderConfig struct {
-	Profile string
 	Config  *config.Config
 	Keyring *keyring.Keyring
+	Profile string
 }
 
 // NewProvider creates a new authentication provider

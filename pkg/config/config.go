@@ -10,8 +10,8 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	CurrentProfile string             `yaml:"current_profile" mapstructure:"current_profile"`
 	Profiles       map[string]Profile `yaml:"profiles" mapstructure:"profiles"`
+	CurrentProfile string             `yaml:"current_profile" mapstructure:"current_profile"`
 }
 
 // Profile represents a configuration profile

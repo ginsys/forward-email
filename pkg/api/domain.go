@@ -6,8 +6,17 @@ import (
 
 // Domain represents a Forward Email domain
 type Domain struct {
+	CreatedAt             time.Time          `json:"created_at"`
+	UpdatedAt             time.Time          `json:"updated_at"`
+	Settings              *DomainSettings    `json:"settings,omitempty"`
+	Members               []DomainMember     `json:"members,omitempty"`
+	Invitations           []DomainInvitation `json:"invitations,omitempty"`
 	ID                    string             `json:"id"`
 	Name                  string             `json:"name"`
+	VerificationRecord    string             `json:"verification_record"`
+	Plan                  string             `json:"plan"`
+	MaxForwardedAddresses int                `json:"max_forwarded_addresses"`
+	RetentionDays         int                `json:"retention_days"`
 	IsGlobal              bool               `json:"is_global"`
 	HasMXRecord           bool               `json:"has_mx_record"`
 	HasTXTRecord          bool               `json:"has_txt_record"`
@@ -15,46 +24,37 @@ type Domain struct {
 	HasSPFRecord          bool               `json:"has_spf_record"`
 	HasDKIMRecord         bool               `json:"has_dkim_record"`
 	IsVerified            bool               `json:"is_verified"`
-	VerificationRecord    string             `json:"verification_record"`
-	MaxForwardedAddresses int                `json:"max_forwarded_addresses"`
-	RetentionDays         int                `json:"retention_days"`
-	Plan                  string             `json:"plan"`
-	Settings              *DomainSettings    `json:"settings,omitempty"`
-	Members               []DomainMember     `json:"members,omitempty"`
-	Invitations           []DomainInvitation `json:"invitations,omitempty"`
-	CreatedAt             time.Time          `json:"created_at"`
-	UpdatedAt             time.Time          `json:"updated_at"`
 }
 
 // DomainSettings represents domain-specific settings
 type DomainSettings struct {
-	HasAdultContentProtection bool   `json:"has_adult_content_protection"`
-	HasPhishingProtection     bool   `json:"has_phishing_protection"`
-	HasExecutableProtection   bool   `json:"has_executable_protection"`
-	HasVirusProtection        bool   `json:"has_virus_protection"`
+	WebhookURL                string `json:"webhook_url,omitempty"`
+	WebhookKey                string `json:"webhook_key,omitempty"`
 	SMTPPort                  int    `json:"smtp_port"`
 	IMAPPort                  int    `json:"imap_port"`
 	CalDAVPort                int    `json:"caldav_port"`
 	CardDAVPort               int    `json:"carddav_port"`
-	WebhookURL                string `json:"webhook_url,omitempty"`
-	WebhookKey                string `json:"webhook_key,omitempty"`
+	HasAdultContentProtection bool   `json:"has_adult_content_protection"`
+	HasPhishingProtection     bool   `json:"has_phishing_protection"`
+	HasExecutableProtection   bool   `json:"has_executable_protection"`
+	HasVirusProtection        bool   `json:"has_virus_protection"`
 }
 
 // DomainMember represents a domain member
 type DomainMember struct {
-	ID       string    `json:"id"`
-	User     User      `json:"user"`
-	Group    string    `json:"group"`
 	JoinedAt time.Time `json:"joined_at"`
+	User     User      `json:"user"`
+	ID       string    `json:"id"`
+	Group    string    `json:"group"`
 }
 
 // DomainInvitation represents a pending domain invitation
 type DomainInvitation struct {
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 	ID        string    `json:"id"`
 	Email     string    `json:"email"`
 	Group     string    `json:"group"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
 }
 
 // User represents a Forward Email user

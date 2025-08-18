@@ -17,15 +17,13 @@ type Client struct {
 	HTTPClient *http.Client
 	BaseURL    *url.URL
 	Auth       auth.Provider
+	Account    *AccountService
+	Domains    *DomainService
+	Aliases    *AliasService
+	Emails     *EmailService
+	Logs       *LogService
+	Crypto     *CryptoService
 	UserAgent  string
-
-	// Services
-	Account *AccountService
-	Domains *DomainService
-	Aliases *AliasService
-	Emails  *EmailService
-	Logs    *LogService
-	Crypto  *CryptoService
 }
 
 // ClientOption defines options for configuring the client
