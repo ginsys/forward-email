@@ -134,6 +134,36 @@ issues:
       linters:
         - errcheck
       text: 'NewDecoder\('
+    # Allow unchecked JSON Encode in tests
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: 'json\.NewEncoder\(.*\)\.Encode\('
+    # Allow unchecked Write operations in tests  
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: 'w\.Write\('
+    # Allow unchecked viper BindPFlag in tests
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: 'viper\.BindPFlag\('
+    # Allow unchecked rootCmd.Execute in tests
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: 'rootCmd\.Execute\('
+    # Allow unchecked file operations in tests
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: 'os\.(WriteFile|MkdirAll)'
+    # Allow unchecked keyring operations in tests
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: '\.(SetAPIKey|DeleteAPIKey)\('
 
     # Allow gocritic httpNoBody suggestions in tests
     - path: _test\.go

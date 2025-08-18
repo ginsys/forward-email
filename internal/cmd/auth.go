@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -161,7 +160,7 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	fmt.Print("API Key: ")
 
 	// Read API key securely
-	apiKeyBytes, err := term.ReadPassword(syscall.Stdin)
+	apiKeyBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return fmt.Errorf("failed to read API key: %w", err)
 	}
