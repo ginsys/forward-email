@@ -14,28 +14,35 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Standard labels for boolean value formatting across all output formats.
 const (
-	yesLabel = "Yes"
-	noLabel  = "No"
+	yesLabel = "Yes" // Standard label for true boolean values
+	noLabel  = "No"  // Standard label for false boolean values
 )
 
-// Format represents the output format
+// Format represents the available output format types for CLI responses.
+// Each format provides different benefits: table for readability, JSON/YAML for automation,
+// and CSV for spreadsheet integration.
 type Format string
 
 const (
-	FormatTable Format = "table"
-	FormatJSON  Format = "json"
-	FormatYAML  Format = "yaml"
-	FormatCSV   Format = "csv"
+	FormatTable Format = "table" // Human-readable table with proper column alignment
+	FormatJSON  Format = "json"  // Machine-readable JSON for API integration
+	FormatYAML  Format = "yaml"  // Human-readable YAML for configuration
+	FormatCSV   Format = "csv"   // Comma-separated values for spreadsheet import
 )
 
-// Formatter handles output formatting
+// Formatter handles output formatting for CLI responses.
+// It supports multiple output formats and provides consistent formatting
+// across all CLI commands with proper terminal width detection and alignment.
 type Formatter struct {
-	format Format
-	writer io.Writer
+	format Format    // The output format to use for rendering
+	writer io.Writer // The output destination (typically os.Stdout)
 }
 
-// NewFormatter creates a new formatter
+// NewFormatter creates a new output formatter with the specified format and writer.
+// If writer is nil, it defaults to os.Stdout. The formatter will handle terminal
+// width detection and proper alignment for table outputs automatically.
 func NewFormatter(format Format, writer io.Writer) *Formatter {
 	if writer == nil {
 		writer = os.Stdout
@@ -46,7 +53,9 @@ func NewFormatter(format Format, writer io.Writer) *Formatter {
 	}
 }
 
-// Format outputs data in the specified format
+// Format renders the provided data in the formatter's configured output format.
+// It handles type detection, proper formatting, and output generation for tables,
+// JSON, YAML, and CSV formats. The data structure determines the specific formatting logic.
 func (f *Formatter) Format(data interface{}) error {
 	switch f.format {
 	case FormatTable:

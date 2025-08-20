@@ -11,7 +11,9 @@ import (
 	"strings"
 )
 
-// ListAliases retrieves a list of aliases for a domain
+// ListAliases retrieves a list of aliases for a domain with optional filtering and pagination.
+// The domain parameter is required. Supports filtering by enabled status, labels, IMAP configuration,
+// and text search across alias names. Results can be sorted and paginated using the provided options.
 func (s *AliasService) ListAliases(ctx context.Context, opts *ListAliasesOptions) (*ListAliasesResponse, error) {
 	if opts == nil || opts.Domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -78,7 +80,9 @@ func (s *AliasService) ListAliases(ctx context.Context, opts *ListAliasesOptions
 	}, nil
 }
 
-// GetAlias retrieves a specific alias by ID
+// GetAlias retrieves a specific alias by ID within a domain.
+// Returns complete alias information including recipients, IMAP configuration, labels,
+// vacation responder settings, and PGP encryption status.
 func (s *AliasService) GetAlias(ctx context.Context, domain, aliasID string) (*Alias, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -102,7 +106,10 @@ func (s *AliasService) GetAlias(ctx context.Context, domain, aliasID string) (*A
 	return &alias, nil
 }
 
-// CreateAlias creates a new alias
+// CreateAlias creates a new alias within a domain.
+// Requires a name and at least one recipient. Optional settings include labels,
+// description, IMAP configuration, PGP encryption, and vacation responder.
+// Recipients can be email addresses, webhooks, or FQDN forwarding targets.
 func (s *AliasService) CreateAlias(ctx context.Context, domain string, req *CreateAliasRequest) (*Alias, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -145,7 +152,10 @@ func (s *AliasService) CreateAlias(ctx context.Context, domain string, req *Crea
 	return &alias, nil
 }
 
-// UpdateAlias updates an existing alias
+// UpdateAlias updates an existing alias configuration.
+// Only fields specified in the request will be updated; nil/empty fields are ignored.
+// Can modify recipients, labels, IMAP settings, vacation responder, and enabled status.
+// Returns the updated alias with the new configuration applied.
 func (s *AliasService) UpdateAlias(ctx context.Context, domain, aliasID string, req *UpdateAliasRequest) (*Alias, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -187,7 +197,9 @@ func (s *AliasService) UpdateAlias(ctx context.Context, domain, aliasID string, 
 	return &alias, nil
 }
 
-// DeleteAlias deletes an alias
+// DeleteAlias permanently deletes an alias and all associated data.
+// This operation cannot be undone and will remove all stored emails, configuration,
+// and forwarding rules for the alias. IMAP access will be immediately revoked.
 func (s *AliasService) DeleteAlias(ctx context.Context, domain, aliasID string) error {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
@@ -210,7 +222,10 @@ func (s *AliasService) DeleteAlias(ctx context.Context, domain, aliasID string) 
 	return nil
 }
 
-// GeneratePassword generates a new IMAP password for an alias
+// GeneratePassword generates a new IMAP password for an alias.
+// This invalidates any existing IMAP password and generates a new secure password
+// for accessing the alias via IMAP clients. The alias must have IMAP enabled.
+// Returns the new password which should be stored securely by the client.
 func (s *AliasService) GeneratePassword(ctx context.Context, domain, aliasID string) (*GeneratePasswordResponse, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -234,7 +249,9 @@ func (s *AliasService) GeneratePassword(ctx context.Context, domain, aliasID str
 	return &resp, nil
 }
 
-// EnableAlias enables an alias (convenience method)
+// EnableAlias enables an alias for email forwarding (convenience method).
+// This is a shortcut for UpdateAlias with IsEnabled set to true.
+// Once enabled, the alias will start receiving and forwarding emails.
 func (s *AliasService) EnableAlias(ctx context.Context, domain, aliasID string) (*Alias, error) {
 	enabled := true
 	req := &UpdateAliasRequest{
@@ -243,7 +260,9 @@ func (s *AliasService) EnableAlias(ctx context.Context, domain, aliasID string) 
 	return s.UpdateAlias(ctx, domain, aliasID, req)
 }
 
-// DisableAlias disables an alias (convenience method)
+// DisableAlias disables an alias to stop email forwarding (convenience method).
+// This is a shortcut for UpdateAlias with IsEnabled set to false.
+// When disabled, incoming emails to the alias will be rejected.
 func (s *AliasService) DisableAlias(ctx context.Context, domain, aliasID string) (*Alias, error) {
 	enabled := false
 	req := &UpdateAliasRequest{
@@ -252,7 +271,10 @@ func (s *AliasService) DisableAlias(ctx context.Context, domain, aliasID string)
 	return s.UpdateAlias(ctx, domain, aliasID, req)
 }
 
-// UpdateRecipients updates only the recipients of an alias (convenience method)
+// UpdateRecipients updates only the recipients of an alias (convenience method).
+// This is a shortcut for UpdateAlias that modifies only the recipients list.
+// Recipients can be email addresses, webhooks (starting with http/https),
+// or FQDN forwarding targets. At least one recipient is required.
 func (s *AliasService) UpdateRecipients(ctx context.Context, domain, aliasID string, recipients []string) (*Alias, error) {
 	if len(recipients) == 0 {
 		return nil, fmt.Errorf("at least one recipient is required")
@@ -264,7 +286,9 @@ func (s *AliasService) UpdateRecipients(ctx context.Context, domain, aliasID str
 	return s.UpdateAlias(ctx, domain, aliasID, req)
 }
 
-// GetAliasQuota retrieves quota information for an alias
+// GetAliasQuota retrieves quota information for an alias.
+// Returns current storage usage, email count, and bandwidth consumption
+// along with the configured limits for the alias based on the domain's plan.
 func (s *AliasService) GetAliasQuota(ctx context.Context, domain, aliasID string) (*AliasQuota, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
@@ -288,7 +312,9 @@ func (s *AliasService) GetAliasQuota(ctx context.Context, domain, aliasID string
 	return &quota, nil
 }
 
-// GetAliasStats retrieves usage statistics for an alias
+// GetAliasStats retrieves usage statistics for an alias.
+// Returns metrics including emails received/forwarded, bounce rates, spam scores,
+// IMAP access statistics, and historical usage data for monitoring purposes.
 func (s *AliasService) GetAliasStats(ctx context.Context, domain, aliasID string) (*AliasStats, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")

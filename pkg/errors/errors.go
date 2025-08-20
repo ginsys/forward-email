@@ -6,28 +6,35 @@ import (
 	"net/http"
 )
 
-// Error types
+// Standard error types for Forward Email API responses.
+// These sentinel errors can be used with errors.Is() for error type checking
+// and provide a consistent way to handle different classes of API errors.
 var (
-	ErrNotFound           = errors.New("resource not found")
-	ErrUnauthorized       = errors.New("unauthorized access")
-	ErrForbidden          = errors.New("access forbidden")
-	ErrValidation         = errors.New("validation failed")
-	ErrRateLimit          = errors.New("rate limit exceeded")
-	ErrServerError        = errors.New("internal server error")
-	ErrBadRequest         = errors.New("bad request")
-	ErrConflict           = errors.New("resource conflict")
-	ErrServiceUnavailable = errors.New("service unavailable")
+	ErrNotFound           = errors.New("resource not found")    // 404 - Resource does not exist
+	ErrUnauthorized       = errors.New("unauthorized access")   // 401 - Authentication required
+	ErrForbidden          = errors.New("access forbidden")      // 403 - Access denied
+	ErrValidation         = errors.New("validation failed")     // 400/422 - Input validation errors
+	ErrRateLimit          = errors.New("rate limit exceeded")   // 429 - Too many requests
+	ErrServerError        = errors.New("internal server error") // 500 - Server-side error
+	ErrBadRequest         = errors.New("bad request")           // 400 - Malformed request
+	ErrConflict           = errors.New("resource conflict")     // 409 - Resource already exists
+	ErrServiceUnavailable = errors.New("service unavailable")   // 503 - Service temporarily down
 )
 
-// ForwardEmailError represents a Forward Email API error
+// ForwardEmailError represents a structured error from the Forward Email API.
+// It captures both HTTP status information and API-specific error details,
+// providing rich context for error handling and user-friendly error messages.
 type ForwardEmailError struct {
-	Type       string `json:"type"`
-	Message    string `json:"message"`
-	Code       string `json:"code,omitempty"`
-	Details    string `json:"details,omitempty"`
-	StatusCode int    `json:"status_code"`
+	Type       string `json:"type"`              // Error type classification
+	Message    string `json:"message"`           // Human-readable error message
+	Code       string `json:"code,omitempty"`    // API-specific error code
+	Details    string `json:"details,omitempty"` // Additional error context
+	StatusCode int    `json:"status_code"`       // HTTP status code
 }
 
+// Error implements the error interface for ForwardEmailError.
+// It formats the error message with type, code (if available), and message
+// to provide clear, actionable error information to users.
 func (e *ForwardEmailError) Error() string {
 	if e.Code != "" {
 		return fmt.Sprintf("%s (%s): %s", e.Type, e.Code, e.Message)
@@ -35,7 +42,9 @@ func (e *ForwardEmailError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Type, e.Message)
 }
 
-// Unwrap returns the underlying error type
+// Unwrap returns the corresponding sentinel error based on HTTP status code.
+// This enables error type checking with errors.Is() and allows consumers
+// to handle different error categories without checking status codes directly.
 func (e *ForwardEmailError) Unwrap() error {
 	switch e.StatusCode {
 	case http.StatusNotFound:

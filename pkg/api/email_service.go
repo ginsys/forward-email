@@ -11,7 +11,10 @@ import (
 	"strings"
 )
 
-// SendEmail sends a single email
+// SendEmail sends a single email via the Forward Email API.
+// Requires from address, at least one recipient, subject, and either text or HTML content.
+// Supports CC/BCC recipients, custom headers, and file attachments. The from address
+// must be a verified alias or catch-all for a domain under your account.
 func (s *EmailService) SendEmail(ctx context.Context, req *SendEmailRequest) (*SendEmailResponse, error) {
 	if req == nil {
 		return nil, fmt.Errorf("send request is required")
@@ -63,7 +66,10 @@ func (s *EmailService) SendEmail(ctx context.Context, req *SendEmailRequest) (*S
 	return &response, nil
 }
 
-// SendBulkEmails sends multiple emails in a batch
+// SendBulkEmails sends multiple emails in a single batch operation.
+// More efficient than individual SendEmail calls for large volumes. Each email
+// in the batch is validated independently. Returns a job ID for tracking progress
+// and detailed results for each email sent, including any failures.
 func (s *EmailService) SendBulkEmails(ctx context.Context, req *BulkEmailRequest) (*BulkEmailResponse, error) {
 	if req == nil {
 		return nil, fmt.Errorf("bulk request is required")
@@ -109,7 +115,10 @@ func (s *EmailService) SendBulkEmails(ctx context.Context, req *BulkEmailRequest
 	return &response, nil
 }
 
-// ListEmails retrieves a list of sent emails
+// ListEmails retrieves a list of sent emails with optional filtering and pagination.
+// Supports filtering by status, sender/recipient addresses, date ranges, and attachment presence.
+// Results can be searched by subject/content and sorted by various criteria.
+// Useful for tracking email delivery status and auditing sent messages.
 func (s *EmailService) ListEmails(ctx context.Context, opts *ListEmailsOptions) (*ListEmailsResponse, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails"})
 
@@ -183,7 +192,10 @@ func (s *EmailService) ListEmails(ctx context.Context, opts *ListEmailsOptions) 
 	}, nil
 }
 
-// GetEmail retrieves a specific email by ID
+// GetEmail retrieves a specific email by ID from the sent history.
+// Returns complete email information including content, recipients, attachments,
+// delivery status, bounce information, and tracking data. The email ID is obtained
+// from ListEmails or SendEmail responses.
 func (s *EmailService) GetEmail(ctx context.Context, emailID string) (*Email, error) {
 	if emailID == "" {
 		return nil, fmt.Errorf("email ID is required")
@@ -204,7 +216,10 @@ func (s *EmailService) GetEmail(ctx context.Context, emailID string) (*Email, er
 	return &email, nil
 }
 
-// DeleteEmail deletes an email from the sent history
+// DeleteEmail deletes an email from the sent history and audit logs.
+// This operation cannot be undone and will remove all associated metadata,
+// attachments, and delivery tracking information. The actual delivered email
+// remains in recipients' inboxes.
 func (s *EmailService) DeleteEmail(ctx context.Context, emailID string) error {
 	if emailID == "" {
 		return fmt.Errorf("email ID is required")
@@ -224,7 +239,10 @@ func (s *EmailService) DeleteEmail(ctx context.Context, emailID string) error {
 	return nil
 }
 
-// GetEmailQuota retrieves daily email sending quota information
+// GetEmailQuota retrieves daily email sending quota information.
+// Returns current usage against daily sending limits, quota reset time,
+// and any temporary restrictions. Quotas are enforced per account and
+// may vary based on subscription plan and sending reputation.
 func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/quota"})
 
@@ -241,7 +259,10 @@ func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
 	return &quota, nil
 }
 
-// GetEmailStats retrieves email usage statistics
+// GetEmailStats retrieves comprehensive email usage statistics.
+// Returns metrics including total emails sent, delivery rates, bounce rates,
+// spam scores, and historical trends. Useful for monitoring sending reputation
+// and optimizing email delivery performance.
 func (s *EmailService) GetEmailStats(ctx context.Context) (*EmailStats, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/stats"})
 
@@ -258,7 +279,10 @@ func (s *EmailService) GetEmailStats(ctx context.Context) (*EmailStats, error) {
 	return &stats, nil
 }
 
-// ValidateRecipients validates email addresses before sending
+// ValidateRecipients validates email addresses before sending.
+// Performs basic format validation to catch obvious errors early and reduce
+// bounce rates. This is a client-side validation - the API performs additional
+// checks including domain validation and deliverability scoring.
 func (s *EmailService) ValidateRecipients(_ context.Context, recipients []string) error {
 	if len(recipients) == 0 {
 		return fmt.Errorf("at least one recipient is required")
@@ -282,7 +306,10 @@ func (s *EmailService) ValidateRecipients(_ context.Context, recipients []string
 	return nil
 }
 
-// GetBulkJobStatus retrieves the status of a bulk email job
+// GetBulkJobStatus retrieves the status of a bulk email job.
+// Returns progress information, completion status, and detailed results for each
+// email in the batch. Use this to monitor long-running bulk operations and
+// identify any emails that failed to send.
 func (s *EmailService) GetBulkJobStatus(ctx context.Context, jobID string) (*BulkEmailResponse, error) {
 	if jobID == "" {
 		return nil, fmt.Errorf("job ID is required")
@@ -303,7 +330,10 @@ func (s *EmailService) GetBulkJobStatus(ctx context.Context, jobID string) (*Bul
 	return &response, nil
 }
 
-// GetAttachment retrieves an email attachment
+// GetAttachment retrieves metadata for a specific email attachment.
+// Returns attachment information including filename, content type, size,
+// and download URLs. The attachment ID is obtained from the email's
+// attachment list in GetEmail responses.
 func (s *EmailService) GetAttachment(ctx context.Context, emailID, attachmentID string) (*EmailAttachment, error) {
 	if emailID == "" {
 		return nil, fmt.Errorf("email ID is required")
@@ -327,7 +357,10 @@ func (s *EmailService) GetAttachment(ctx context.Context, emailID, attachmentID 
 	return &attachment, nil
 }
 
-// DownloadAttachment downloads an email attachment content
+// DownloadAttachment downloads the actual content of an email attachment.
+// Returns the raw binary data of the attachment. For large attachments,
+// consider using streaming downloads to avoid memory issues. The attachment
+// content is returned as-is without any processing or validation.
 func (s *EmailService) DownloadAttachment(ctx context.Context, emailID, attachmentID string) ([]byte, error) {
 	if emailID == "" {
 		return nil, fmt.Errorf("email ID is required")

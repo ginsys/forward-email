@@ -11,29 +11,36 @@ import (
 	"github.com/ginsys/forward-email/pkg/config"
 )
 
-// Test mode variables
+// Test mode configuration variables for unit testing and development.
+// These allow the client to be configured with mock servers and authentication
+// providers for testing without making real API calls.
 var (
-	testMode    bool
-	testBaseURL string
-	testAuth    auth.Provider
+	testMode    bool          // Flag indicating if client is in test mode
+	testBaseURL string        // Mock server URL for testing
+	testAuth    auth.Provider // Mock authentication provider for testing
 )
 
-// SetTestMode configures the client for testing with a mock server
+// SetTestMode configures the client factory for testing with a mock server.
+// This allows unit tests to override the normal API client creation process
+// with test-specific URLs and authentication providers.
 func SetTestMode(baseURL string, authProvider auth.Provider) {
 	testMode = true
 	testBaseURL = baseURL
 	testAuth = authProvider
 }
 
-// ResetTestMode disables test mode
+// ResetTestMode disables test mode and returns the client factory to normal operation.
+// This should be called in test cleanup to ensure tests don't interfere with each other.
 func ResetTestMode() {
 	testMode = false
 	testBaseURL = ""
 	testAuth = nil
 }
 
-// NewAPIClient creates a new API client with proper authentication
-// This centralizes the authentication logic that was duplicated across commands
+// NewAPIClient creates a new Forward Email API client with proper authentication setup.
+// It centralizes the authentication logic that was duplicated across CLI commands,
+// handling profile selection, credential loading from multiple sources, and client configuration.
+// Returns a fully configured client ready for API operations.
 func NewAPIClient() (*api.Client, error) {
 	// If in test mode, return test client
 	if testMode {

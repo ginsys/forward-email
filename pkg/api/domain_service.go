@@ -10,7 +10,10 @@ import (
 	"strconv"
 )
 
-// ListDomains retrieves a list of domains
+// ListDomains retrieves a list of domains with optional filtering and pagination.
+// The opts parameter can be nil to retrieve all domains with default settings.
+// Supported filters include verification status, plan type, and search by name.
+// Results can be sorted and paginated using the provided options.
 func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOptions) (*ListDomainsResponse, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/domains"})
 
@@ -67,7 +70,10 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 	return response, nil
 }
 
-// domainGetHelper is a generic helper for GET requests to domain endpoints
+// domainGetHelper is a generic helper function for GET requests to domain endpoints.
+// It uses Go generics to handle different response types while providing consistent
+// error handling and URL construction. The pathTemplate should contain a %s placeholder
+// for the domain identifier, which will be properly URL-escaped.
 func domainGetHelper[T any](ctx context.Context, s *DomainService, pathTemplate string, domainIDOrName, errorPrefix string) (*T, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf(pathTemplate, url.PathEscape(domainIDOrName)),
@@ -86,12 +92,17 @@ func domainGetHelper[T any](ctx context.Context, s *DomainService, pathTemplate 
 	return &result, nil
 }
 
-// GetDomain retrieves a specific domain by ID or name
+// GetDomain retrieves a specific domain by ID or name.
+// The domainIDOrName parameter can be either the domain's UUID or its fully qualified domain name.
+// Returns complete domain information including verification status, DNS records, and configuration.
 func (s *DomainService) GetDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
 	return domainGetHelper[Domain](ctx, s, "/v1/domains/%s", domainIDOrName, "failed to get domain")
 }
 
-// CreateDomain creates a new domain
+// CreateDomain creates a new domain with the specified configuration.
+// The request must contain at minimum the domain name. Optional settings include
+// SMTP configuration, webhook URLs, and custom plan settings.
+// Returns the created domain with initial verification status and required DNS records.
 func (s *DomainService) CreateDomain(ctx context.Context, req *CreateDomainRequest) (*Domain, error) {
 	if req == nil {
 		return nil, fmt.Errorf("create domain request cannot be nil")
@@ -118,7 +129,10 @@ func (s *DomainService) CreateDomain(ctx context.Context, req *CreateDomainReque
 	return &domain, nil
 }
 
-// UpdateDomain updates an existing domain
+// UpdateDomain updates an existing domain's configuration.
+// The domainIDOrName parameter identifies the domain to update (UUID or FQDN).
+// Only fields specified in the request will be updated; nil/empty fields are ignored.
+// Returns the updated domain with the new configuration applied.
 func (s *DomainService) UpdateDomain(ctx context.Context, domainIDOrName string, req *UpdateDomainRequest) (*Domain, error) {
 	if req == nil {
 		return nil, fmt.Errorf("update domain request cannot be nil")
@@ -147,7 +161,10 @@ func (s *DomainService) UpdateDomain(ctx context.Context, domainIDOrName string,
 	return &domain, nil
 }
 
-// DeleteDomain deletes a domain
+// DeleteDomain permanently deletes a domain and all associated data.
+// This operation cannot be undone and will remove all aliases, emails, and configuration
+// associated with the domain. The domainIDOrName parameter identifies the domain (UUID or FQDN).
+// Returns an error if the domain is not found or deletion fails.
 func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string) error {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s", url.PathEscape(domainIDOrName)),
@@ -165,7 +182,10 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 	return nil
 }
 
-// VerifyDomain verifies a domain's DNS configuration
+// VerifyDomain initiates DNS verification for a domain's configuration.
+// This operation checks that required DNS records (MX, TXT, DMARC, SPF, DKIM) are properly
+// configured and validates the domain for email sending and receiving.
+// Returns verification results with status for each DNS record type.
 func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string) (*DomainVerification, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/verify", url.PathEscape(domainIDOrName)),
@@ -184,7 +204,10 @@ func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string)
 	return &verification, nil
 }
 
-// GetDomainDNSRecords retrieves the required DNS records for a domain
+// GetDomainDNSRecords retrieves the required DNS records for a domain.
+// Returns a list of DNS records (MX, TXT, CNAME) that must be configured in the
+// domain's DNS zone for proper email forwarding functionality. Each record includes
+// the type, name, value, and TTL recommendations.
 func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName string) ([]DNSRecord, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/dns", url.PathEscape(domainIDOrName)),
@@ -203,17 +226,24 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 	return records, nil
 }
 
-// GetDomainQuota retrieves quota information for a domain
+// GetDomainQuota retrieves quota information for a domain.
+// Returns current usage statistics including storage used, email count, and bandwidth consumption
+// along with the configured limits for the domain's subscription plan.
 func (s *DomainService) GetDomainQuota(ctx context.Context, domainIDOrName string) (*DomainQuota, error) {
 	return domainGetHelper[DomainQuota](ctx, s, "/v1/domains/%s/quota", domainIDOrName, "failed to get domain quota")
 }
 
-// GetDomainStats retrieves statistics for a domain
+// GetDomainStats retrieves usage statistics for a domain.
+// Returns metrics including total emails sent/received, bounce rates, spam scores,
+// and historical usage data for monitoring and analytics purposes.
 func (s *DomainService) GetDomainStats(ctx context.Context, domainIDOrName string) (*DomainStats, error) {
 	return domainGetHelper[DomainStats](ctx, s, "/v1/domains/%s/stats", domainIDOrName, "failed to get domain stats")
 }
 
-// AddDomainMember adds a member to a domain
+// AddDomainMember adds a new member to a domain with specified permissions.
+// The email parameter specifies the member's email address, and group determines their
+// access level (e.g., "admin", "user"). The member will receive an invitation to
+// access the domain's management interface.
 func (s *DomainService) AddDomainMember(ctx context.Context, domainIDOrName, email, group string) (*DomainMember, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/members", url.PathEscape(domainIDOrName)),
@@ -243,7 +273,10 @@ func (s *DomainService) AddDomainMember(ctx context.Context, domainIDOrName, ema
 	return &member, nil
 }
 
-// RemoveDomainMember removes a member from a domain
+// RemoveDomainMember removes a member from a domain's access list.
+// The memberID parameter identifies the member to remove (UUID from domain member list).
+// This operation immediately revokes the member's access to the domain management interface
+// and any associated permissions.
 func (s *DomainService) RemoveDomainMember(ctx context.Context, domainIDOrName, memberID string) error {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/members/%s", url.PathEscape(domainIDOrName), url.PathEscape(memberID)),

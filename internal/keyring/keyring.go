@@ -7,27 +7,35 @@ import (
 	"github.com/99designs/keyring"
 )
 
+// Constants for keyring service identification and testing.
 const (
-	ServiceName   = "forward-email"
-	testPassConst = "test-password"
+	ServiceName   = "forward-email" // Service name for OS keyring registration
+	testPassConst = "test-password" // Test password for keyring validation
 )
 
-// Keyring provides a wrapper around the keyring library
+// Keyring provides a secure wrapper around the OS keyring functionality.
+// It offers cross-platform secure credential storage using the system's native
+// keyring service (Windows Credential Manager, macOS Keychain, Linux Secret Service).
 type Keyring struct {
-	ring keyring.Keyring
+	ring keyring.Keyring // The underlying keyring implementation
 }
 
-// Config represents keyring configuration
+// Config represents configuration options for keyring initialization.
+// All fields are optional; defaults will be applied for empty values.
+// This configuration is passed through to the underlying keyring library.
 type Config struct {
-	ServiceName              string
-	KeychainName             string
-	FileDir                  string
-	FilePasswordFunc         keyring.PromptFunc
-	AllowedBackends          []keyring.BackendType
-	KeychainTrustApplication bool
+	ServiceName              string                // Service name in the OS keyring (default: "forward-email")
+	KeychainName             string                // macOS keychain name (optional)
+	FileDir                  string                // Directory for file-based fallback storage
+	FilePasswordFunc         keyring.PromptFunc    // Password prompt function for file encryption
+	AllowedBackends          []keyring.BackendType // Restrict keyring backend types
+	KeychainTrustApplication bool                  // macOS keychain trust setting
 }
 
-// New creates a new keyring instance
+// New creates a new keyring instance with the specified configuration.
+// It initializes the OS keyring service and returns a wrapper that provides
+// secure credential storage and retrieval. Falls back to file-based storage
+// if the OS keyring is unavailable.
 func New(config Config) (*Keyring, error) {
 	if config.ServiceName == "" {
 		config.ServiceName = ServiceName

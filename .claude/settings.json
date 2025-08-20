@@ -52,7 +52,8 @@
       "Bash(mise which:*)",
       "Bash(mise trust:*)",
       "Bash(mise exec:*)",
-      "Bash(mise current:*)"
+      "Bash(mise current:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

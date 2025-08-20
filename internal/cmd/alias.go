@@ -16,29 +16,32 @@ import (
 	"github.com/ginsys/forward-email/pkg/output"
 )
 
+// Global variables for alias command flags.
+// These store parsed command-line arguments for alias operations, filtering, and configuration.
 var (
-	aliasPage       int
-	aliasLimit      int
-	aliasSort       string
-	aliasOrder      string
-	aliasSearch     string
-	aliasEnabled    string
-	aliasLabels     string
-	aliasHasIMAP    string
-	aliasDomain     string
-	aliasAllDomains bool
-	aliasColumns    string
-	aliasOrderBy    string
+	// List/filtering flags
+	aliasPage       int    // Page number for pagination (default: 1)
+	aliasLimit      int    // Number of results per page (default: 25)
+	aliasSort       string // Sort field: name, created_at, updated_at
+	aliasOrder      string // Sort order: asc or desc
+	aliasSearch     string // Search filter for alias names
+	aliasEnabled    string // Enabled status filter: "true" or "false"
+	aliasLabels     string // Labels filter (comma-separated)
+	aliasHasIMAP    string // IMAP enabled filter: "true" or "false"
+	aliasDomain     string // Domain filter for aliases
+	aliasAllDomains bool   // Include aliases from all domains
+	aliasColumns    string // Custom column selection for output
+	aliasOrderBy    string // Alternative sort field specification
 
-	// Create/Update flags
-	aliasRecipients  []string
-	aliasLabelsFlag  []string
-	aliasDescription string
-	aliasEnableFlag  bool
-	aliasDisableFlag bool
-	aliasIMAPFlag    bool
-	aliasPGPFlag     bool
-	aliasPublicKey   string
+	// Create/Update operation flags
+	aliasRecipients  []string // Recipient email addresses or webhooks
+	aliasLabelsFlag  []string // Labels to assign to the alias
+	aliasDescription string   // Alias description text
+	aliasEnableFlag  bool     // Enable the alias for forwarding
+	aliasDisableFlag bool     // Disable the alias forwarding
+	aliasIMAPFlag    bool     // Enable IMAP access for the alias
+	aliasPGPFlag     bool     // Enable PGP encryption for the alias
+	aliasPublicKey   string   // PGP public key for encryption
 )
 
 // aliasCmd represents the alias command

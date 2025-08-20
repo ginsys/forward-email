@@ -13,36 +13,47 @@ import (
 	"github.com/ginsys/forward-email/pkg/config"
 )
 
-// Provider defines the interface for authentication
+// Provider defines the core interface for authentication operations.
+// It provides methods for applying authentication to HTTP requests, validating credentials,
+// and retrieving API keys. All authentication providers must implement this interface.
 type Provider interface {
-	Apply(req *http.Request) error
-	Validate(ctx context.Context) error
-	GetAPIKey() (string, error)
+	Apply(req *http.Request) error      // Apply authentication headers to an HTTP request
+	Validate(ctx context.Context) error // Validate that the current credentials are valid
+	GetAPIKey() (string, error)         // Retrieve the API key from configured sources
 }
 
-// ExtendedProvider extends Provider with credential management
+// ExtendedProvider extends the basic Provider interface with credential management capabilities.
+// This interface adds methods for storing, deleting, and checking the existence of API keys
+// in secure storage (OS keyring or configuration files).
 type ExtendedProvider interface {
 	Provider
-	SetAPIKey(apiKey string) error
-	DeleteAPIKey() error
-	HasAPIKey() bool
+	SetAPIKey(apiKey string) error // Store an API key securely
+	DeleteAPIKey() error           // Remove stored API key
+	HasAPIKey() bool               // Check if an API key is configured
 }
 
-// ForwardEmailAuth implements authentication for Forward Email API
+// ForwardEmailAuth implements authentication for the Forward Email API.
+// It supports multiple credential sources with a hierarchy: environment variables,
+// OS keyring, and configuration files. The provider handles HTTP Basic Authentication
+// using the API key as the username with an empty password.
 type ForwardEmailAuth struct {
-	config  *config.Config
-	keyring *keyring.Keyring
-	profile string
+	config  *config.Config   // Configuration management for profile settings
+	keyring *keyring.Keyring // OS keyring for secure credential storage
+	profile string           // Profile name for multi-environment support
 }
 
-// ProviderConfig holds configuration for creating auth providers
+// ProviderConfig holds configuration for creating auth providers.
+// All fields are optional; defaults will be used for nil/empty values.
 type ProviderConfig struct {
-	Config  *config.Config
-	Keyring *keyring.Keyring
-	Profile string
+	Config  *config.Config   // Configuration instance (will be loaded if nil)
+	Keyring *keyring.Keyring // Keyring instance (optional, for secure storage)
+	Profile string           // Profile name (defaults to "default")
 }
 
-// NewProvider creates a new authentication provider
+// NewProvider creates a new Forward Email authentication provider.
+// It initializes the provider with the given configuration, loading defaults
+// for any missing values. The returned provider implements both Provider
+// and ExtendedProvider interfaces for full credential management capabilities.
 func NewProvider(cfg ProviderConfig) (Provider, error) {
 	if cfg.Profile == "" {
 		cfg.Profile = "default"
@@ -63,7 +74,9 @@ func NewProvider(cfg ProviderConfig) (Provider, error) {
 	}, nil
 }
 
-// Apply adds authentication headers to the request
+// Apply adds Forward Email API authentication headers to an HTTP request.
+// It retrieves the API key from configured sources and applies HTTP Basic Authentication
+// with the API key as username and empty password, as required by the Forward Email API.
 func (f *ForwardEmailAuth) Apply(req *http.Request) error {
 	apiKey, err := f.GetAPIKey()
 	if err != nil {
@@ -77,7 +90,10 @@ func (f *ForwardEmailAuth) Apply(req *http.Request) error {
 	return nil
 }
 
-// Validate checks if the current credentials are valid
+// Validate checks if the current credentials are valid by making a test API call.
+// It performs a lightweight API request to verify that the stored credentials
+// can successfully authenticate with the Forward Email API. Returns an error
+// if credentials are missing, malformed, or rejected by the API.
 func (f *ForwardEmailAuth) Validate(ctx context.Context) error {
 	apiKey, err := f.GetAPIKey()
 	if err != nil {

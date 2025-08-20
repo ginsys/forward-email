@@ -88,30 +88,33 @@ func WithUserAgent(userAgent string) ClientOption {
 	}
 }
 
-// Do performs an HTTP request
+// Do performs an HTTP request with authentication and error handling.
+// The request context is used for cancellation and timeout control.
+// If v is provided, the response body will be JSON decoded into it.
+// API errors are automatically parsed and returned as typed errors.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
-	// Apply authentication
+	// Apply authentication using the configured auth provider
 	if err := c.Auth.Apply(req); err != nil {
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	// Set headers
+	// Set standard headers expected by the Forward Email API
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", c.UserAgent)
 
-	// Execute request
+	// Execute request with context for cancellation support
 	resp, err := c.HTTPClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// Handle errors
+	// Handle HTTP error status codes (4xx, 5xx)
 	if resp.StatusCode >= 400 {
 		return c.handleErrorResponse(resp)
 	}
 
-	// Decode response
+	// Decode successful response body if destination provided
 	if v != nil {
 		return json.NewDecoder(resp.Body).Decode(v)
 	}
@@ -119,7 +122,10 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	return nil
 }
 
-// handleErrorResponse parses and returns API errors
+// handleErrorResponse parses HTTP error responses and returns typed errors.
+// It attempts to parse the JSON error response from the Forward Email API,
+// falling back to generic errors if parsing fails. Special handling is
+// provided for rate limiting errors which include retry-after information.
 func (c *Client) handleErrorResponse(resp *http.Response) error {
 	var apiResponse struct {
 		Message string `json:"message"`
@@ -128,10 +134,11 @@ func (c *Client) handleErrorResponse(resp *http.Response) error {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
-		// Fallback to generic error if we can't parse the response
+		// Fallback to generic error if we can't parse the response body
 		return errors.NewForwardEmailError(resp.StatusCode, resp.Status, "")
 	}
 
+	// Extract error message with fallback priority: message -> error -> status
 	message := apiResponse.Message
 	if message == "" {
 		message = apiResponse.Error
@@ -142,7 +149,7 @@ func (c *Client) handleErrorResponse(resp *http.Response) error {
 
 	code := apiResponse.Code
 
-	// Handle rate limiting
+	// Handle rate limiting with retry-after header
 	if resp.StatusCode == http.StatusTooManyRequests {
 		retryAfter := resp.Header.Get("Retry-After")
 		return errors.NewRateLimitError(retryAfter)

@@ -16,14 +16,16 @@ import (
 	"github.com/ginsys/forward-email/pkg/output"
 )
 
+// Global variables for domain command flags.
+// These store the parsed command-line arguments for domain list filtering and pagination.
 var (
-	domainPage     int
-	domainLimit    int
-	domainSort     string
-	domainOrder    string
-	domainSearch   string
-	domainVerified string
-	domainPlan     string
+	domainPage     int    // Page number for pagination (default: 1)
+	domainLimit    int    // Number of results per page (default: 25)
+	domainSort     string // Sort field: name, created_at, updated_at, is_verified, plan
+	domainOrder    string // Sort order: asc or desc
+	domainSearch   string // Search filter for domain names
+	domainVerified string // Verification status filter: "true" or "false"
+	domainPlan     string // Plan filter: free, enhanced_protection, team
 )
 
 // domainCmd represents the domain command
@@ -202,6 +204,10 @@ func init() {
 	domainMembersAddCmd.Flags().String("group", "user", "Member group (admin, user)")
 }
 
+// runDomainList implements the 'domain list' command.
+// It retrieves domains from the API with filtering and pagination options,
+// formats the output according to the user's preference (table/JSON/YAML/CSV),
+// and displays pagination information for non-structured formats.
 func runDomainList(_ *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -273,7 +279,10 @@ func runDomainList(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-// domainOperationRunner is a helper function to reduce duplication in domain operations
+// domainOperationRunner is a generic helper function that reduces code duplication
+// across domain operations. It handles common patterns like API client creation,
+// error handling, and output formatting. The function uses Go generics to work
+// with different return types while maintaining type safety.
 func domainOperationRunner[T any](
 	args []string,
 	operation func(context.Context, *api.DomainService, string) (T, error),
@@ -298,6 +307,9 @@ func domainOperationRunner[T any](
 	})
 }
 
+// runDomainGet implements the 'domain get' command.
+// It retrieves detailed information for a specific domain by ID or name
+// using the generic domainOperationRunner helper for consistent error handling and output formatting.
 func runDomainGet(_ *cobra.Command, args []string) error {
 	return domainOperationRunner(
 		args,
@@ -314,6 +326,10 @@ func runDomainGet(_ *cobra.Command, args []string) error {
 	)
 }
 
+// runDomainCreate implements the 'domain create' command.
+// It creates a new domain with the specified name and optional plan setting.
+// The domain name is validated by the API, and the response includes initial
+// DNS configuration requirements for domain verification.
 func runDomainCreate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -345,6 +361,10 @@ func runDomainCreate(cmd *cobra.Command, args []string) error {
 	})
 }
 
+// runDomainUpdate implements the 'domain update' command.
+// It builds an update request from the changed command flags and applies the updates
+// to the specified domain. Only fields that were explicitly set via flags are updated,
+// allowing for partial updates without affecting other domain settings.
 func runDomainUpdate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

@@ -8,34 +8,44 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config represents the application configuration
+// Config represents the main application configuration structure.
+// It manages multiple profiles for different Forward Email accounts or environments,
+// and tracks which profile is currently active for CLI operations.
 type Config struct {
-	Profiles       map[string]Profile `yaml:"profiles" mapstructure:"profiles"`
-	CurrentProfile string             `yaml:"current_profile" mapstructure:"current_profile"`
+	Profiles       map[string]Profile `yaml:"profiles" mapstructure:"profiles"`               // Map of profile name to profile configuration
+	CurrentProfile string             `yaml:"current_profile" mapstructure:"current_profile"` // Name of the currently active profile
 }
 
-// Profile represents a configuration profile
+// Profile represents a configuration profile for a specific Forward Email account or environment.
+// Each profile stores API connection details, authentication credentials, and user preferences.
+// Credentials stored here should be considered less secure than OS keyring storage.
 type Profile struct {
-	BaseURL  string `yaml:"base_url" mapstructure:"base_url"`
-	APIKey   string `yaml:"api_key" mapstructure:"api_key"`
-	Username string `yaml:"username" mapstructure:"username"`
-	Password string `yaml:"password" mapstructure:"password"`
-	Timeout  string `yaml:"timeout" mapstructure:"timeout"`
-	Output   string `yaml:"output" mapstructure:"output"`
+	BaseURL  string `yaml:"base_url" mapstructure:"base_url"` // Forward Email API base URL
+	APIKey   string `yaml:"api_key" mapstructure:"api_key"`   // API key (prefer keyring storage)
+	Username string `yaml:"username" mapstructure:"username"` // Username (legacy, not used)
+	Password string `yaml:"password" mapstructure:"password"` // Password (legacy, not used)
+	Timeout  string `yaml:"timeout" mapstructure:"timeout"`   // Request timeout duration
+	Output   string `yaml:"output" mapstructure:"output"`     // Default output format (table/json/yaml/csv)
 }
 
-// Load loads the configuration from file and environment
+// Load loads the complete application configuration from file and environment variables.
+// It applies default profile settings if no configuration exists, making it safe
+// to call on first run. This is the standard method for loading configuration.
 func Load() (*Config, error) {
 	return loadConfig(true)
 }
 
-// LoadWithoutDefaults loads config without applying default profiles
-// This is useful for profile management where we don't want phantom default profiles
+// LoadWithoutDefaults loads configuration without creating default profiles.
+// This is useful for profile management operations where we need to see only
+// explicitly configured profiles. Returns empty configuration if no config file exists.
 func LoadWithoutDefaults() (*Config, error) {
 	return loadConfig(false)
 }
 
-// loadConfig is the internal function that handles config loading
+// loadConfig is the internal implementation for configuration loading.
+// It handles file discovery, parsing, environment variable integration,
+// and optional default profile creation. The withDefaults parameter controls
+// whether to create a default profile when no configuration exists.
 func loadConfig(withDefaults bool) (*Config, error) {
 	// Set config file location
 	configDir, err := getConfigDir()

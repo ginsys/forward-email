@@ -1,128 +1,100 @@
 # Forward Email CLI
 
-A comprehensive command-line interface for managing [Forward Email](https://forwardemail.net/) accounts and resources through their public REST API.
-
-[Forward Email](https://forwardemail.net/) is a free, encrypted, and open-source email forwarding service for custom domains. This CLI provides a powerful interface to manage your domains, aliases, and email operations programmatically.
-
-## 🚧 Development Status
-
-**Current Phase**: Foundation (Phase 1.1) - Architecture & Core Infrastructure
-
-**Implemented**:
-- ✅ Project structure with clean separation (pkg/api, internal/cmd, cmd/)
-- ✅ Build system with Makefile and cross-platform support
-- ✅ Core CLI framework (Cobra + Viper)
-- ✅ Basic API client foundation with authentication interface
-- ✅ Configuration management foundation
-
-**In Progress**:
-- 🔄 Authentication system (API key management, credential validation)
-- 🔄 Domain operations (CRUD, verification, settings)
-- 🔄 HTTP client with retry logic and error handling
-
-**Next**: Alias operations, email operations, utility commands
-
-For detailed roadmap see [Implementation Plan](IMPLEMENTATION_PLAN.md). This project represents a **first-mover advantage** as Forward Email currently has no official CLI tools.
-
-## 🚀 Quick Start
-
-```bash
-# Install via Homebrew (coming soon)
-brew install ginsys/tap/forward-email
-
-# Or download from releases
-curl -sSL https://github.com/ginsys/forward-email/releases/latest/download/install.sh | bash
-
-# Initialize configuration
-forward-email init
-
-# Get started
-forward-email domain list
-```
+A comprehensive command-line interface for managing [Forward Email](https://forwardemail.net/) accounts and resources through their public REST API. This CLI provides a powerful interface to manage your domains, aliases, and email operations programmatically.
 
 ## ✨ Features
 
 - **Complete API Coverage**: All Forward Email endpoints supported
-- **Multi-Profile Support**: Development, staging, and production environments
-- **Security First**: OS keyring integration, credential redaction
+- **Multi-Profile Support**: Development, staging, and production environments  
+- **Security First**: OS keyring integration with secure credential storage
 - **Developer Experience**: Shell completion, interactive wizards, comprehensive help
 - **Enterprise Ready**: Audit logging, CI/CD integration, bulk operations
 - **Multiple Output Formats**: Table, JSON, YAML, CSV with filtering and sorting
 
-## 📋 Command Overview
+## 🚀 Quick Start
 
-### Authentication & Configuration
 ```bash
-forward-email init                           # Interactive setup wizard
-forward-email auth verify                    # Validate credentials
-forward-email config profile add production # Profile management
+# Build from source
+git clone https://github.com/ginsys/forward-email.git
+cd forward-email
+go build -o bin/forward-email ./cmd/forward-email
+
+# Set up authentication
+./bin/forward-email auth login
+
+# List your domains
+./bin/forward-email domain list
+
+# Create an alias
+./bin/forward-email alias create info@example.com --domain example.com --recipients team@company.com
 ```
 
-### Domain Management
+## 📋 Core Commands
+
 ```bash
-forward-email domain list                    # List all domains
-forward-email domain add example.com        # Add new domain
-forward-email domain verify example.com     # DNS/SMTP verification
+# Authentication & Profiles
+forward-email auth login              # Interactive API key setup
+forward-email profile create prod    # Create production profile
+forward-email profile switch prod    # Switch to production profile
+
+# Domain Management  
+forward-email domain list            # List all domains
+forward-email domain create example.com    # Add new domain
+forward-email domain verify example.com    # DNS/SMTP verification
+
+# Alias Operations
+forward-email alias list --domain example.com
+forward-email alias create info@example.com --domain example.com --recipients team@company.com
+
+# Email Operations
+forward-email email send             # Interactive email composition
+forward-email email list             # View sent email history
 ```
 
-### Alias Operations
-```bash
-forward-email alias list --domain=example.com
-forward-email alias create info@example.com --forward-to=team@company.com
-forward-email alias bulk-import aliases.csv --dry-run
-```
+## 📌 Version Policy
 
-### Email Operations
-```bash
-forward-email send --to=user@example.com --subject="Welcome" --template=welcome.yaml
-forward-email emails list --status=sent    # Outbound email history
-forward-email quota check                  # Daily sending limits
-```
+**Current Status**: Pre-release development (v0.x.x)
 
-### Monitoring & Logs
-```bash
-forward-email logs stream --domain=example.com --follow
-forward-email logs download --date=2025-01-15 --format=csv
-forward-email health check                 # API and service status
-```
+This project is under active development towards v1.0.0. Until then:
+- ⚠️ **Breaking changes** may occur in any release
+- ⚠️ **No backwards compatibility** guaranteed  
+- ⚠️ **API interfaces** may change without deprecation notices
+- ✅ After v1.0.0: Semantic versioning with proper deprecation cycles
 
-## 🏗️ Architecture
-
-- **Clean Separation**: SDK (pkg/api) → CLI commands (cmd/) → User interface
-- **Security First**: OS keyring integration, credential redaction, secure defaults
-- **Developer Experience**: Shell completion, interactive wizards, comprehensive help
-- **Enterprise Ready**: Multi-profile, audit logging, CI/CD integration
+The CLI targets Forward Email API v1. While we strive for stability, please pin to specific versions in production use.
 
 ## 🛠️ Development
 
 ```bash
-# Clone repository
-git clone https://github.com/ginsys/forward-email.git
-cd forward-email
-
 # Install dependencies
 go mod download
 
 # Run tests
 go test ./...
 
-# Build local binary
-go build -o bin/forward-email ./cmd/forward-email
+# Build binary
+make build
 
-# Install development version
-go install ./cmd/forward-email
+# Run linter
+make lint
 ```
 
 ## 📚 Documentation
 
-- [Architecture Overview](docs/forwardemail_cli_architecture_0.2.md)
-- [API Reference](docs/api.md)
-- [Configuration Guide](docs/configuration.md)
-- [Developer Guide](docs/development.md)
+- **[Quick Start Guide](docs/quick-start.md)** - Get up and running quickly
+- **[Command Reference](docs/commands.md)** - Complete command documentation
+- **[Configuration Guide](docs/configuration.md)** - Profiles, environments, and settings
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+
+### For Developers
+- **[Contributing Guide](docs/development/contributing.md)** - How to contribute to the project
+- **[Architecture Overview](docs/development/architecture.md)** - System design and structure
+- **[API Integration](docs/development/api-integration.md)** - Forward Email API details
+- **[Testing Strategy](docs/development/testing.md)** - Testing approach and standards
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](docs/development/contributing.md) for details.
 
 ## 📄 License
 

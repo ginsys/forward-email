@@ -4,48 +4,63 @@ import (
 	"time"
 )
 
-// Domain represents a Forward Email domain
+// Domain represents a Forward Email domain with complete configuration and status information.
+// It includes DNS verification status, plan details, security settings, and member management.
 type Domain struct {
-	CreatedAt             time.Time          `json:"created_at"`
-	UpdatedAt             time.Time          `json:"updated_at"`
-	Settings              *DomainSettings    `json:"settings,omitempty"`
-	Members               []DomainMember     `json:"members,omitempty"`
-	Invitations           []DomainInvitation `json:"invitations,omitempty"`
-	ID                    string             `json:"id"`
-	Name                  string             `json:"name"`
-	VerificationRecord    string             `json:"verification_record"`
-	Plan                  string             `json:"plan"`
-	MaxForwardedAddresses int                `json:"max_forwarded_addresses"`
-	RetentionDays         int                `json:"retention_days"`
-	IsGlobal              bool               `json:"is_global"`
-	HasMXRecord           bool               `json:"has_mx_record"`
-	HasTXTRecord          bool               `json:"has_txt_record"`
-	HasDMARCRecord        bool               `json:"has_dmarc_record"`
-	HasSPFRecord          bool               `json:"has_spf_record"`
-	HasDKIMRecord         bool               `json:"has_dkim_record"`
-	IsVerified            bool               `json:"is_verified"`
+	// Timestamps
+	CreatedAt time.Time `json:"created_at"` // Domain creation timestamp
+	UpdatedAt time.Time `json:"updated_at"` // Last modification timestamp
+
+	// Related objects
+	Settings    *DomainSettings    `json:"settings,omitempty"`    // Domain-specific configuration settings
+	Members     []DomainMember     `json:"members,omitempty"`     // Users with access to this domain
+	Invitations []DomainInvitation `json:"invitations,omitempty"` // Pending member invitations
+
+	// Basic properties
+	ID                    string `json:"id"`                      // Unique domain identifier (UUID)
+	Name                  string `json:"name"`                    // Fully qualified domain name
+	VerificationRecord    string `json:"verification_record"`     // TXT record value for domain verification
+	Plan                  string `json:"plan"`                    // Subscription plan: free, enhanced_protection, team
+	MaxForwardedAddresses int    `json:"max_forwarded_addresses"` // Maximum aliases allowed for this domain
+	RetentionDays         int    `json:"retention_days"`          // Email retention period in days
+
+	// Status flags
+	IsGlobal       bool `json:"is_global"`        // Whether this is a global Forward Email domain
+	HasMXRecord    bool `json:"has_mx_record"`    // MX record verification status
+	HasTXTRecord   bool `json:"has_txt_record"`   // TXT record verification status
+	HasDMARCRecord bool `json:"has_dmarc_record"` // DMARC policy verification status
+	HasSPFRecord   bool `json:"has_spf_record"`   // SPF record verification status
+	HasDKIMRecord  bool `json:"has_dkim_record"`  // DKIM signature verification status
+	IsVerified     bool `json:"is_verified"`      // Overall domain verification status
 }
 
-// DomainSettings represents domain-specific settings
+// DomainSettings represents configurable domain-specific settings.
+// These settings control security features, webhook integration, and service ports.
 type DomainSettings struct {
-	WebhookURL                string `json:"webhook_url,omitempty"`
-	WebhookKey                string `json:"webhook_key,omitempty"`
-	SMTPPort                  int    `json:"smtp_port"`
-	IMAPPort                  int    `json:"imap_port"`
-	CalDAVPort                int    `json:"caldav_port"`
-	CardDAVPort               int    `json:"carddav_port"`
-	HasAdultContentProtection bool   `json:"has_adult_content_protection"`
-	HasPhishingProtection     bool   `json:"has_phishing_protection"`
-	HasExecutableProtection   bool   `json:"has_executable_protection"`
-	HasVirusProtection        bool   `json:"has_virus_protection"`
+	// Webhook integration
+	WebhookURL string `json:"webhook_url,omitempty"` // HTTP endpoint for email notifications
+	WebhookKey string `json:"webhook_key,omitempty"` // Authentication key for webhook requests
+
+	// Service ports
+	SMTPPort    int `json:"smtp_port"`    // Custom SMTP port (default: 25)
+	IMAPPort    int `json:"imap_port"`    // Custom IMAP port (default: 993)
+	CalDAVPort  int `json:"caldav_port"`  // Custom CalDAV port (default: 993)
+	CardDAVPort int `json:"carddav_port"` // Custom CardDAV port (default: 993)
+
+	// Security protection features
+	HasAdultContentProtection bool `json:"has_adult_content_protection"` // Block adult content
+	HasPhishingProtection     bool `json:"has_phishing_protection"`      // Anti-phishing filtering
+	HasExecutableProtection   bool `json:"has_executable_protection"`    // Block executable attachments
+	HasVirusProtection        bool `json:"has_virus_protection"`         // Virus scanning enabled
 }
 
-// DomainMember represents a domain member
+// DomainMember represents a user with access to a domain.
+// Members can have different permission levels and access rights.
 type DomainMember struct {
-	JoinedAt time.Time `json:"joined_at"`
-	User     User      `json:"user"`
-	ID       string    `json:"id"`
-	Group    string    `json:"group"`
+	JoinedAt time.Time `json:"joined_at"` // When the user joined this domain
+	User     User      `json:"user"`      // User information and profile
+	ID       string    `json:"id"`        // Unique member identifier
+	Group    string    `json:"group"`     // Permission group: admin, user
 }
 
 // DomainInvitation represents a pending domain invitation

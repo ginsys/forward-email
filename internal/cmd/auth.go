@@ -84,6 +84,10 @@ func init() {
 	authLogoutCmd.Flags().Bool("all", false, "Log out from all profiles")
 }
 
+// runAuthVerify implements the 'auth verify' command to validate API credentials.
+// It creates an API client using the current authentication setup, validates the credentials,
+// and performs a test API call to ensure the credentials have proper access permissions.
+// Returns an error if authentication fails or API access is denied.
 func runAuthVerify(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -127,6 +131,10 @@ func runAuthVerify(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
+// runAuthLogin implements the 'auth login' command for interactive credential setup.
+// It prompts the user for their API key using secure input (password masking),
+// validates the credentials against the API, and stores them securely in the OS keyring
+// or configuration file. The profile is automatically set as current after successful login.
 func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -211,6 +219,10 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
+// runAuthLogout implements the 'auth logout' command to clear stored credentials.
+// It can logout from a specific profile or all profiles when --all flag is used.
+// Credentials are removed from both the OS keyring and configuration file.
+// Profile information is merged from both config and keyring sources.
 func runAuthLogout(cmd *cobra.Command, _ []string) error {
 	logoutAll := cmd.Flag("all").Value.String() == "true"
 	profile := cmd.Flag("profile").Value.String()
@@ -276,6 +288,10 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
+// logoutProfile removes stored credentials for a specific profile.
+// It creates an auth provider for the profile and deletes the API key from
+// the configured storage (keyring or config file). This is a helper function
+// used by runAuthLogout for both single and bulk logout operations.
 func logoutProfile(cfg *config.Config, kr *keyring.Keyring, profile string) error {
 	// Create auth provider
 	authProvider, err := auth.NewProvider(auth.ProviderConfig{
@@ -295,6 +311,10 @@ func logoutProfile(cfg *config.Config, kr *keyring.Keyring, profile string) erro
 	return fmt.Errorf("auth provider does not support credential management")
 }
 
+// runAuthStatus implements the 'auth status' command to display authentication status.
+// It shows all configured profiles, their current status (authenticated or not),
+// credential sources (environment, keyring, or config file), and marks the current profile.
+// Profiles are merged from both configuration file and OS keyring sources.
 func runAuthStatus(_ *cobra.Command, _ []string) error {
 	// Load configuration
 	cfg, err := config.Load()

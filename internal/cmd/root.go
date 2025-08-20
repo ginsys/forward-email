@@ -9,10 +9,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Build-time variables set by linker flags during compilation.
+// These provide version information for the CLI application.
 var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
+	version = "dev"     // Application version, set by -ldflags "-X main.version=..."
+	commit  = "none"    // Git commit hash, set by -ldflags "-X main.commit=..."
+	date    = "unknown" // Build date, set by -ldflags "-X main.date=..."
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -32,13 +34,19 @@ Features:
 	Version: version,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
+// Execute is the main entry point for the CLI application.
+// It configures the root command with the provided context for cancellation support
+// and executes the command tree. This function should be called from main() to
+// start the CLI application and handle all command parsing and execution.
 func Execute(ctx context.Context) error {
 	rootCmd.SetContext(ctx)
 	return rootCmd.Execute()
 }
 
-// initFlags initializes the root command flags and viper bindings
+// initFlags initializes all persistent flags for the root command and binds them to viper.
+// These flags are inherited by all subcommands and provide global configuration options
+// including profile selection, output formatting, verbosity levels, and request timeouts.
+// All flags are bound to viper for unified configuration management.
 func initFlags() {
 	// Global flags with short options
 	rootCmd.PersistentFlags().StringP("profile", "p", "", "Configuration profile to use")
@@ -63,7 +71,10 @@ func init() {
 	initFlags()
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig initializes the configuration system using viper.
+// It searches for config files in standard locations (~/.config/forwardemail/, current directory),
+// sets up environment variable binding with FORWARDEMAIL_ prefix, and loads the configuration.
+// This function is called automatically by cobra.OnInitialize() before any commands run.
 func initConfig() {
 	// Find home directory
 	home, err := os.UserHomeDir()
