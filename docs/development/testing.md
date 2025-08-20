@@ -37,6 +37,25 @@ Package Breakdown:
 ```
 
 ### Test Execution
+
+#### Using Makefile (Recommended)
+```bash
+# Quick development cycle
+make check              # Basic checks (fmt, lint-fast, test-quick)
+make check-all          # Full checks (fmt, lint, test-ci)
+
+# Testing commands
+make test               # Standard tests with race detector
+make test-quick         # Fast feedback (no race detector)
+make test-ci            # Exact CI execution (with coverage)
+make test-pkg PKG=api   # Test specific package
+
+# Pre-commit workflow
+make pre-commit         # Quick pre-commit checks
+make pre-commit-full    # Full pre-commit validation
+```
+
+#### Direct Go Commands
 ```bash
 # Run all tests
 go test ./...
@@ -802,21 +821,32 @@ func setupTest(t *testing.T) (context.Context, func()) {
 
 ### Running Tests
 
+#### Makefile Commands (Aligned with CI)
 ```bash
-# Run all tests
-make test
+# Standard workflows
+make test               # Default: tests with race detector
+make test-ci            # Exactly what CI runs (with coverage)
+make test-quick         # Fast feedback loop
 
-# Run tests with coverage
-make test-coverage
+# Specific test types
+make test-unit          # Unit tests only
+make test-bench         # Benchmarks
+make test-pkg PKG=api   # Test specific package
 
-# Run tests with race detection
-make test-race
+# Quality checks
+make fmt-check          # Verify formatting
+make lint-ci            # CI-compatible linting
+make pre-commit         # Full pre-commit checks
+```
 
-# Run integration tests
-make test-integration
+#### Development Setup
+```bash
+# One-time setup
+make dev-setup          # Install tools and git hooks
 
-# Run benchmarks
-make test-bench
+# Daily development
+make check              # Quick checks before commit
+make check-all          # Full validation
 ```
 
 ### Test Coverage Goals
@@ -828,12 +858,39 @@ make test-bench
 
 ### Continuous Integration
 
+#### CI Pipeline (GitHub Actions)
 ```bash
-# CI test pipeline
-go test -race -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out -o coverage.html
-go vet ./...
-golangci-lint run
+# CI test pipeline (matches local commands)
+make deps           # Download dependencies
+make fmt-check      # Verify formatting
+make test-ci        # Tests with coverage
+make lint-ci        # Linting
+make build-all      # Multi-platform builds
+```
+
+#### Local CI Simulation
+```bash
+# Run exactly what CI runs
+make deps
+make fmt-check
+make test-ci
+make lint-ci
+make build-all
+
+# Or use the convenience command
+make check-all      # Runs fmt-check, lint, test-ci
+```
+
+#### Pre-commit Integration
+```bash
+# Install pre-commit hooks (one-time)
+make install-hooks
+
+# Manual pre-commit check
+make pre-commit     # Quick: fmt-check, lint-fast, test-quick
+
+# Full pre-commit validation
+make pre-commit-full  # Same as CI: fmt-check, lint, test-ci
 ```
 
 For more information on development practices, see:
