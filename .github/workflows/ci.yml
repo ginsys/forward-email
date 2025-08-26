@@ -103,8 +103,17 @@ jobs:
     - name: Download dependencies
       run: make deps
 
-    - name: Check code formatting
-      run: make fmt-check
+    - name: Normalize line endings and check formatting
+      shell: pwsh
+      run: |
+        # Ensure consistent line endings on Windows
+        git ls-files "*.go" | ForEach-Object { 
+          $content = Get-Content $_ -Raw
+          if ($content) {
+            $content.Replace("`r`n", "`n") | Set-Content $_ -NoNewline
+          }
+        }
+        make fmt-check
 
     - name: Run tests (Windows - no race detector)
       continue-on-error: true  # Continue even if tests fail
@@ -132,7 +141,7 @@ jobs:
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.62.0
+        version: latest
 
   build:
     name: Build

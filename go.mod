@@ -1,6 +1,8 @@
 module github.com/ginsys/forward-email
 
-go 1.24
+go 1.23.0
+
+toolchain go1.24.6
 
 require (
 	github.com/99designs/keyring v1.2.2
@@ -37,8 +39,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	gopkg.in/ini.v1 v1.67.0 // indirect
 )
