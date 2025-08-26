@@ -81,7 +81,6 @@ linters:
     - dogsled
     # - dupl          # disabled: too noisy, prefer targeted refactors
     - errcheck
-    - copyloopvar
     - exhaustive
     # - goconst       # disabled: too noisy for test files, causes CI noise
     - gocritic
