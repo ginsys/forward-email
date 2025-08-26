@@ -15,11 +15,14 @@ jobs:
       fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go-version: [1.21, 1.22]
+        go-version: [1.22, 1.23]
 
     steps:
     - name: Check out code
       uses: actions/checkout@v5
+      with:
+        # Ensure consistent line endings across platforms
+        autocrlf: false
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -64,11 +67,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: [1.21, 1.22]
+        go-version: [1.22, 1.23]
 
     steps:
     - name: Check out code
       uses: actions/checkout@v5
+      with:
+        # Ensure consistent line endings across platforms
+        autocrlf: false
+
+    - name: Configure Git for consistent line endings
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -107,17 +118,20 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v5
+      with:
+        # Ensure consistent line endings across platforms
+        autocrlf: false
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.21
+        go-version: 1.23
         cache: false
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.57.2
+        version: v1.62.0
 
   build:
     name: Build
@@ -127,11 +141,14 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v5
+      with:
+        # Ensure consistent line endings across platforms
+        autocrlf: false
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.21
+        go-version: 1.23
         cache: false
 
     - name: Build for multiple platforms
