@@ -65,6 +65,13 @@
 - [ ] **Error Message Improvement**: More actionable error messages with suggested fixes
 
 ### Priority 3 - Bulk Operations
+- [ ] **Domain Alias Synchronization**: Implement alias sync feature (specification complete: `docs/development/domain-alias-sync-specification.md`)
+  - [ ] Add sync command structure to `internal/cmd/alias.go`
+  - [ ] Implement merge sync logic (bidirectional synchronization)
+  - [ ] Implement one-way sync logic (replace and preserve modes)
+  - [ ] Add interactive conflict resolution with overwrite/skip/merge options
+  - [ ] Add `--dry-run` and `--conflicts` flag support
+  - [ ] Create comprehensive test suite for sync operations
 - [ ] **Batch Processing Framework**: Infrastructure for bulk operations with progress tracking
 - [ ] **CSV Import/Export**: Bulk alias import/export functionality
 - [ ] **Concurrent Processing**: Configurable parallelism for bulk operations

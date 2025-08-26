@@ -43,7 +43,7 @@
 
 ### ⏳ PLANNED (Phase 1.4+ - Enhanced Features)
 - Comprehensive test coverage for email services
-- Bulk operations for batch processing
+- Bulk operations for batch processing and domain alias synchronization
 - Interactive setup wizards
 - Shell completion scripts
 - CI/CD release automation
@@ -152,12 +152,13 @@ Test Coverage: Comprehensive across all components
 ### Current Limitations
 - **API Documentation**: Limited Forward Email API docs, reverse-engineering from Auth.js examples
 - **Testing Coverage**: Email service tests needed for Phase 1.4
-- **Bulk Operations**: No batch processing capabilities yet
+- **Bulk Operations**: No batch processing capabilities yet (domain alias sync spec completed)
 - **Template System**: No email template support yet
 
 ### Immediate Next Steps (Phase 1.4)
 1. Write comprehensive tests for alias and email services
-2. Implement bulk operations for batch processing
-3. Create enhanced setup and configuration wizards
-4. Add shell completion scripts (Bash/Zsh/Fish)
-5. Set up CI/CD pipeline for automated releases
+2. Implement domain alias synchronization feature (specification complete)
+3. Implement additional bulk operations for batch processing
+4. Create enhanced setup and configuration wizards
+5. Add shell completion scripts (Bash/Zsh/Fish)
+6. Set up CI/CD pipeline for automated releases

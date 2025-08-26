@@ -53,7 +53,8 @@
       "Bash(mise trust:*)",
       "Bash(mise exec:*)",
       "Bash(mise current:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(~/.claude/ai_memory/bin/aim-save.sh:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

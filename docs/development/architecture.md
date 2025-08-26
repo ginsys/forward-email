@@ -356,7 +356,7 @@ Package Breakdown:
 
 ### Phase 2 Features (Planned)
 - **Interactive Setup**: `forward-email init` wizard
-- **Bulk Operations**: CSV import/export with progress tracking
+- **Bulk Operations**: CSV import/export with progress tracking, domain alias synchronization
 - **Template System**: YAML-based email templates
 - **Shell Completion**: Auto-generated completions for bash/zsh/fish
 - **Plugin Architecture**: Community extensibility framework

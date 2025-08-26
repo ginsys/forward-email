@@ -45,6 +45,7 @@ forward-email domain verify example.com    # DNS/SMTP verification
 # Alias Operations
 forward-email alias list --domain example.com
 forward-email alias create info@example.com --domain example.com --recipients team@company.com
+forward-email alias sync merge domain1.com domain2.com    # Sync aliases between domains
 
 # Email Operations
 forward-email email send             # Interactive email composition
@@ -91,6 +92,7 @@ make lint
 - **[Architecture Overview](docs/development/architecture.md)** - System design and structure
 - **[API Integration](docs/development/api-integration.md)** - Forward Email API details
 - **[Testing Strategy](docs/development/testing.md)** - Testing approach and standards
+- **[Domain Alias Sync Specification](docs/development/domain-alias-sync-specification.md)** - Bulk alias synchronization feature
 
 ## 🤝 Contributing
 
