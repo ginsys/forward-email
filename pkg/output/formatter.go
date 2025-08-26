@@ -11,7 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // Standard labels for boolean value formatting across all output formats.
