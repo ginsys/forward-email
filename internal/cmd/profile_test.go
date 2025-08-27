@@ -3,11 +3,10 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/ginsys/forward-email/internal/testutil"
 	"github.com/spf13/cobra"
 )
 
@@ -32,16 +31,11 @@ func TestProfileCommands(t *testing.T) {
 			name: "profile list with no profiles",
 			args: []string{"profile", "list"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			expectError:    false,
@@ -51,11 +45,7 @@ profiles: {}
 			name: "profile list with profiles",
 			args: []string{"profile", "list"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -69,8 +59,7 @@ profiles:
     timeout: "60s"
     output: "json"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			expectError:    false,
@@ -80,14 +69,8 @@ profiles:
 			name: "profile show current",
 			args: []string{"profile", "show"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
-				configContent := testConfigContent
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				tempDir := testutil.SetupTempConfig(t)
+				testutil.WriteTestConfig(t, tempDir, testConfigContent)
 				return tempDir
 			},
 			expectError:    false,
@@ -97,11 +80,8 @@ profiles:
 			name: "profile show specific profile",
 			args: []string{"profile", "show", "main"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "test"
 profiles:
   main:
@@ -115,8 +95,9 @@ profiles:
     timeout: "60s"
     output: "json"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError:    false,
@@ -126,16 +107,14 @@ profiles:
 			name: "profile create",
 			args: []string{"profile", "create", "newprofile"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError:    false,
@@ -145,11 +124,8 @@ profiles: {}
 			name: "profile switch",
 			args: []string{"profile", "switch", "test"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -163,8 +139,9 @@ profiles:
     timeout: "60s"
     output: "json"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError:    false,
@@ -174,11 +151,8 @@ profiles:
 			name: "profile delete with force",
 			args: []string{"profile", "delete", "test", "--force"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -192,8 +166,9 @@ profiles:
     timeout: "60s"
     output: "json"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError:    false,
@@ -203,16 +178,14 @@ profiles:
 			name: "profile show nonexistent",
 			args: []string{"profile", "show", "nonexistent"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: true,
@@ -221,16 +194,14 @@ profiles: {}
 			name: "profile switch to nonexistent",
 			args: []string{"profile", "switch", "nonexistent"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: true,
@@ -239,14 +210,8 @@ profiles: {}
 			name: "profile delete current profile",
 			args: []string{"profile", "delete", "main", "--force"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
-				configContent := testConfigContent
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				tempDir := testutil.SetupTempConfig(t)
+				testutil.WriteTestConfig(t, tempDir, testConfigContent)
 				return tempDir
 			},
 			expectError: true,
@@ -256,11 +221,7 @@ profiles: {}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup config
-			tempDir := tt.setupConfig()
-			defer func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
-				os.RemoveAll(tempDir)
-			}()
+			_ = tt.setupConfig() // tempDir is automatically cleaned up by t.TempDir()
 
 			// Create root command with profile subcommand
 			rootCmd := &cobra.Command{Use: "forward-email"}

@@ -54,12 +54,14 @@
       "Bash(mise exec:*)",
       "Bash(mise current:*)",
       "Bash(git tag:*)",
-      "Bash(~/.claude/ai_memory/bin/aim-save.sh:*)"
+      "Bash(~/.claude/ai_memory/bin/aim-save.sh:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "/home/serge/scratch"
+      "/home/serge/scratch",
+      "/tmp"
     ]
   },
   "memory": ".claude/CLAUDE.md",

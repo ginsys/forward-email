@@ -1,10 +1,9 @@
 package client
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/ginsys/forward-email/internal/testutil"
 	"github.com/spf13/viper"
 )
 
@@ -28,22 +27,15 @@ func TestNewAPIClient(t *testing.T) {
 		{
 			name: "no profile configured",
 			setupEnv: func() {
-				viper.Reset()
+				testutil.ResetViper()
 			},
 			setupConfig: func() string {
 				// Create empty config
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-
-				// Set XDG_CONFIG_HOME to point to our temp dir
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			expectedError: "no profile configured",
@@ -52,15 +44,11 @@ profiles: {}
 		{
 			name: "profile specified via viper flag",
 			setupEnv: func() {
-				viper.Reset()
+				testutil.ResetViper()
 				viper.Set("profile", "test")
 			},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "default"
 profiles:
   test:
@@ -74,9 +62,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			shouldSucceed: true,
@@ -84,14 +70,10 @@ profiles:
 		{
 			name: "uses current profile from config",
 			setupEnv: func() {
-				viper.Reset()
+				testutil.ResetViper()
 			},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -100,9 +82,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			shouldSucceed: true,
@@ -110,15 +90,11 @@ profiles:
 		{
 			name: "profile with no API key",
 			setupEnv: func() {
-				viper.Reset()
+				testutil.ResetViper()
 				viper.Set("profile", "empty")
 			},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -132,9 +108,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			shouldSucceed: true, // Client creation succeeds, auth fails later
@@ -142,15 +116,11 @@ profiles:
 		{
 			name: "custom base URL",
 			setupEnv: func() {
-				viper.Reset()
+				testutil.ResetViper()
 				viper.Set("api_base_url", "https://custom.api.url")
 			},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -159,9 +129,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			shouldSucceed: true,
@@ -172,14 +140,7 @@ profiles:
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup environment
 			tt.setupEnv()
-			configDir := tt.setupConfig()
-			defer func() {
-				// Cleanup
-				os.Unsetenv("XDG_CONFIG_HOME")
-				if configDir != "" {
-					os.RemoveAll(configDir)
-				}
-			}()
+			_ = tt.setupConfig() // tempDir is automatically cleaned up by t.TempDir()
 
 			// Test the function
 			client, err := NewAPIClient()
@@ -223,33 +184,20 @@ func TestNewAPIClient_ConfigLoadFailure(t *testing.T) {
 		}
 	}()
 
-	viper.Reset()
-
-	// Set an invalid config directory to force config load failure
-	os.Setenv("XDG_CONFIG_HOME", "/invalid/nonexistent/path")
-	defer os.Unsetenv("XDG_CONFIG_HOME")
+	testutil.ResetViper()
 
 	// This shouldn't fail because config.Load() handles missing config gracefully
 	// But let's test with a malformed config file
-	tempDir := t.TempDir()
-	configDir := filepath.Join(tempDir, ".config", "forwardemail")
-	os.MkdirAll(configDir, 0755)
+	tempDir := testutil.SetupTempConfig(t)
 
 	// Create malformed YAML config
-	configFile := filepath.Join(configDir, "config.yaml")
 	malformedContent := `current_profile: "test"
 profiles:
   test:
     base_url: "https://api.forwardemail.net"
     api_key: malformed yaml content here: [
 `
-	os.WriteFile(configFile, []byte(malformedContent), 0600)
-
-	os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-	defer func() {
-		os.Unsetenv("XDG_CONFIG_HOME")
-		os.RemoveAll(tempDir)
-	}()
+	testutil.WriteTestConfig(t, tempDir, malformedContent)
 
 	_, err := NewAPIClient()
 	if err == nil {

@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -170,8 +169,7 @@ func TestForwardEmailAuth_GetAPIKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup environment
 			if tt.envVar != "" {
-				os.Setenv(tt.envVar, tt.envValue)
-				defer os.Unsetenv(tt.envVar)
+				t.Setenv(tt.envVar, tt.envValue)
 			}
 
 			// Setup keyring

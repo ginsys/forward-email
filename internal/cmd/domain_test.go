@@ -3,12 +3,22 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/ginsys/forward-email/internal/testutil"
 	"github.com/spf13/cobra"
+)
+
+// Test variables for domain command flags
+var (
+	testDomainPage     int
+	testDomainLimit    int
+	testDomainSort     string
+	testDomainOrder    string
+	testDomainSearch   string
+	testDomainVerified string
+	testDomainPlan     string
 )
 
 func TestDomainCommands(t *testing.T) {
@@ -23,11 +33,8 @@ func TestDomainCommands(t *testing.T) {
 			name: "domain list with valid config",
 			args: []string{"domain", "list"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -36,8 +43,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: true, // Will fail because API key is fake, but we test command structure
@@ -46,9 +54,7 @@ profiles:
 			name: "domain get requires argument",
 			args: []string{"domain", "get"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError: true,
 		},
@@ -56,11 +62,8 @@ profiles:
 			name: "domain get with argument",
 			args: []string{"domain", "get", "example.com"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -69,8 +72,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: true, // Will fail because API key is fake, but we test command structure
@@ -79,9 +83,7 @@ profiles:
 			name: "domain help",
 			args: []string{"domain", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Manage Forward Email domains",
@@ -90,9 +92,7 @@ profiles:
 			name: "domain list help",
 			args: []string{"domain", "list", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "List all domains associated with your Forward Email account",
@@ -102,11 +102,8 @@ profiles:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup config
-			tempDir := tt.setupConfig()
-			defer func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
-				os.RemoveAll(tempDir)
-			}()
+
+			_ = tt.setupConfig() // tempDir is automatically cleaned up by t.TempDir()
 
 			// Create root command with domain subcommand
 			rootCmd := &cobra.Command{Use: "forward-email"}
@@ -141,13 +138,13 @@ and configuring domain settings and DNS records.`,
 			}
 
 			// Add flags
-			domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
-			domainListCmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
-			domainListCmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field")
-			domainListCmd.Flags().StringVar(&domainOrder, "order", "asc", "Sort order (asc|desc)")
-			domainListCmd.Flags().StringVar(&domainSearch, "search", "", "Search query")
-			domainListCmd.Flags().StringVar(&domainVerified, "verified", "", "Filter by verification status")
-			domainListCmd.Flags().StringVar(&domainPlan, "plan", "", "Filter by plan type")
+			domainListCmd.Flags().IntVar(&testDomainPage, "page", 1, "Page number")
+			domainListCmd.Flags().IntVar(&testDomainLimit, "limit", 50, "Number of results per page")
+			domainListCmd.Flags().StringVar(&testDomainSort, "sort", "name", "Sort field")
+			domainListCmd.Flags().StringVar(&testDomainOrder, "order", "asc", "Sort order (asc|desc)")
+			domainListCmd.Flags().StringVar(&testDomainSearch, "search", "", "Search query")
+			domainListCmd.Flags().StringVar(&testDomainVerified, "verified", "", "Filter by verification status")
+			domainListCmd.Flags().StringVar(&testDomainPlan, "plan", "", "Filter by plan type")
 
 			// Build command hierarchy
 			domainCmd.AddCommand(domainListCmd, domainGetCmd)
@@ -356,13 +353,13 @@ func TestDomainCommandFlags(t *testing.T) {
 				}
 				// Add flags as they would be in the real command
 				cmd.Flags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
-				cmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
-				cmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
-				cmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field")
-				cmd.Flags().StringVar(&domainOrder, "order", "asc", "Sort order")
-				cmd.Flags().StringVar(&domainSearch, "search", "", "Search query")
-				cmd.Flags().StringVar(&domainVerified, "verified", "", "Filter by verification status")
-				cmd.Flags().StringVar(&domainPlan, "plan", "", "Filter by plan type")
+				cmd.Flags().IntVar(&testDomainPage, "page", 1, "Page number")
+				cmd.Flags().IntVar(&testDomainLimit, "limit", 50, "Number of results per page")
+				cmd.Flags().StringVar(&testDomainSort, "sort", "name", "Sort field")
+				cmd.Flags().StringVar(&testDomainOrder, "order", "asc", "Sort order")
+				cmd.Flags().StringVar(&testDomainSearch, "search", "", "Search query")
+				cmd.Flags().StringVar(&testDomainVerified, "verified", "", "Filter by verification status")
+				cmd.Flags().StringVar(&testDomainPlan, "plan", "", "Filter by plan type")
 
 			case "get":
 				cmd = &cobra.Command{
@@ -463,8 +460,8 @@ and configuring domain settings and DNS records.`,
 			}
 
 			// Add flags
-			domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
-			domainListCmd.Flags().IntVar(&domainLimit, "limit", 50, "Number of results per page")
+			domainListCmd.Flags().IntVar(&testDomainPage, "page", 1, "Page number")
+			domainListCmd.Flags().IntVar(&testDomainLimit, "limit", 50, "Number of results per page")
 
 			// Build command hierarchy
 			domainCmd.AddCommand(domainListCmd, domainGetCmd)

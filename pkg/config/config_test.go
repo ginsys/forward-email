@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/ginsys/forward-email/internal/testutil"
 )
 
 func TestLoad(t *testing.T) {
@@ -16,11 +18,8 @@ func TestLoad(t *testing.T) {
 		{
 			name: "load valid config",
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "test"
 profiles:
   test:
@@ -36,8 +35,9 @@ profiles:
     timeout: "60s"
     output: "json"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			shouldError: false,
@@ -64,16 +64,14 @@ profiles:
 		{
 			name: "load with empty config file",
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			shouldError: false,
@@ -85,9 +83,7 @@ profiles: {}
 		{
 			name: "no config file exists",
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			shouldError: false,
 			expectedData: &Config{
@@ -98,18 +94,16 @@ profiles: {}
 		{
 			name: "malformed config file",
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "test"
 profiles:
   test:
     base_url: invalid yaml: [
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			shouldError: true,
@@ -118,11 +112,8 @@ profiles:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tempDir := tt.setupConfig()
-			defer func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
-				os.RemoveAll(tempDir)
-			}()
+			testutil.ResetViper() // Reset viper state before each test
+			_ = tt.setupConfig()  // tempDir is automatically cleaned up by t.TempDir()
 
 			config, err := Load()
 
@@ -178,11 +169,8 @@ profiles:
 }
 
 func TestLoadWithoutDefaults(t *testing.T) {
-	tempDir := t.TempDir()
-	configDir := filepath.Join(tempDir, ".config", "forwardemail")
-	os.MkdirAll(configDir, 0755)
-
-	configFile := filepath.Join(configDir, "config.yaml")
+	testutil.ResetViper() // Reset viper state before test
+	tempDir := testutil.SetupTempConfig(t)
 	configContent := `current_profile: "main"
 profiles:
   main:
@@ -191,12 +179,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-	os.WriteFile(configFile, []byte(configContent), 0600)
-	os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-	defer func() {
-		os.Unsetenv("XDG_CONFIG_HOME")
-		os.RemoveAll(tempDir)
-	}()
+	testutil.WriteTestConfig(t, tempDir, configContent)
 
 	config, err := LoadWithoutDefaults()
 	if err != nil {
@@ -222,12 +205,8 @@ profiles:
 }
 
 func TestConfig_Save(t *testing.T) {
-	tempDir := t.TempDir()
-	os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-	defer func() {
-		os.Unsetenv("XDG_CONFIG_HOME")
-		os.RemoveAll(tempDir)
-	}()
+	testutil.ResetViper() // Reset viper state before test
+	tempDir := testutil.SetupTempConfig(t)
 
 	config := &Config{
 		CurrentProfile: "test",
@@ -534,10 +513,10 @@ func Test_getConfigDir(t *testing.T) {
 		{
 			name: "uses XDG_CONFIG_HOME when set",
 			setupEnv: func() {
-				os.Setenv("XDG_CONFIG_HOME", "/custom/config")
+				t.Setenv("XDG_CONFIG_HOME", "/custom/config")
 			},
 			cleanupEnv: func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
+				// Cleanup handled by t.Setenv
 			},
 			checkPath: func(path string) bool {
 				return path == "/custom/config/forwardemail"
@@ -546,10 +525,11 @@ func Test_getConfigDir(t *testing.T) {
 		{
 			name: "uses home directory when XDG_CONFIG_HOME not set",
 			setupEnv: func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
+				// Ensure XDG_CONFIG_HOME is not set by setting it to empty
+				t.Setenv("XDG_CONFIG_HOME", "")
 			},
 			cleanupEnv: func() {
-				// Nothing to cleanup
+				// Cleanup handled by t.Setenv
 			},
 			checkPath: func(path string) bool {
 				// Should end with /.config/forwardemail

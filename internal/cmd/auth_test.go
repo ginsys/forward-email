@@ -3,11 +3,10 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/ginsys/forward-email/internal/testutil"
 	"github.com/spf13/cobra"
 )
 
@@ -23,11 +22,7 @@ func TestAuthCommands(t *testing.T) {
 			name: "auth verify with valid config",
 			args: []string{"auth", "verify"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -36,8 +31,7 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			expectError: false, // Mock implementation should succeed
@@ -46,16 +40,11 @@ profiles:
 			name: "auth verify with no profile",
 			args: []string{"auth", "verify"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
-
-				configFile := filepath.Join(configDir, "config.yaml")
+				tempDir := testutil.SetupTempConfig(t)
 				configContent := `current_profile: ""
 profiles: {}
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+				testutil.WriteTestConfig(t, tempDir, configContent)
 				return tempDir
 			},
 			expectError: true,
@@ -64,9 +53,7 @@ profiles: {}
 			name: "auth login command exists",
 			args: []string{"auth", "login", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Interactively log in to Forward Email",
@@ -75,9 +62,7 @@ profiles: {}
 			name: "auth command help",
 			args: []string{"auth", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Manage authentication credentials",
@@ -87,11 +72,7 @@ profiles: {}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup config
-			tempDir := tt.setupConfig()
-			defer func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
-				os.RemoveAll(tempDir)
-			}()
+			_ = tt.setupConfig() // tempDir is automatically cleaned up by t.TempDir()
 
 			// Create root command with auth subcommand
 			testRootCmd := &cobra.Command{Use: "forward-email"}

@@ -3,11 +3,10 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/ginsys/forward-email/internal/testutil"
 	"github.com/spf13/cobra"
 )
 
@@ -23,11 +22,8 @@ func TestDebugCommands(t *testing.T) {
 			name: "debug keys with valid config",
 			args: []string{"debug", "keys"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -36,8 +32,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: false, // Debug commands should not error on valid config
@@ -46,11 +43,8 @@ profiles:
 			name: "debug keys with specific profile",
 			args: []string{"debug", "keys", "main"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "test"
 profiles:
   main:
@@ -64,8 +58,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: false,
@@ -74,11 +69,8 @@ profiles:
 			name: "debug auth with valid config",
 			args: []string{"debug", "auth"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -87,8 +79,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: false,
@@ -97,11 +90,8 @@ profiles:
 			name: "debug api with valid config",
 			args: []string{"debug", "api"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				configDir := filepath.Join(tempDir, ".config", "forwardemail")
-				os.MkdirAll(configDir, 0755)
+				tempDir := testutil.SetupTempConfig(t)
 
-				configFile := filepath.Join(configDir, "config.yaml")
 				configContent := `current_profile: "main"
 profiles:
   main:
@@ -110,8 +100,9 @@ profiles:
     timeout: "30s"
     output: "table"
 `
-				os.WriteFile(configFile, []byte(configContent), 0600)
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
+
+				testutil.WriteTestConfig(t, tempDir, configContent)
+
 				return tempDir
 			},
 			expectError: false, // Command structure should work, API call may fail but that's expected for debug
@@ -120,9 +111,7 @@ profiles:
 			name: "debug help",
 			args: []string{"debug", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Debug utilities for troubleshooting",
@@ -131,9 +120,7 @@ profiles:
 			name: "debug keys help",
 			args: []string{"debug", "keys", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Show keyring information for debugging",
@@ -142,9 +129,7 @@ profiles:
 			name: "debug auth help",
 			args: []string{"debug", "auth", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Debug the full authentication flow",
@@ -153,9 +138,7 @@ profiles:
 			name: "debug api help",
 			args: []string{"debug", "api", "--help"},
 			setupConfig: func() string {
-				tempDir := t.TempDir()
-				os.Setenv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
-				return tempDir
+				return testutil.SetupTempConfig(t)
 			},
 			expectError:    false,
 			expectedOutput: "Test an actual API call",
@@ -165,11 +148,8 @@ profiles:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup config
-			tempDir := tt.setupConfig()
-			defer func() {
-				os.Unsetenv("XDG_CONFIG_HOME")
-				os.RemoveAll(tempDir)
-			}()
+
+			_ = tt.setupConfig() // tempDir is automatically cleaned up by t.TempDir()
 
 			// Create root command with debug subcommand
 			rootCmd := &cobra.Command{Use: "forward-email"}
