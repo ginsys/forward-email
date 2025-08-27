@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -590,15 +591,17 @@ func validateEmailRequest(req *api.SendEmailRequest) error {
 		return fmt.Errorf("either text or HTML content is required")
 	}
 
-	// Validate email addresses
+	// Validate email addresses using RFC-compliant parsing
 	allAddrs := req.To
 	allAddrs = append(allAddrs, req.CC...)
 	allAddrs = append(allAddrs, req.BCC...)
 	allAddrs = append(allAddrs, req.From)
 
 	for _, addr := range allAddrs {
-		if addr != "" && !strings.Contains(addr, "@") {
-			return fmt.Errorf("invalid email address: %s", addr)
+		if addr != "" {
+			if _, err := mail.ParseAddress(addr); err != nil {
+				return fmt.Errorf("invalid email address: %s - %w", addr, err)
+			}
 		}
 	}
 

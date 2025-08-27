@@ -15,7 +15,7 @@ jobs:
       fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go-version: [1.22, 1.23]
+        go-version: [1.23, 1.24]
 
     steps:
     - name: Check out code
@@ -55,8 +55,25 @@ jobs:
     - name: Run tests with race detector
       run: make test-ci
 
+    - name: Check coverage threshold
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
+      run: |
+        # Extract coverage percentage
+        if [ -f coverage.out ]; then
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: ${COVERAGE}%"
+          if (( $(echo "${COVERAGE} < 70" | bc -l) )); then
+            echo "❌ Coverage ${COVERAGE}% is below 70% threshold"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets quality gate"
+          fi
+        else
+          echo "⚠️ Coverage file not found, skipping coverage check"
+        fi
+
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
       uses: codecov/codecov-action@v5
       with:
         files: ./coverage.out
@@ -69,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: [1.22, 1.23]
+        go-version: [1.23, 1.24]
 
     steps:
     - name: Check out code
@@ -135,7 +152,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.23
+        go-version: 1.24
         cache: false
 
     - name: Run golangci-lint
@@ -143,11 +160,10 @@ jobs:
       with:
         version: latest
 
-  build:
-    name: Build
+  security:
+    name: Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [test, lint]  # Note: test-windows is not required for build to proceed
     steps:
     - name: Check out code
       uses: actions/checkout@v5
@@ -160,7 +176,37 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.23
+        go-version: 1.24
+        cache: false
+
+    - name: Run gosec security scanner
+      uses: securecodewarrior/github-action-gosec@master
+      with:
+        args: '-no-fail -fmt sarif -out gosec-report.sarif ./...'
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: gosec-report.sarif
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [test, lint, security]  # Note: test-windows is not required for build to proceed
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v5
+
+    - name: Configure Git for consistent line endings
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.24
         cache: false
 
     - name: Build for multiple platforms

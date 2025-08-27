@@ -60,7 +60,8 @@
       "Bash(/home/runner/golangci-lint-1.64.8-linux-amd64/golangci-lint config verify)",
       "Bash(/home/serge/src/go/bin/golangci-lint config verify)",
       "Bash(/home/serge/src/go/bin/golangci-lint --version)",
-      "Bash(/home/serge/src/go/bin/golangci-lint run --timeout=60s)"
+      "Bash(/home/serge/src/go/bin/golangci-lint run --timeout=60s)",
+      "Bash(/home/serge/src/go/bin/golangci-lint run --timeout=60s --verbose)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
