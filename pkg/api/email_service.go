@@ -342,7 +342,8 @@ func (s *EmailService) GetAttachment(ctx context.Context, emailID, attachmentID 
 		return nil, fmt.Errorf("attachment ID is required")
 	}
 
-	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s/attachments/%s", emailID, attachmentID)})
+	path := fmt.Sprintf("/v1/emails/%s/attachments/%s", emailID, attachmentID)
+	u := s.client.BaseURL.ResolveReference(&url.URL{Path: path})
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
@@ -369,7 +370,8 @@ func (s *EmailService) DownloadAttachment(ctx context.Context, emailID, attachme
 		return nil, fmt.Errorf("attachment ID is required")
 	}
 
-	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/emails/%s/attachments/%s/download", emailID, attachmentID)})
+	path := fmt.Sprintf("/v1/emails/%s/attachments/%s/download", emailID, attachmentID)
+	u := s.client.BaseURL.ResolveReference(&url.URL{Path: path})
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {

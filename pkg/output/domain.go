@@ -170,7 +170,10 @@ func FormatDomainQuota(quota *api.DomainQuota, format Format) (*TableData, error
 
 	// Forwarding
 	forwardingPct := FormatPercentage(int64(quota.ForwardingUsed), int64(quota.ForwardingLimit))
-	table.AddRow([]string{"Forwarding", FormatValue(quota.ForwardingUsed), FormatValue(quota.ForwardingLimit), forwardingPct})
+	table.AddRow([]string{
+		"Forwarding", FormatValue(quota.ForwardingUsed),
+		FormatValue(quota.ForwardingLimit), forwardingPct,
+	})
 
 	// Bandwidth
 	bandwidthUsed := FormatBytes(quota.BandwidthUsed)
@@ -180,7 +183,10 @@ func FormatDomainQuota(quota *api.DomainQuota, format Format) (*TableData, error
 
 	// Daily emails
 	emailsPct := FormatPercentage(int64(quota.EmailsSentToday), int64(quota.EmailsLimitDaily))
-	table.AddRow([]string{"Daily Emails", FormatValue(quota.EmailsSentToday), FormatValue(quota.EmailsLimitDaily), emailsPct})
+	table.AddRow([]string{
+		"Daily Emails", FormatValue(quota.EmailsSentToday),
+		FormatValue(quota.EmailsLimitDaily), emailsPct,
+	})
 
 	return table, nil
 }

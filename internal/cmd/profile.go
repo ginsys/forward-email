@@ -81,7 +81,8 @@ func init() {
 	profileCmd.AddCommand(profileCreateCmd)
 
 	// Global flags for profile commands
-	profileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
+	profileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o",
+		"table", "Output format (table, json, yaml)")
 
 	// Delete command flags
 	profileDeleteCmd.Flags().BoolVarP(&profileForce, "force", "f", false, "Force deletion without confirmation")
@@ -267,7 +268,8 @@ func runProfileDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	if !profileForce {
-		fmt.Printf("Are you sure you want to delete profile '%s'? This will remove all associated credentials. [y/N]: ", profileName)
+		prompt := "Are you sure you want to delete profile '%s'? This will remove all associated credentials. [y/N]: "
+		fmt.Printf(prompt, profileName)
 		reader := bufio.NewReader(cmd.InOrStdin())
 		line, _ := reader.ReadString('\n')
 		response := strings.TrimSpace(line)

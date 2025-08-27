@@ -1,3 +1,4 @@
+// Package keyring provides secure credential storage and retrieval functionality.
 package keyring
 
 import (

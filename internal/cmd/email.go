@@ -499,7 +499,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 
 	// Read content from files if specified
 	if emailTextFile != "" {
-		content, err := os.ReadFile(emailTextFile)
+		content, err := os.ReadFile(emailTextFile) //nolint:gosec // G304: Legitimate file reading for email content
 		if err != nil {
 			return nil, fmt.Errorf("failed to read text file: %v", err)
 		}
@@ -507,7 +507,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 	}
 
 	if emailHTMLFile != "" {
-		content, err := os.ReadFile(emailHTMLFile)
+		content, err := os.ReadFile(emailHTMLFile) //nolint:gosec // G304: Legitimate file reading for email content
 		if err != nil {
 			return nil, fmt.Errorf("failed to read HTML file: %v", err)
 		}
@@ -541,7 +541,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 }
 
 func processAttachment(filePath string) (*api.AttachmentData, error) {
-	content, err := os.ReadFile(filePath)
+	content, err := os.ReadFile(filePath) //nolint:gosec // G304: Legitimate file reading for email attachments
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
@@ -591,7 +591,8 @@ func validateEmailRequest(req *api.SendEmailRequest) error {
 	}
 
 	// Validate email addresses
-	allAddrs := append(req.To, req.CC...)
+	allAddrs := req.To
+	allAddrs = append(allAddrs, req.CC...)
 	allAddrs = append(allAddrs, req.BCC...)
 	allAddrs = append(allAddrs, req.From)
 

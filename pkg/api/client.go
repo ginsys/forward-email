@@ -1,3 +1,4 @@
+// Package api provides the Forward Email REST API client and data structures.
 package api
 
 import (
@@ -107,7 +108,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Handle HTTP error status codes (4xx, 5xx)
 	if resp.StatusCode >= 400 {

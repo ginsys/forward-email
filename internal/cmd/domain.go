@@ -175,7 +175,8 @@ func init() {
 	// List command specific flags
 	domainListCmd.Flags().IntVar(&domainPage, "page", 1, "Page number")
 	domainListCmd.Flags().IntVar(&domainLimit, "limit", 25, "Number of results per page")
-	domainListCmd.Flags().StringVar(&domainSort, "sort", "name", "Sort field (name, created_at, updated_at, is_verified, plan)")
+	domainListCmd.Flags().StringVar(&domainSort, "sort", "name",
+		"Sort field (name, created_at, updated_at, is_verified, plan)")
 	domainListCmd.Flags().StringVar(&domainOrder, "order", "asc", "Sort order (asc, desc)")
 	domainListCmd.Flags().StringVar(&domainSearch, "search", "", "Search domains by name")
 	domainListCmd.Flags().StringVar(&domainVerified, "verified", "", "Filter by verification status (true, false)")

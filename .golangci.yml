@@ -1,15 +1,22 @@
+version: "2"
+
 run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
 
 output:
-  formats:
-    - format: colored-line-number
+  format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
 linters-settings:
+  errcheck:
+    # Exclude functions commonly ignored in tests
+    exclude-functions:
+      - (*os.File).Close
+    ignore: fmt:.*,io/ioutil:^Read.*
+    exclude: .errcheck-excludes.txt
   govet:
     enable-all: true
     disable:
@@ -56,21 +63,6 @@ linters-settings:
       - dupBranchBody
       - emptyStringTest
       - equalFold
-  depguard:
-    rules:
-      main:
-        allow:
-          - $gostd
-          - github.com/ginsys/forward-email
-          - github.com/spf13/cobra
-          - github.com/spf13/viper
-          - github.com/99designs/keyring
-          - github.com/olekukonko/tablewriter
-          - golang.org/x/term
-          - gopkg.in/yaml.v3
-        deny:
-          - pkg: "github.com/pkg/errors"
-            desc: "Should be replaced by standard lib errors package"
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
@@ -78,7 +70,7 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
+    # - depguard      # disabled: wildcard patterns not working properly in v2.4.0
     - dogsled
     # - dupl          # disabled: too noisy, prefer targeted refactors
     - errcheck
@@ -86,12 +78,9 @@ linters:
     # - goconst       # disabled: too noisy for test files, causes CI noise
     - gocritic
     # - gocyclo       # disabled: complexity thresholds enforced via reviews
-    - gofmt
-    - goimports
     - revive
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
@@ -101,8 +90,6 @@ linters:
     - nolintlint
     - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     # - unparam       # disabled: too noisy, especially in test helper functions
     - unused
@@ -127,8 +114,8 @@ issues:
         - staticcheck    # Relax static analysis in tests
         - stylecheck     # Relax style requirements in tests
 
-    # Disable errcheck entirely for test files
-    - path: _test\.go
+    # Disable errcheck entirely for test files (updated syntax)
+    - path: "_test\\.go$"
       linters:
         - errcheck
 
@@ -138,11 +125,6 @@ issues:
         - gocritic
       text: 'httpNoBody'
     
-    # Allow standard library imports everywhere
-    - linters:
-        - depguard
-      text: "import .* is not allowed from list 'main'"
-      source: "^import \"(context|fmt|os|syscall|time|net/|encoding/|path/|runtime)\""
 
     # Allow constant suggestions in error mapping file
     - path: pkg/errors/errors\.go

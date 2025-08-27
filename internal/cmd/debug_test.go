@@ -166,8 +166,9 @@ profiles:
 				Short: "Show keyring information for debugging",
 				Long:  `Show keyring information for debugging authentication issues.`,
 				Args:  cobra.MaximumNArgs(1),
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
+					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug keyring information would be displayed here\n")
 					return nil
 				},
@@ -178,8 +179,9 @@ profiles:
 				Short: "Debug the full authentication flow",
 				Long:  `Debug the full authentication flow to see which API key is actually being used.`,
 				Args:  cobra.MaximumNArgs(1),
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
+					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug auth flow information would be displayed here\n")
 					return nil
 				},
@@ -190,8 +192,9 @@ profiles:
 				Short: "Test API call with current authentication",
 				Long:  `Test an actual API call to see the exact error response.`,
 				Args:  cobra.MaximumNArgs(1),
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
+					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug API call information would be displayed here\n")
 					return nil
 				},
@@ -491,7 +494,7 @@ func TestDebugHelpOutput(t *testing.T) {
 			rootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			rootCmd.Execute()
+			rootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

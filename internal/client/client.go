@@ -1,3 +1,4 @@
+// Package client provides the main client interface for Forward Email operations.
 package client
 
 import (

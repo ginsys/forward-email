@@ -196,7 +196,8 @@ func FormatEmailStats(stats *api.EmailStats, format Format) (*TableData, error) 
 	table.AddRow([]string{"Total Sent", fmt.Sprintf("%d", stats.TotalSent), "100%"})
 	table.AddRow([]string{"Delivered", fmt.Sprintf("%d", stats.TotalDelivered), fmt.Sprintf("%.1f%%", stats.DeliveryRate)})
 	table.AddRow([]string{"Bounced", fmt.Sprintf("%d", stats.TotalBounced), fmt.Sprintf("%.1f%%", stats.BounceRate)})
-	table.AddRow([]string{"Failed", fmt.Sprintf("%d", stats.TotalFailed), fmt.Sprintf("%.1f%%", float64(stats.TotalFailed)/float64(total)*100)})
+	failedPct := float64(stats.TotalFailed) / float64(total) * 100
+	table.AddRow([]string{"Failed", fmt.Sprintf("%d", stats.TotalFailed), fmt.Sprintf("%.1f%%", failedPct)})
 
 	if !stats.LastSent.IsZero() {
 		table.AddRow([]string{"Last Sent", stats.LastSent.Format(time.RFC3339), "-"})

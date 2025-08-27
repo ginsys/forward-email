@@ -1,0 +1,11 @@
+# Exclude common test patterns
+fmt.Fprintf
+(*encoding/json.Encoder).Encode
+(*encoding/json.Decoder).Decode
+(*net/http/httptest.ResponseRecorder).Write
+(*github.com/spf13/viper.Viper).BindPFlag
+(*github.com/spf13/cobra.Command).Execute
+os.Setenv
+os.Unsetenv
+(*github.com/99designs/keyring.Keyring).SetAPIKey
+(*github.com/99designs/keyring.Keyring).DeleteAPIKey

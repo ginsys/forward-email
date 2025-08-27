@@ -55,7 +55,8 @@
       "Bash(mise current:*)",
       "Bash(git tag:*)",
       "Bash(~/.claude/ai_memory/bin/aim-save.sh:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

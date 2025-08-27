@@ -120,7 +120,7 @@ and configuring domain settings and DNS records.`,
 				Use:   "list",
 				Short: "List domains",
 				Long:  `List all domains associated with your Forward Email account.`,
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(_ *cobra.Command, _ []string) error {
 					// Mock implementation for testing
 					return fmt.Errorf("mock API error")
 				},
@@ -131,7 +131,7 @@ and configuring domain settings and DNS records.`,
 				Short: "Get domain details",
 				Long:  `Get detailed information about a specific domain.`,
 				Args:  cobra.ExactArgs(1),
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(_ *cobra.Command, _ []string) error {
 					// Mock implementation for testing
 					return fmt.Errorf("mock API error")
 				},
@@ -474,7 +474,7 @@ and configuring domain settings and DNS records.`,
 			rootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			rootCmd.Execute()
+			rootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

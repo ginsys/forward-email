@@ -172,34 +172,46 @@ type DomainStats struct {
 type DomainGroup string
 
 const (
+	// DomainGroupAdmin represents administrative access level
 	DomainGroupAdmin DomainGroup = "admin"
-	DomainGroupUser  DomainGroup = "user"
+	// DomainGroupUser represents user access level
+	DomainGroupUser DomainGroup = "user"
 )
 
 // DomainPlan represents domain plan types
 type DomainPlan string
 
 const (
-	DomainPlanFree               DomainPlan = "free"
+	// DomainPlanFree represents the free plan tier
+	DomainPlanFree DomainPlan = "free"
+	// DomainPlanEnhancedProtection represents the enhanced protection plan tier
 	DomainPlanEnhancedProtection DomainPlan = "enhanced_protection"
-	DomainPlanTeam               DomainPlan = "team"
+	// DomainPlanTeam represents the team plan tier
+	DomainPlanTeam DomainPlan = "team"
 )
 
 // DomainSortField represents fields that can be used for sorting domains
 type DomainSortField string
 
 const (
-	DomainSortByName     DomainSortField = "name"
-	DomainSortByCreated  DomainSortField = "created_at"
-	DomainSortByUpdated  DomainSortField = "updated_at"
+	// DomainSortByName sorts domains by name
+	DomainSortByName DomainSortField = "name"
+	// DomainSortByCreated sorts domains by creation date
+	DomainSortByCreated DomainSortField = "created_at"
+	// DomainSortByUpdated sorts domains by last update date
+	DomainSortByUpdated DomainSortField = "updated_at"
+	// DomainSortByVerified sorts domains by verification status
 	DomainSortByVerified DomainSortField = "is_verified"
-	DomainSortByPlan     DomainSortField = "plan"
+	// DomainSortByPlan sorts domains by plan type
+	DomainSortByPlan DomainSortField = "plan"
 )
 
 // SortOrder represents sort order options
 type SortOrder string
 
 const (
-	SortOrderAsc  SortOrder = "asc"
+	// SortOrderAsc represents ascending sort order
+	SortOrderAsc SortOrder = "asc"
+	// SortOrderDesc represents descending sort order
 	SortOrderDesc SortOrder = "desc"
 )

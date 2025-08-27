@@ -1,3 +1,4 @@
+// Package testutil provides testing utilities and helpers for the CLI application.
 package testutil
 
 import (
@@ -23,7 +24,7 @@ func SetupTempConfig(t *testing.T) string {
 
 	// Create the forwardemail config directory structure
 	configDir := filepath.Join(tempDir, ".config", "forwardemail")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0750); err != nil {
 		t.Fatalf("Failed to create temp config directory: %v", err)
 	}
 

@@ -236,13 +236,13 @@ profiles: {}
 			profileListCmd := &cobra.Command{
 				Use:   "list",
 				Short: "List all profiles",
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
 					if strings.Contains(tt.name, "no profiles") {
-						fmt.Fprintf(cmd.OutOrStdout(), "No profiles configured\n")
+						fmt.Fprintf(cmd.OutOrStdout(), "No profiles configured\n") //nolint:errcheck // Test output
 						return nil
 					}
-					fmt.Fprintf(cmd.OutOrStdout(), "main\n")
+					fmt.Fprintf(cmd.OutOrStdout(), "main\n") //nolint:errcheck // Test output
 					return nil
 				},
 			}
@@ -260,7 +260,7 @@ profiles: {}
 					if strings.Contains(tt.name, "nonexistent") {
 						return fmt.Errorf("profile not found")
 					}
-					fmt.Fprintf(cmd.OutOrStdout(), "Profile: %s\n", profileName)
+					fmt.Fprintf(cmd.OutOrStdout(), "Profile: %s\n", profileName) //nolint:errcheck // Test output
 					return nil
 				},
 			}
@@ -274,7 +274,7 @@ profiles: {}
 					if strings.Contains(tt.name, "nonexistent") {
 						return fmt.Errorf("profile not found")
 					}
-					fmt.Fprintf(cmd.OutOrStdout(), "Switched to profile '%s'\n", args[0])
+					fmt.Fprintf(cmd.OutOrStdout(), "Switched to profile '%s'\n", args[0]) //nolint:errcheck // Test output
 					return nil
 				},
 			}
@@ -288,7 +288,7 @@ profiles: {}
 					if strings.Contains(tt.name, "current profile") {
 						return fmt.Errorf("cannot delete current profile")
 					}
-					fmt.Fprintf(cmd.OutOrStdout(), "Profile '%s' deleted successfully\n", args[0])
+					fmt.Fprintf(cmd.OutOrStdout(), "Profile '%s' deleted successfully\n", args[0]) //nolint:errcheck // Test output
 					return nil
 				},
 			}
@@ -299,14 +299,15 @@ profiles: {}
 				Args:  cobra.ExactArgs(1),
 				RunE: func(cmd *cobra.Command, args []string) error {
 					// Mock implementation for testing
-					fmt.Fprintf(cmd.OutOrStdout(), "Profile '%s' created successfully\n", args[0])
+					fmt.Fprintf(cmd.OutOrStdout(), "Profile '%s' created successfully\n", args[0]) //nolint:errcheck // Test output
 					return nil
 				},
 			}
 
 			// Add flags
 			profileDeleteCmd.Flags().BoolVarP(&profileForce, "force", "f", false, "Force deletion without confirmation")
-			profileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
+			profileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o",
+				"table", "Output format (table, json, yaml)")
 
 			// Build command hierarchy
 			profileCmd.AddCommand(profileListCmd, profileShowCmd, profileSwitchCmd, profileDeleteCmd, profileCreateCmd)
@@ -452,7 +453,8 @@ func TestProfileInit(t *testing.T) {
 	testRootCmd.AddCommand(testProfileCmd)
 
 	// Add flags similar to init function
-	testProfileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o", "table", "Output format (table, json, yaml)")
+	testProfileCmd.PersistentFlags().StringVarP(&profileOutputFormat, "output", "o",
+		"table", "Output format (table, json, yaml)")
 
 	// Test that the command tree is properly constructed
 	if testRootCmd.Commands()[0] != testProfileCmd {

@@ -198,7 +198,7 @@ func TestClient_Do(t *testing.T) {
 
 				w.WriteHeader(tt.serverStatus)
 				if tt.serverResponse != "" {
-					w.Write([]byte(tt.serverResponse))
+					w.Write([]byte(tt.serverResponse)) //nolint:errcheck,gosec // Test mock response
 				}
 			}))
 			defer server.Close()

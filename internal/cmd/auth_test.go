@@ -94,7 +94,7 @@ and manage API keys across different profiles.`,
 
 This command will attempt to authenticate with the Forward Email API
 using the current profile's credentials and report whether they are valid.`,
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(_ *cobra.Command, _ []string) error {
 					// Mock implementation for testing
 					if strings.Contains(tt.name, "no profile") {
 						return fmt.Errorf("no profile configured")
@@ -110,7 +110,7 @@ using the current profile's credentials and report whether they are valid.`,
 
 This command will prompt for your API key and securely store it
 in the OS keyring or configuration file.`,
-				RunE: func(cmd *cobra.Command, args []string) error {
+				RunE: func(_ *cobra.Command, _ []string) error {
 					// Mock implementation for testing
 					return nil
 				},
@@ -344,7 +344,7 @@ in the OS keyring or configuration file.`,
 			helpRootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			helpRootCmd.Execute()
+			helpRootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

@@ -56,7 +56,7 @@ func TestAliasListCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(aliases)
+		json.NewEncoder(w).Encode(aliases) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -171,7 +171,8 @@ func TestAliasGetCommand(t *testing.T) {
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(alias)
+			json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+				alias)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -260,7 +261,7 @@ func TestAliasCreateCommand(t *testing.T) {
 		}
 
 		var req api.CreateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		// Return created alias
 		alias := api.Alias{
@@ -280,7 +281,8 @@ func TestAliasCreateCommand(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			alias)
 	}))
 	defer server.Close()
 
@@ -305,8 +307,11 @@ func TestAliasCreateCommand(t *testing.T) {
 			expectOut:   []string{"created successfully", "newuser"},
 		},
 		{
-			name:        "create with multiple recipients",
-			args:        []string{"alias", "create", "example.com", "sales", "--recipients", "sales1@company.com,sales2@company.com"},
+			name: "create with multiple recipients",
+			args: []string{
+				"alias", "create", "example.com", "sales",
+				"--recipients", "sales1@company.com,sales2@company.com",
+			},
 			expectError: false,
 			expectOut:   []string{"created successfully", "sales"},
 		},
@@ -377,7 +382,7 @@ func TestAliasUpdateCommand(t *testing.T) {
 		}
 
 		var req api.UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		// Return updated alias
 		alias := api.Alias{
@@ -400,7 +405,8 @@ func TestAliasUpdateCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			alias)
 	}))
 	defer server.Close()
 
@@ -470,6 +476,7 @@ func TestAliasUpdateCommand(t *testing.T) {
 func TestAliasDeleteCommand(t *testing.T) {
 	// Mock server for get and delete operations
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//nolint:gocritic // ifElseChain: HTTP request routing not suitable for switch
 		if r.Method == "GET" && strings.Contains(r.URL.Path, "/aliases/delete-alias-id") {
 			// Return alias details for confirmation
 			alias := api.Alias{
@@ -478,7 +485,8 @@ func TestAliasDeleteCommand(t *testing.T) {
 				Name:     "todelete",
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(alias)
+			json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+				alias)
 		} else if r.Method == "DELETE" && strings.Contains(r.URL.Path, "/aliases/delete-alias-id") {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
@@ -559,7 +567,7 @@ func TestAliasEnableDisableCommands(t *testing.T) {
 		}
 
 		var req api.UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		alias := api.Alias{
 			ID:       "toggle-alias-id",
@@ -572,7 +580,8 @@ func TestAliasEnableDisableCommands(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			alias)
 	}))
 	defer server.Close()
 
@@ -640,7 +649,7 @@ func TestAliasRecipientsCommand(t *testing.T) {
 		}
 
 		var req api.UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		alias := api.Alias{
 			ID:         "recipients-alias-id",
@@ -650,7 +659,8 @@ func TestAliasRecipientsCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			alias)
 	}))
 	defer server.Close()
 
@@ -663,14 +673,20 @@ func TestAliasRecipientsCommand(t *testing.T) {
 		expectOut   []string
 	}{
 		{
-			name:        "update recipients with positional domain",
-			args:        []string{"alias", "recipients", "example.com", "recipients-alias-id", "--recipients", "new1@company.com,new2@company.com"},
+			name: "update recipients with positional domain",
+			args: []string{
+				"alias", "recipients", "example.com", "recipients-alias-id",
+				"--recipients", "new1@company.com,new2@company.com",
+			},
 			expectError: false,
 			expectOut:   []string{"Recipients updated"},
 		},
 		{
-			name:        "update recipients with domain flag",
-			args:        []string{"alias", "recipients", "recipients-alias-id", "--domain", "example.com", "--recipients", "updated@company.com"},
+			name: "update recipients with domain flag",
+			args: []string{
+				"alias", "recipients", "recipients-alias-id", "--domain", "example.com",
+				"--recipients", "updated@company.com",
+			},
 			expectError: false,
 			expectOut:   []string{"Recipients updated"},
 		},
@@ -722,7 +738,8 @@ func TestAliasPasswordCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			response)
 	}))
 	defer server.Close()
 
@@ -791,7 +808,8 @@ func TestAliasQuotaCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(quota)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			quota)
 	}))
 	defer server.Close()
 
@@ -861,7 +879,8 @@ func TestAliasStatsCommand(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(stats)
+		json.NewEncoder(w).Encode( //nolint:errcheck,gosec // Test mock response
+			stats)
 	}))
 	defer server.Close()
 
@@ -1026,9 +1045,9 @@ func createTestRootCmd() *cobra.Command {
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 
 	// Bind flags to viper
-	viper.BindPFlag("profile", cmd.PersistentFlags().Lookup("profile"))
-	viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))
-	viper.BindPFlag("verbose", cmd.PersistentFlags().Lookup("verbose"))
+	viper.BindPFlag("profile", cmd.PersistentFlags().Lookup("profile")) //nolint:errcheck,gosec // Test setup
+	viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))   //nolint:errcheck,gosec // Test setup
+	viper.BindPFlag("verbose", cmd.PersistentFlags().Lookup("verbose")) //nolint:errcheck,gosec // Test setup
 
 	// Set up alias command flags
 	testAliasCmd.PersistentFlags().StringVarP(&aliasDomain, "domain", "d", "", "Domain name or ID (required)")

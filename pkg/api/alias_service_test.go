@@ -87,7 +87,7 @@ func TestAliasService_ListAliases(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(aliases)
+		json.NewEncoder(w).Encode(aliases) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -222,7 +222,7 @@ func TestAliasService_GetAlias(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -358,7 +358,7 @@ func TestAliasService_CreateAlias(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -479,7 +479,7 @@ func TestAliasService_UpdateAlias(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -616,7 +616,7 @@ func TestAliasService_GeneratePassword(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(response) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -647,7 +647,7 @@ func TestAliasService_EnableDisableAlias(t *testing.T) {
 		}
 
 		var req UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		if req.IsEnabled == nil || !*req.IsEnabled {
 			t.Error("Expected IsEnabled to be true for enable operation")
@@ -661,7 +661,7 @@ func TestAliasService_EnableDisableAlias(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer enableServer.Close()
 
@@ -683,7 +683,7 @@ func TestAliasService_EnableDisableAlias(t *testing.T) {
 	// Test disable
 	disableServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		if req.IsEnabled == nil || *req.IsEnabled {
 			t.Error("Expected IsEnabled to be false for disable operation")
@@ -697,7 +697,7 @@ func TestAliasService_EnableDisableAlias(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer disableServer.Close()
 
@@ -722,10 +722,12 @@ func TestAliasService_UpdateRecipients(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateAliasRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		expectedRecipients := []string{"new1@example.com", "new2@example.com"}
-		if len(req.Recipients) != 2 || req.Recipients[0] != expectedRecipients[0] || req.Recipients[1] != expectedRecipients[1] {
+		if len(req.Recipients) != 2 ||
+			req.Recipients[0] != expectedRecipients[0] ||
+			req.Recipients[1] != expectedRecipients[1] {
 			t.Errorf("Expected recipients %v, got %v", expectedRecipients, req.Recipients)
 		}
 
@@ -737,7 +739,7 @@ func TestAliasService_UpdateRecipients(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(alias)
+		json.NewEncoder(w).Encode(alias) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -800,7 +802,7 @@ func TestAliasService_GetAliasQuota(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(quota)
+		json.NewEncoder(w).Encode(quota) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -852,7 +854,7 @@ func TestAliasService_GetAliasStats(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(stats)
+		json.NewEncoder(w).Encode(stats) //nolint:errcheck,gosec // Test mock response
 	}))
 	defer server.Close()
 
@@ -885,10 +887,10 @@ func TestAliasService_GetAliasStats(t *testing.T) {
 }
 
 func TestAliasService_ErrorHandling(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{
+		json.NewEncoder(w).Encode(map[string]string{ //nolint:errcheck,gosec // Test mock response
 			"message": "Alias not found",
 			"code":    "ALIAS_NOT_FOUND",
 		})

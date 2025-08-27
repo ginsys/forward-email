@@ -1,3 +1,4 @@
+// Package cmd provides the command-line interface for Forward Email operations.
 package cmd
 
 import (
@@ -218,7 +219,8 @@ func init() {
 	aliasCmd.AddCommand(aliasStatsCmd)
 
 	// Global flags (output inherited from root command)
-	aliasCmd.PersistentFlags().StringVarP(&aliasDomain, "domain", "d", "", "Domain name or ID (required unless using --all-domains)")
+	aliasCmd.PersistentFlags().StringVarP(&aliasDomain, "domain", "d", "",
+		"Domain name or ID (required unless using --all-domains)")
 
 	// List command flags
 	aliasListCmd.Flags().IntVar(&aliasPage, "page", 1, "Page number")
@@ -230,8 +232,10 @@ func init() {
 	aliasListCmd.Flags().StringVar(&aliasLabels, "labels", "", "Filter by labels (comma-separated)")
 	aliasListCmd.Flags().StringVar(&aliasHasIMAP, "has-imap", "", "Filter by IMAP capability (true/false)")
 	aliasListCmd.Flags().BoolVar(&aliasAllDomains, "all-domains", false, "List aliases from all available domains")
-	aliasListCmd.Flags().StringVar(&aliasColumns, "columns", "", "Specify columns to display (name,domain,recipients,enabled,imap,labels,created)")
-	aliasListCmd.Flags().StringVar(&aliasOrderBy, "order-by", "", "Sort by columns (e.g., 'domain,name' or 'enabled:desc,created:asc')")
+	aliasListCmd.Flags().StringVar(&aliasColumns, "columns", "",
+		"Specify columns to display (name,domain,recipients,enabled,imap,labels,created)")
+	aliasListCmd.Flags().StringVar(&aliasOrderBy, "order-by", "",
+		"Sort by columns (e.g., 'domain,name' or 'enabled:desc,created:asc')")
 
 	// Create command flags
 	aliasCreateCmd.Flags().StringSliceVar(&aliasRecipients, "recipients", nil, "Recipient email addresses")
@@ -274,7 +278,9 @@ func init() {
 }
 
 // formatAliasListMultiDomain formats aliases from multiple domains with proper domain resolution
-func formatAliasListMultiDomain(aliases []api.Alias, format output.Format, domainMap map[string]string) (*output.TableData, error) {
+func formatAliasListMultiDomain(
+	aliases []api.Alias, format output.Format, domainMap map[string]string,
+) (*output.TableData, error) {
 	if format != output.FormatTable && format != output.FormatCSV {
 		return nil, fmt.Errorf("use direct JSON/YAML encoding for aliases")
 	}
@@ -321,7 +327,9 @@ func formatAliasListMultiDomain(aliases []api.Alias, format output.Format, domai
 }
 
 // formatAliasListWithCustomColumns formats aliases with user-specified columns
-func formatAliasListWithCustomColumns(aliases []api.Alias, format output.Format, domainMap map[string]string, columnsStr string) (*output.TableData, error) {
+func formatAliasListWithCustomColumns(
+	aliases []api.Alias, format output.Format, domainMap map[string]string, columnsStr string,
+) (*output.TableData, error) {
 	if format != output.FormatTable && format != output.FormatCSV {
 		return nil, fmt.Errorf("use direct JSON/YAML encoding for aliases")
 	}
@@ -466,7 +474,8 @@ func parseSortCriteria(orderBy string) ([]sortCriterion, error) {
 
 		fieldName = strings.ToLower(fieldName)
 		if !validFields[fieldName] {
-			return nil, fmt.Errorf("invalid sort field '%s'. Valid fields: %s", fieldName, "name, domain, enabled, imap, created, updated, recipients, labels")
+			validFieldsList := "name, domain, enabled, imap, created, updated, recipients, labels"
+			return nil, fmt.Errorf("invalid sort field '%s'. Valid fields: %s", fieldName, validFieldsList)
 		}
 
 		criteria[i] = sortCriterion{
@@ -682,7 +691,7 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 
 	// Handle different formatting scenarios
 	var tableData *output.TableData
-	if aliasColumns != "" {
+	if aliasColumns != "" { //nolint:gocritic // ifElseChain: Complex conditions not suitable for switch
 		// Custom columns specified - ensure domain map is populated for single domains
 		if len(domains) == 1 && !aliasAllDomains && len(domainMap) == 0 {
 			// For single domain with custom columns, create a simple mapping
@@ -731,17 +740,18 @@ func runAliasGet(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag, or domain+aliasID
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -786,13 +796,14 @@ func runAliasCreate(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasName string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias name provided as positional arguments
 		domain = args[0]
 		aliasName = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// One argument provided; decide whether it's domain or alias name
-		if domain != "" {
+		if domain != "" { //nolint:gocritic // ifElseChain: Complex nested conditions not suitable for switch
 			// Domain was provided via flag; single arg must be alias name
 			aliasName = args[0]
 		} else if len(aliasRecipients) > 0 {
@@ -802,7 +813,7 @@ func runAliasCreate(cmd *cobra.Command, args []string) error {
 			// Likely domain provided without alias name
 			return fmt.Errorf("alias name is required")
 		}
-	} else {
+	default:
 		return fmt.Errorf("alias name is required")
 	}
 
@@ -864,11 +875,12 @@ func runAliasUpdate(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		if domain != "" {
 			// Domain provided via flag; single arg must be alias ID
 			aliasID = args[0]
@@ -880,7 +892,7 @@ func runAliasUpdate(cmd *cobra.Command, args []string) error {
 			// Otherwise treat as alias ID with missing domain
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -957,17 +969,18 @@ func runAliasDelete(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1014,17 +1027,18 @@ func runAliasEnable(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1053,17 +1067,18 @@ func runAliasDisable(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1092,17 +1107,18 @@ func runAliasRecipients(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1136,17 +1152,18 @@ func runAliasPassword(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1177,17 +1194,18 @@ func runAliasQuota(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 
@@ -1232,17 +1250,18 @@ func runAliasStats(cmd *cobra.Command, args []string) error {
 	domain := aliasDomain
 	var aliasID string
 
-	if len(args) == 2 {
+	switch len(args) {
+	case 2:
 		// Domain and alias ID provided as positional arguments
 		domain = args[0]
 		aliasID = args[1]
-	} else if len(args) == 1 {
+	case 1:
 		// Only one argument - could be alias ID with --domain flag
 		if domain == "" {
 			return fmt.Errorf("domain is required - specify as first argument or use --domain flag")
 		}
 		aliasID = args[0]
-	} else {
+	default:
 		return fmt.Errorf("alias ID is required")
 	}
 

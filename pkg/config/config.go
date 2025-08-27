@@ -1,3 +1,4 @@
+// Package config provides configuration management for the Forward Email CLI.
 package config
 
 import (
@@ -12,8 +13,10 @@ import (
 // It manages multiple profiles for different Forward Email accounts or environments,
 // and tracks which profile is currently active for CLI operations.
 type Config struct {
-	Profiles       map[string]Profile `yaml:"profiles" mapstructure:"profiles"`               // Map of profile name to profile configuration
-	CurrentProfile string             `yaml:"current_profile" mapstructure:"current_profile"` // Name of the currently active profile
+	// Map of profile name to profile configuration
+	Profiles map[string]Profile `yaml:"profiles" mapstructure:"profiles"`
+	// Name of the currently active profile
+	CurrentProfile string `yaml:"current_profile" mapstructure:"current_profile"`
 }
 
 // Profile represents a configuration profile for a specific Forward Email account or environment.
@@ -90,7 +93,7 @@ func (c *Config) Save() error {
 	}
 
 	// Ensure config directory exists
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0750); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 

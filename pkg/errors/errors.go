@@ -1,3 +1,4 @@
+// Package errors provides structured HTTP error types and handling utilities.
 package errors
 
 import (

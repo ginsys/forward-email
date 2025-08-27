@@ -220,7 +220,8 @@ func TestNewServerError(t *testing.T) {
 }
 
 func TestNewServiceUnavailableError(t *testing.T) {
-	testErrorCreator(t, "NewServiceUnavailableError", NewServiceUnavailableError, "ServiceUnavailable", http.StatusServiceUnavailable,
+	testErrorCreator(t, "NewServiceUnavailableError", NewServiceUnavailableError,
+		"ServiceUnavailable", http.StatusServiceUnavailable,
 		"Maintenance in progress", "Maintenance in progress", "Service temporarily unavailable")
 }
 
@@ -277,7 +278,8 @@ func TestErrorTypeCheckers(t *testing.T) {
 		{"IsRateLimit with other error", NewNotFoundError("test"), IsRateLimit, false},
 		{"IsServerError with ServerError", NewServerError("test"), IsServerError, true},
 		{"IsServerError with other error", NewNotFoundError("test"), IsServerError, false},
-		{"IsServiceUnavailable with ServiceUnavailable error", NewServiceUnavailableError("test"), IsServiceUnavailable, true},
+		{"IsServiceUnavailable with ServiceUnavailable error",
+			NewServiceUnavailableError("test"), IsServiceUnavailable, true},
 		{"IsServiceUnavailable with other error", NewNotFoundError("test"), IsServiceUnavailable, false},
 	}
 

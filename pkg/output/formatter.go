@@ -1,3 +1,4 @@
+// Package output provides formatting and display utilities for CLI output.
 package output
 
 import (
@@ -25,6 +26,7 @@ const (
 // and CSV for spreadsheet integration.
 type Format string
 
+// Output format constants for different display types
 const (
 	FormatTable Format = "table" // Human-readable table with proper column alignment
 	FormatJSON  Format = "json"  // Machine-readable JSON for API integration
@@ -81,7 +83,7 @@ func (f *Formatter) formatJSON(data interface{}) error {
 // formatYAML outputs data as YAML
 func (f *Formatter) formatYAML(data interface{}) error {
 	encoder := yaml.NewEncoder(f.writer)
-	defer encoder.Close()
+	defer func() { _ = encoder.Close() }()
 	return encoder.Encode(data)
 }
 
@@ -98,14 +100,16 @@ func (f *Formatter) formatTable(data interface{}) error {
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			table.Append(convertToInterface(row)...) //nolint:errcheck
+			//nolint:errcheck,gosec // G104: tablewriter.Append doesn't return meaningful errors
+			table.Append(convertToInterface(row)...)
 		}
 	case *TableData:
 		table.Header(convertToInterface(v.Headers)...)
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			table.Append(convertToInterface(row)...) //nolint:errcheck
+			//nolint:errcheck,gosec // G104: tablewriter.Append doesn't return meaningful errors
+			table.Append(convertToInterface(row)...)
 		}
 	default:
 		return fmt.Errorf("table format requires TableData struct, got %T", data)
@@ -468,17 +472,17 @@ func (f *Formatter) formatCSV(data interface{}) error {
 	switch v := data.(type) {
 	case TableData:
 		// Write headers
-		fmt.Fprintln(f.writer, strings.Join(v.Headers, ","))
+		_, _ = fmt.Fprintln(f.writer, strings.Join(v.Headers, ","))
 		// Write rows
 		for _, row := range v.Rows {
-			fmt.Fprintln(f.writer, strings.Join(row, ","))
+			_, _ = fmt.Fprintln(f.writer, strings.Join(row, ","))
 		}
 	case *TableData:
 		// Write headers
-		fmt.Fprintln(f.writer, strings.Join(v.Headers, ","))
+		_, _ = fmt.Fprintln(f.writer, strings.Join(v.Headers, ","))
 		// Write rows
 		for _, row := range v.Rows {
-			fmt.Fprintln(f.writer, strings.Join(row, ","))
+			_, _ = fmt.Fprintln(f.writer, strings.Join(row, ","))
 		}
 	default:
 		return fmt.Errorf("CSV format requires TableData struct")

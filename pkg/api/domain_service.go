@@ -74,7 +74,10 @@ func (s *DomainService) ListDomains(ctx context.Context, opts *ListDomainsOption
 // It uses Go generics to handle different response types while providing consistent
 // error handling and URL construction. The pathTemplate should contain a %s placeholder
 // for the domain identifier, which will be properly URL-escaped.
-func domainGetHelper[T any](ctx context.Context, s *DomainService, pathTemplate string, domainIDOrName, errorPrefix string) (*T, error) {
+func domainGetHelper[T any](
+	ctx context.Context, s *DomainService, pathTemplate string,
+	domainIDOrName, errorPrefix string,
+) (*T, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf(pathTemplate, url.PathEscape(domainIDOrName)),
 	})
@@ -133,7 +136,9 @@ func (s *DomainService) CreateDomain(ctx context.Context, req *CreateDomainReque
 // The domainIDOrName parameter identifies the domain to update (UUID or FQDN).
 // Only fields specified in the request will be updated; nil/empty fields are ignored.
 // Returns the updated domain with the new configuration applied.
-func (s *DomainService) UpdateDomain(ctx context.Context, domainIDOrName string, req *UpdateDomainRequest) (*Domain, error) {
+func (s *DomainService) UpdateDomain(
+	ctx context.Context, domainIDOrName string, req *UpdateDomainRequest,
+) (*Domain, error) {
 	if req == nil {
 		return nil, fmt.Errorf("update domain request cannot be nil")
 	}
@@ -244,7 +249,9 @@ func (s *DomainService) GetDomainStats(ctx context.Context, domainIDOrName strin
 // The email parameter specifies the member's email address, and group determines their
 // access level (e.g., "admin", "user"). The member will receive an invitation to
 // access the domain's management interface.
-func (s *DomainService) AddDomainMember(ctx context.Context, domainIDOrName, email, group string) (*DomainMember, error) {
+func (s *DomainService) AddDomainMember(
+	ctx context.Context, domainIDOrName, email, group string,
+) (*DomainMember, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/members", url.PathEscape(domainIDOrName)),
 	})

@@ -1,3 +1,4 @@
+// Package auth provides authentication and authorization functionality.
 package auth
 
 import (
@@ -121,7 +122,7 @@ func (f *ForwardEmailAuth) Validate(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("validation request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("invalid API key")

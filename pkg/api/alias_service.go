@@ -156,7 +156,9 @@ func (s *AliasService) CreateAlias(ctx context.Context, domain string, req *Crea
 // Only fields specified in the request will be updated; nil/empty fields are ignored.
 // Can modify recipients, labels, IMAP settings, vacation responder, and enabled status.
 // Returns the updated alias with the new configuration applied.
-func (s *AliasService) UpdateAlias(ctx context.Context, domain, aliasID string, req *UpdateAliasRequest) (*Alias, error) {
+func (s *AliasService) UpdateAlias(
+	ctx context.Context, domain, aliasID string, req *UpdateAliasRequest,
+) (*Alias, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
 	}
@@ -226,7 +228,9 @@ func (s *AliasService) DeleteAlias(ctx context.Context, domain, aliasID string) 
 // This invalidates any existing IMAP password and generates a new secure password
 // for accessing the alias via IMAP clients. The alias must have IMAP enabled.
 // Returns the new password which should be stored securely by the client.
-func (s *AliasService) GeneratePassword(ctx context.Context, domain, aliasID string) (*GeneratePasswordResponse, error) {
+func (s *AliasService) GeneratePassword(
+	ctx context.Context, domain, aliasID string,
+) (*GeneratePasswordResponse, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain is required")
 	}
@@ -234,7 +238,8 @@ func (s *AliasService) GeneratePassword(ctx context.Context, domain, aliasID str
 		return nil, fmt.Errorf("alias ID is required")
 	}
 
-	u := s.client.BaseURL.ResolveReference(&url.URL{Path: fmt.Sprintf("/v1/domains/%s/aliases/%s/generate-password", domain, aliasID)})
+	path := fmt.Sprintf("/v1/domains/%s/aliases/%s/generate-password", domain, aliasID)
+	u := s.client.BaseURL.ResolveReference(&url.URL{Path: path})
 
 	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), http.NoBody)
 	if err != nil {
@@ -275,7 +280,9 @@ func (s *AliasService) DisableAlias(ctx context.Context, domain, aliasID string)
 // This is a shortcut for UpdateAlias that modifies only the recipients list.
 // Recipients can be email addresses, webhooks (starting with http/https),
 // or FQDN forwarding targets. At least one recipient is required.
-func (s *AliasService) UpdateRecipients(ctx context.Context, domain, aliasID string, recipients []string) (*Alias, error) {
+func (s *AliasService) UpdateRecipients(
+	ctx context.Context, domain, aliasID string, recipients []string,
+) (*Alias, error) {
 	if len(recipients) == 0 {
 		return nil, fmt.Errorf("at least one recipient is required")
 	}

@@ -24,17 +24,9 @@ func FormatAliasList(aliases []api.Alias, format Format, domain string) (*TableD
 
 		var recipients, labels string
 
-		// For CSV, show full data without truncation
-		if format == FormatCSV {
-			recipients = strings.Join(alias.Recipients, ", ")
-			labels = strings.Join(alias.Labels, ", ")
-		} else {
-			// For table, use intelligent text wrapping
-			recipients = strings.Join(alias.Recipients, ", ")
-			// Don't truncate - let table wrapper handle long content
-			labels = strings.Join(alias.Labels, ", ")
-			// Don't truncate - let table wrapper handle long content
-		}
+		// Show full data - let table wrapper handle long content formatting
+		recipients = strings.Join(alias.Recipients, ", ")
+		labels = strings.Join(alias.Labels, ", ")
 
 		var created string
 		if alias.CreatedAt.IsZero() {

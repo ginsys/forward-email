@@ -1,7 +1,9 @@
+// Package main implements the Forward Email CLI application entry point.
 package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,11 +18,12 @@ import (
 func main() {
 	// Setup graceful shutdown context that responds to SIGINT (Ctrl+C) and SIGTERM
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
 
 	// Execute the CLI command tree with cancellation support
-	if err := cmd.Execute(ctx); err != nil {
-		cancel() // Ensure cleanup happens before exit
+	err := cmd.Execute(ctx)
+	cancel() // Ensure cleanup always happens
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
