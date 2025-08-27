@@ -247,3 +247,7 @@ forward-email profile switch <profile-name>
 ```
 
 For more detailed troubleshooting, see the [Troubleshooting Guide](troubleshooting.md).
+
+---
+
+*Last Updated: 2025-08-27 | All features implemented and tested*

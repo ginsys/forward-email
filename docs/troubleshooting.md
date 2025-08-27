@@ -608,3 +608,7 @@ A: Try using JSON output format, enable caching, or increase timeout values. The
 
 ### Q: Can I use multiple Forward Email accounts?
 A: Yes, create separate profiles for each account using `forward-email profile create`.
+
+---
+
+*Last Updated: 2025-08-27 | Comprehensive troubleshooting guide for current implementation*

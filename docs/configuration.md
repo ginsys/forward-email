@@ -2,15 +2,24 @@
 
 Learn how to configure Forward Email CLI for your environment and workflow.
 
+**Status**: Fully implemented with OS keyring integration ✅
+
 ## Configuration Overview
 
 Forward Email CLI uses a hierarchical configuration system that prioritizes settings in this order:
 
 1. **Command-line flags** (highest priority)
 2. **Environment variables**
-3. **Profile-specific settings**
-4. **Global configuration file**
-5. **Default values** (lowest priority)
+3. **OS keyring storage** (for API keys)
+4. **Profile-specific settings**
+5. **Global configuration file**
+6. **Default values** (lowest priority)
+
+### Authentication Priority
+For API key authentication specifically:
+1. **Environment variable** (`FORWARD_EMAIL_API_KEY`)
+2. **OS keyring storage** (secure credential storage)
+3. **Profile configuration** (config file - not recommended for production)
 
 ## Configuration File
 
@@ -458,7 +467,13 @@ profiles:
     output: "json"
 ```
 
+## See Also
+
 For more information on specific commands and troubleshooting, see:
-- [Command Reference](commands.md)
-- [Quick Start Guide](quick-start.md)
-- [Troubleshooting Guide](troubleshooting.md)
+- [Command Reference](commands.md) - Complete command documentation
+- [Quick Start Guide](quick-start.md) - Getting started tutorial
+- [Troubleshooting Guide](troubleshooting.md) - Problem resolution
+
+---
+
+*Last Updated: 2025-08-27 | Configuration system fully implemented and tested*
