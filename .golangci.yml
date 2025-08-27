@@ -12,7 +12,7 @@ output:
   show-stats: true
 
 linters:
-  default: none  # equivalent to disable-all in v1
+  disable-all: true
   enable:
     - bodyclose
     - dogsled
@@ -34,125 +34,125 @@ linters:
     - unconvert
     - unused
     - whitespace
-  
-  settings:
-    errcheck:
-      exclude-functions:
-        - (*os.File).Close
-    govet:
-      enable-all: true
-      disable:
-        - fieldalignment  # Disable field alignment checks - too noisy for struct optimization
-        - shadow         # Disable shadow variable checks - often false positives in test contexts
-    revive:
-      rules:
-        - name: exported
-          severity: warning
-          disabled: false
-          arguments:
-            - checkPrivateReceivers
-    gocyclo:
-      min-complexity: 40
-    dupl:
-      threshold: 100
-    goconst:
-      min-len: 3          # Increased from 2 to reduce noise
-      min-occurrences: 5  # Increased from 2 to only catch significant repetitions
-    misspell:
-      locale: US
-    lll:
-      line-length: 160
-    gocritic:
-      enabled-tags:
-        - diagnostic
-        - experimental
-        - opinionated
-        - performance
-        - style
-      disabled-checks:
-        - dupImport
-        - ifElseChain
-        - octalLiteral
-        - whyNoLint
-        - wrapperFunc
-        - hugeParam
-        - exitAfterDefer
-        - paramTypeCombine
-        - rangeValCopy
-        - appendAssign
-        - dupBranchBody
-        - emptyStringTest
-        - equalFold
-  
-  exclusions:
-    rules:
-      # Relax linting standards for test files
-      - path: _test\.go
-        linters:
-          - mnd
-          - goconst        # Allow string repetition in tests
-          - gosec          # Allow security relaxations in tests
-          - unparam        # Allow unused parameters in test helpers
-          - lll            # Allow longer lines in test cases
-          - dupl           # Allow duplication in test setup
-          - shadow         # Allow shadow variables in test scopes
-          - revive         # Relax style checks in tests
-          - misspell       # Allow common test misspellings
-          - govet          # Relax vet checks in tests
-          - staticcheck    # Relax static analysis in tests
-          - stylecheck     # Relax style requirements in tests
-          - errcheck       # Disable errcheck entirely for test files
 
-      # Allow gocritic httpNoBody suggestions in tests
-      - path: _test\.go
-        linters:
-          - gocritic
-        text: 'httpNoBody'
+linters-settings:
+  errcheck:
+    exclude-functions:
+      - (*os.File).Close
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment  # Disable field alignment checks - too noisy for struct optimization
+      - shadow         # Disable shadow variable checks - often false positives in test contexts
+  revive:
+    rules:
+      - name: exported
+        severity: warning
+        disabled: false
+        arguments:
+          - checkPrivateReceivers
+  gocyclo:
+    min-complexity: 40
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 3          # Increased from 2 to reduce noise
+    min-occurrences: 5  # Increased from 2 to only catch significant repetitions
+  misspell:
+    locale: US
+  lll:
+    line-length: 160
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+      - hugeParam
+      - exitAfterDefer
+      - paramTypeCombine
+      - rangeValCopy
+      - appendAssign
+      - dupBranchBody
+      - emptyStringTest
+      - equalFold
+
+issues:
+  exclude-rules:
+    # Relax linting standards for test files
+    - path: _test\.go
+      linters:
+        - mnd
+        - goconst        # Allow string repetition in tests
+        - gosec          # Allow security relaxations in tests
+        - unparam        # Allow unused parameters in test helpers
+        - lll            # Allow longer lines in test cases
+        - dupl           # Allow duplication in test setup
+        - shadow         # Allow shadow variables in test scopes
+        - revive         # Relax style checks in tests
+        - misspell       # Allow common test misspellings
+        - govet          # Relax vet checks in tests
+        - staticcheck    # Relax static analysis in tests
+        - stylecheck     # Relax style requirements in tests
+        - errcheck       # Disable errcheck entirely for test files
+
+    # Allow gocritic httpNoBody suggestions in tests
+    - path: _test\.go
+      linters:
+        - gocritic
+      text: 'httpNoBody'
     
-      # Allow constant suggestions in error mapping file
-      - path: pkg/errors/errors\.go
-        linters:
-          - goconst
+    # Allow constant suggestions in error mapping file
+    - path: pkg/errors/errors\.go
+      linters:
+        - goconst
     
-      # Allow magic numbers in configuration defaults
-      - path: config\.go
-        linters:
-          - mnd
+    # Allow magic numbers in configuration defaults
+    - path: config\.go
+      linters:
+        - mnd
     
-      # Allow stuttering in API package names
-      - linters:
-          - revive
-        text: "stutters"
+    # Allow stuttering in API package names
+    - linters:
+        - revive
+      text: "stutters"
     
-      # Allow fieldalignment in CLI profile struct declarations
-      - path: internal/cmd/profile\.go
-        linters:
-          - govet
-        text: "fieldalignment:"
+    # Allow fieldalignment in CLI profile struct declarations
+    - path: internal/cmd/profile\.go
+      linters:
+        - govet
+      text: "fieldalignment:"
     
-      # https://github.com/go-critic/go-critic/issues/926
-      - linters:
-          - gocritic
-        text: "unnecessaryDefer:"
+    # https://github.com/go-critic/go-critic/issues/926
+    - linters:
+        - gocritic
+      text: "unnecessaryDefer:"
     
-      # Global exclusions for common patterns
-      # Allow HTTP method constants in tests - these are standard patterns
-      - text: 'string `(GET|POST|PUT|DELETE)` has .* occurrences, make it a constant'
-        linters:
-          - goconst
+    # Global exclusions for common patterns
+    # Allow HTTP method constants in tests - these are standard patterns
+    - text: 'string `(GET|POST|PUT|DELETE)` has .* occurrences, make it a constant'
+      linters:
+        - goconst
     
-      # Allow common test data repetition
-      - text: 'string `(test|example\.com|localhost)` has .* occurrences, make it a constant'
-        linters:
-          - goconst
+    # Allow common test data repetition
+    - text: 'string `(test|example\.com|localhost)` has .* occurrences, make it a constant'
+      linters:
+        - goconst
     
-      # Allow unused name parameter in helper functions (common pattern)
-      - text: '`\w+` - `name` is unused'
-        linters:
-          - unparam
+    # Allow unused name parameter in helper functions (common pattern)
+    - text: '`\w+` - `name` is unused'
+      linters:
+        - unparam
     
-      # Allow field alignment in API structures (performance vs readability tradeoff)
-      - text: 'fieldalignment: struct with .* pointer bytes could be'
-        linters:
-          - govet
-        path: 'pkg/api/.*\.go$'
+    # Allow field alignment in API structures (performance vs readability tradeoff)
+    - text: 'fieldalignment: struct with .* pointer bytes could be'
+      linters:
+        - govet
+      path: 'pkg/api/.*\.go$'
