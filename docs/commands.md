@@ -206,6 +206,37 @@ forward-email debug keyring
 forward-email debug api
 ```
 
+## Version Command (`version`)
+
+Show build and version information.
+
+### Usage
+```bash
+# Short version only
+forward-email version
+
+# Detailed multi-line info (version, commit, date, Go, OS/arch)
+forward-email version --verbose
+
+# JSON for automation
+forward-email version --json
+
+# Include license text after version info
+forward-email version --license
+```
+
+### JSON Example
+```json
+{
+  "version": "v0.1.0",
+  "commit": "abc1234",
+  "date": "2025-08-27T12:34:56Z",
+  "go_version": "go1.21.10",
+  "os": "linux",
+  "arch": "amd64"
+}
+```
+
 ## Completion Commands (`completion`)
 
 Generate shell completion scripts.
@@ -258,4 +289,5 @@ forward-email profile show --output yaml
 
 ---
 
+Docs navigation: [Prev: Quick Start](quick-start.md) | [Next: Configuration](configuration.md)
 *Last Updated: 2025-08-27 | All commands tested and fully functional*

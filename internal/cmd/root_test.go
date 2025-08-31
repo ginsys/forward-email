@@ -43,7 +43,7 @@ func TestRootCommand(t *testing.T) {
 			cmd := &cobra.Command{
 				Use:     "forward-email",
 				Short:   "A comprehensive CLI for Forward Email API management",
-				Version: version,
+				Version: "test-version",
 			}
 
 			// Add persistent flags

@@ -22,6 +22,9 @@ git clone https://github.com/ginsys/forward-email.git
 cd forward-email
 go build -o bin/forward-email ./cmd/forward-email
 
+# Check version (optional)
+./bin/forward-email version --verbose
+
 # Set up authentication
 ./bin/forward-email auth login
 
@@ -85,6 +88,9 @@ This project is under active development towards v1.0.0. Until then:
 
 The CLI targets Forward Email API v1. While we strive for stability, please pin to specific versions in production use.
 
+### Release Process
+See the Versioning & Release Plan for details on semantic versioning, tagging, and CI/CD automation: `.claude/VERSIONING_RELEASE_PLAN.md`.
+
 ## 🛠️ Development
 
 ```bash
@@ -103,6 +109,7 @@ make lint
 
 ## 📚 Documentation
 
+- **[Documentation Index](docs/README.md)** - Central entry point for all docs
 - **[Quick Start Guide](docs/quick-start.md)** - Get up and running quickly
 - **[Command Reference](docs/commands.md)** - Complete command documentation
 - **[Configuration Guide](docs/configuration.md)** - Profiles, environments, and settings
@@ -114,6 +121,7 @@ make lint
 - **[API Integration](docs/development/api-integration.md)** - Forward Email API details
 - **[Testing Strategy](docs/development/testing.md)** - Testing approach and standards
 - **[Domain Alias Sync Specification](docs/development/domain-alias-sync-specification.md)** - Bulk alias synchronization feature
+- **Versioning & Release Plan** - See `.claude/VERSIONING_RELEASE_PLAN.md`
 
 ## 🤝 Contributing
 

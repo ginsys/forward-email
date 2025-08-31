@@ -5,17 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	buildversion "github.com/ginsys/forward-email/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// Build-time variables set by linker flags during compilation.
-// These provide version information for the CLI application.
-var (
-	version = "dev"     // Application version, set by -ldflags "-X main.version=..."
-	commit  = "none"    // Git commit hash, set by -ldflags "-X main.commit=..."
-	date    = "unknown" // Build date, set by -ldflags "-X main.date=..."
-)
+// Version information is provided by internal/version (populated via -ldflags).
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -31,7 +26,7 @@ Features:
 - Security-first design with OS keyring integration
 - Developer experience with shell completion and interactive wizards
 - Enterprise ready with audit logging and CI/CD integration`,
-	Version: version,
+	Version: buildversion.Version,
 }
 
 // Execute is the main entry point for the CLI application.
@@ -62,8 +57,9 @@ func initFlags() {
 	_ = viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	_ = viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
-	// Version template
-	rootCmd.SetVersionTemplate(fmt.Sprintf("forward-email version %s\ncommit: %s\nbuilt: %s\n", version, commit, date))
+	// Version template using internal/version package
+	v := buildversion.Get()
+	rootCmd.SetVersionTemplate(fmt.Sprintf("forward-email version %s\ncommit: %s\nbuilt: %s\n", v.Version, v.Commit, v.Date))
 }
 
 func init() {

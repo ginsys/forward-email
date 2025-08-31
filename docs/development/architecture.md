@@ -410,3 +410,7 @@ For more detailed information, see:
 ---
 
 *Last Updated: 2025-08-27 | Architecture reflects current implementation (17,151 LOC)*
+
+---
+
+Docs navigation (Dev): [Prev: Contributing](contributing.md) | [Next: API Integration](api-integration.md) | [Back: Dev Index](README.md)

@@ -477,3 +477,7 @@ For more information on specific commands and troubleshooting, see:
 ---
 
 *Last Updated: 2025-08-27 | Configuration system fully implemented and tested*
+
+---
+
+Docs navigation: [Prev: Command Reference](commands.md) | [Next: Troubleshooting](troubleshooting.md)

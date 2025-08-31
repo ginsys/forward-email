@@ -897,3 +897,7 @@ For more information on development practices, see:
 - [Architecture Overview](architecture.md)
 - [API Integration](api-integration.md)
 - [Contributing Guide](contributing.md)
+
+---
+
+Docs navigation (Dev): [Prev: API Integration](api-integration.md) | [Next: Makefile Guide](makefile-guide.md) | [Back: Dev Index](README.md)

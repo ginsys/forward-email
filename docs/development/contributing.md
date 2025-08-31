@@ -184,3 +184,7 @@ Project maintainers are responsible for clarifying the standards of acceptable b
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+---
+
+Docs navigation (Dev): [Prev: Dev Index](README.md) | [Next: Architecture](architecture.md) | [Back: User Docs Index](../README.md)

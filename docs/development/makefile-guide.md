@@ -332,3 +332,7 @@ Configure run configurations for common make targets.
 - [Contributing Guide](contributing.md) - Contribution workflow
 - [Architecture Overview](architecture.md) - System architecture
 - [GitHub Actions CI](.github/workflows/ci.yml) - CI configuration
+
+---
+
+Docs navigation (Dev): [Prev: Testing Strategy](testing.md) | [Next: Domain Alias Sync Spec](domain-alias-sync-specification.md) | [Back: Dev Index](README.md)

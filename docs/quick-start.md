@@ -195,6 +195,19 @@ forward-email domain --help
 forward-email alias create --help
 ```
 
+### Check CLI Version
+
+```bash
+# Short version
+forward-email version
+
+# Detailed info
+forward-email version --verbose
+
+# JSON (great for scripts)
+forward-email version --json | jq
+```
+
 ### Debug Information
 
 ```bash
@@ -251,3 +264,7 @@ For more detailed troubleshooting, see the [Troubleshooting Guide](troubleshooti
 ---
 
 *Last Updated: 2025-08-27 | All features implemented and tested*
+
+---
+
+Docs navigation: [Prev: Docs Index](README.md) | [Next: Command Reference](commands.md)

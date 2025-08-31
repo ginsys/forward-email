@@ -246,3 +246,7 @@ Total execution time: 2.3s
 **Created**: 2025-08-26  
 **Author**: AI Assistant  
 **Status**: Specification Complete - Ready for Implementation
+
+---
+
+Docs navigation (Dev): [Prev: Makefile Guide](makefile-guide.md) | [Next: Dev Index](README.md) | [Back: User Docs Index](../README.md)
