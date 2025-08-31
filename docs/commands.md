@@ -174,6 +174,17 @@ forward-email alias sync source.com target.com --mode replace
 forward-email alias sync source.com target.com --mode preserve --conflicts
 ```
 
+
+- Conflicts: specify `--conflicts overwrite|skip|merge`, or omit to be prompted interactively per conflict (option to apply to all).
+
+Example interactive prompt:
+```
+Conflict for alias 'info':
+  source → team@company.com, sales@company.com
+  target → support@company.com
+Choice [o/s/m/a]:
+```
+
 - Conflicts: specify `--conflicts overwrite|skip|merge`, or omit to be prompted interactively per conflict (option to apply to all).
 
 ### CSV Import/Export

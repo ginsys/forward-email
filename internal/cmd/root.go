@@ -59,7 +59,8 @@ func initFlags() {
 
 	// Version template using internal/version package
 	v := buildversion.Get()
-	rootCmd.SetVersionTemplate(fmt.Sprintf("forward-email version %s\ncommit: %s\nbuilt: %s\n", v.Version, v.Commit, v.Date))
+	vt := "forward-email version %s\ncommit: %s\nbuilt: %s\n"
+	rootCmd.SetVersionTemplate(fmt.Sprintf(vt, v.Version, v.Commit, v.Date))
 }
 
 func init() {
