@@ -38,6 +38,25 @@ type Config struct {
 // secure credential storage and retrieval. Falls back to file-based storage
 // if the OS keyring is unavailable.
 func New(config Config) (*Keyring, error) {
+	// Allow environment override to control backend selection without GUI prompts.
+	// FORWARDEMAIL_KEYRING_BACKEND values:
+	//   os   - use system default keyring (default)
+	//   file - use encrypted file backend (requires FORWARDEMAIL_KEYRING_PASSWORD)
+	//   none - disable keyring usage (caller should fallback to config/env)
+	if backend := os.Getenv("FORWARDEMAIL_KEYRING_BACKEND"); backend != "" && len(config.AllowedBackends) == 0 {
+		switch backend {
+		case "none":
+			return nil, nil
+		case "file":
+			// Configure file backend from env for non-interactive setups
+			pass := os.Getenv("FORWARDEMAIL_KEYRING_PASSWORD")
+			config.AllowedBackends = []keyring.BackendType{keyring.FileBackend}
+			if config.FilePasswordFunc == nil {
+				config.FilePasswordFunc = func(string) (string, error) { return pass, nil }
+			}
+		}
+	}
+
 	if config.ServiceName == "" {
 		config.ServiceName = ServiceName
 	}

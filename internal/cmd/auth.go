@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
 
+	kr "github.com/99designs/keyring"
 	"github.com/ginsys/forward-email/internal/client"
 	"github.com/ginsys/forward-email/internal/keyring"
 	"github.com/ginsys/forward-email/pkg/auth"
@@ -80,6 +82,8 @@ func init() {
 	// Add flags for profile specification
 	authVerifyCmd.Flags().String("profile", "", "Profile to verify (defaults to current profile)")
 	authLoginCmd.Flags().String("profile", "", "Profile to log in to (defaults to current profile)")
+	authLoginCmd.Flags().String("store", "auto", "Credential store: auto|keyring|file|config")
+	authLoginCmd.Flags().String("file-pass", "", "Passphrase for file keyring (used when --store=file)")
 	authLogoutCmd.Flags().String("profile", "", "Profile to log out from (defaults to current profile)")
 	authLogoutCmd.Flags().Bool("all", false, "Log out from all profiles")
 }
@@ -153,11 +157,61 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
-	// Initialize keyring
-	kr, err := keyring.New(keyring.Config{})
-	if err != nil {
-		fmt.Printf("Warning: failed to initialize keyring: %v\n", err)
-		fmt.Println("Credentials will be stored in configuration file.")
+	// Initialize selected credential store
+	store := cmd.Flag("store").Value.String()
+	filePass := cmd.Flag("file-pass").Value.String()
+	var krStore *keyring.Keyring
+	switch store {
+	case "auto":
+		krStore, err = keyring.New(keyring.Config{})
+		if err != nil {
+			fmt.Printf("Warning: failed to initialize keyring: %v\n", err)
+			fmt.Println("Credentials will be stored in configuration file.")
+			krStore = nil
+		}
+	case "keyring":
+		krStore, err = keyring.New(keyring.Config{})
+		if err != nil {
+			return fmt.Errorf("failed to initialize system keyring: %w", err)
+		}
+	case "file":
+		// Determine a persistent directory under config
+		cfgDir := os.Getenv("XDG_CONFIG_HOME")
+		if cfgDir == "" {
+			home, herr := os.UserHomeDir()
+			if herr != nil {
+				return fmt.Errorf("failed to determine home dir: %w", herr)
+			}
+			cfgDir = filepath.Join(home, ".config")
+		}
+		feDir := filepath.Join(cfgDir, "forwardemail", "keyring")
+		if mkErr := os.MkdirAll(feDir, 0o750); mkErr != nil {
+			return fmt.Errorf("failed to create keyring dir: %w", mkErr)
+		}
+		if filePass == "" {
+			fmt.Print("File keyring passphrase (will not echo): ")
+			passBytes, perr := term.ReadPassword(int(os.Stdin.Fd()))
+			fmt.Println()
+			if perr != nil {
+				return fmt.Errorf("failed to read passphrase: %w", perr)
+			}
+			filePass = string(passBytes)
+			if filePass == "" {
+				return fmt.Errorf("file keyring passphrase cannot be empty")
+			}
+		}
+		krStore, err = keyring.New(keyring.Config{
+			AllowedBackends:  []kr.BackendType{kr.FileBackend},
+			FileDir:          feDir,
+			FilePasswordFunc: func(string) (string, error) { return filePass, nil },
+		})
+		if err != nil {
+			return fmt.Errorf("failed to initialize file keyring: %w", err)
+		}
+	case "config":
+		krStore = nil // force config storage
+	default:
+		return fmt.Errorf("invalid --store value: %s", store)
 	}
 
 	// Prompt for API key
@@ -183,7 +237,7 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	authProvider, err := auth.NewProvider(auth.ProviderConfig{
 		Profile: profile,
 		Config:  cfg,
-		Keyring: kr,
+		Keyring: krStore,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create auth provider: %w", err)

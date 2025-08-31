@@ -268,3 +268,8 @@ For more detailed troubleshooting, see the [Troubleshooting Guide](troubleshooti
 ---
 
 Docs navigation: [Prev: Docs Index](README.md) | [Next: Command Reference](commands.md)
+# Optional: choose where to store credentials
+# - keyring: OS keychain/credential manager
+# - file: encrypted file under config dir (requires passphrase)
+# - config: plain config file (not recommended)
+# forward-email auth login --store keyring

@@ -37,6 +37,12 @@ forward-email auth login --profile production
 # Check authentication status
 forward-email auth status
 
+# Choose storage backend
+forward-email auth login --store keyring      # system keyring
+forward-email auth login --store file \
+  --file-pass 'passphrase'                   # encrypted file under config dir
+forward-email auth login --store config      # config file (not recommended)
+
 # Verify credentials
 forward-email auth verify
 
@@ -223,6 +229,9 @@ forward-email version --json
 
 # Include license text after version info
 forward-email version --license
+
+# Show update link
+forward-email version --check-update
 ```
 
 ### JSON Example
@@ -256,6 +265,9 @@ forward-email completion zsh > /usr/local/share/zsh/site-functions/_forward-emai
 
 # Generate fish completion
 forward-email completion fish > ~/.config/fish/completions/forward-email.fish
+
+# Generate PowerShell completion
+forward-email completion powershell > forward-email.ps1
 ```
 
 ## Error Handling

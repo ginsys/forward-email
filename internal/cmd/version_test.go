@@ -61,3 +61,19 @@ func TestVersionCommand_JSON(t *testing.T) {
 		}
 	}
 }
+
+func TestVersionCommand_CheckUpdate(t *testing.T) {
+	cmd := newVersionCmd()
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	cmd.SetArgs([]string{"--check-update"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("version --check-update failed: %v", err)
+	}
+	s := out.String()
+	if !strings.Contains(s, "releases") {
+		t.Errorf("expected update hint in output, got: %q", s)
+	}
+}
