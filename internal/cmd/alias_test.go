@@ -732,10 +732,10 @@ func TestAliasRecipientsCommand(t *testing.T) {
 func TestAliasSync_DryRun_Merge_CreateMissing(t *testing.T) {
 	// Mock server: src has info, support; dst has info only
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "2", Name: "support", Recipients: []string{"s@x"}, IsEnabled: true}})
 	})
-	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
 	})
 	srv := httptest.NewServer(mux)
@@ -760,10 +760,10 @@ func TestAliasSync_DryRun_Merge_CreateMissing(t *testing.T) {
 
 func TestAliasSync_DryRun_Replace_DeletesExtra(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
 	})
-	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "11", Name: "help", Recipients: []string{"h@x"}, IsEnabled: true}})
 	})
 	srv := httptest.NewServer(mux)
@@ -788,10 +788,10 @@ func TestAliasSync_DryRun_Replace_DeletesExtra(t *testing.T) {
 
 func TestAliasSync_DryRun_Merge_ConflictMerge(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
 	})
-	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"b@x"}, IsEnabled: true}})
 	})
 	srv := httptest.NewServer(mux)
@@ -1226,7 +1226,7 @@ func TestAliasExport_CSV_WritesFile(t *testing.T) {
 	if err := rootCmd.Execute(); err != nil {
 		t.Fatalf("export failed: %v\n%s", err, out.String())
 	}
-	b, err := os.ReadFile(outPath)
+	b, err := os.ReadFile(outPath) //nolint:gosec // test local temp file
 	if err != nil {
 		t.Fatalf("failed reading csv: %v", err)
 	}

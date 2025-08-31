@@ -50,7 +50,7 @@ var (
 	aliasImportDryRun bool
 )
 
-type SyncAction struct {
+type syncAction struct {
 	typ        string
 	domain     string
 	aliasID    string
@@ -236,7 +236,7 @@ var aliasImportCmd = &cobra.Command{
 			return fmt.Errorf("--file is required")
 		}
 
-		f, err := os.Open(aliasImportFile)
+		f, err := os.Open(aliasImportFile) //nolint:gosec // user-provided path is expected for CLI import
 		if err != nil {
 			return fmt.Errorf("failed to open CSV: %v", err)
 		}
@@ -557,10 +557,10 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 	dstByName := mapAliasesByName(dstAliases)
 
 	// Build plan
-	var plan []SyncAction
+	var plan []syncAction
 
 	addCreate := func(domain, name string, a api.Alias) {
-		plan = append(plan, SyncAction{
+		plan = append(plan, syncAction{
 			typ:        "create",
 			domain:     domain,
 			name:       name,
@@ -570,7 +570,7 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 		})
 	}
 	addUpdate := func(domain string, id string, name string, desired api.Alias) {
-		plan = append(plan, SyncAction{
+		plan = append(plan, syncAction{
 			typ:        "update",
 			domain:     domain,
 			aliasID:    id,
@@ -581,7 +581,7 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 		})
 	}
 	addDelete := func(domain, id, name string) {
-		plan = append(plan, SyncAction{typ: "delete", domain: domain, aliasID: id, name: name})
+		plan = append(plan, syncAction{typ: "delete", domain: domain, aliasID: id, name: name})
 	}
 
 	switch mode {
@@ -722,7 +722,11 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Alias sync completed: %s -> %s (mode=%s, actions=%d)\n", src, dst, mode, len(plan))
+	_, _ = fmt.Fprintf(
+		cmd.OutOrStdout(),
+		"Alias sync completed: %s -> %s (mode=%s, actions=%d)\n",
+		src, dst, mode, len(plan),
+	)
 	return nil
 }
 
@@ -785,7 +789,7 @@ func mergeRecipients(a, b []string) []string {
 	return out
 }
 
-func printSyncPlan(cmd *cobra.Command, src, dst string, plan []SyncAction) error {
+func printSyncPlan(cmd *cobra.Command, src, dst string, plan []syncAction) error {
 	headers := []string{"ACTION", "DOMAIN", "ALIAS", "DETAILS"}
 	tbl := output.NewTableData(headers)
 	for _, a := range plan {
@@ -818,7 +822,7 @@ func derefBool(p *bool) bool {
 }
 
 func writeAliasesCSV(path string, aliases []api.Alias) error {
-	f, err := os.Create(path)
+	f, err := os.Create(path) //nolint:gosec // user-provided path is expected for CLI export
 	if err != nil {
 		return err
 	}
