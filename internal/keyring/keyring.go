@@ -46,7 +46,7 @@ func New(config Config) (*Keyring, error) {
 	if backend := os.Getenv("FORWARDEMAIL_KEYRING_BACKEND"); backend != "" && len(config.AllowedBackends) == 0 {
 		switch backend {
 		case "none":
-			return nil, nil
+			return nil, fmt.Errorf("keyring disabled by FORWARDEMAIL_KEYRING_BACKEND=none")
 		case "file":
 			// Configure file backend from env for non-interactive setups
 			pass := os.Getenv("FORWARDEMAIL_KEYRING_PASSWORD")

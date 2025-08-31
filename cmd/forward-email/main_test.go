@@ -368,7 +368,10 @@ func TestMain_EnvironmentVariables(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		cmd := exec.CommandContext(ctx, binary, "profile", "list") //nolint:gosec // Test code
-		cmd.Env = append(os.Environ(), fmt.Sprintf("XDG_CONFIG_HOME=%s", tmpDir))
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("XDG_CONFIG_HOME=%s", tmpDir),
+			"FORWARDEMAIL_KEYRING_BACKEND=none",
+		)
 
 		var stdout, stderr bytes.Buffer
 		cmd.Stdout = &stdout

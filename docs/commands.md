@@ -129,6 +129,7 @@ Comprehensive alias management with all Forward Email features.
 - `recipients` - Update alias recipients
 - `stats` - Show alias statistics
 - `update` - Update alias settings
+- `sync` - Sync aliases between domains
 
 ```bash
 # List aliases for domain
@@ -155,6 +156,21 @@ forward-email alias stats --domain example.com
 ```
 
 **Domain Flag**: Most alias commands require `--domain` flag to specify the domain.
+
+### Alias Sync
+
+Synchronize aliases between domains.
+
+```bash
+# Merge mode (bidirectional)
+forward-email alias sync source.com target.com --mode merge --dry-run
+
+# Replace mode (one-way: target = source)
+forward-email alias sync source.com target.com --mode replace
+
+# Preserve mode (one-way: copy without deletions)
+forward-email alias sync source.com target.com --mode preserve --conflicts
+```
 
 ## Email Commands (`email`)
 

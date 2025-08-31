@@ -201,6 +201,35 @@ You can specify the domain either as a positional argument or using the --domain
 	RunE: runAliasStats,
 }
 
+// aliasSyncCmd represents the alias sync command (scaffold per specification)
+var aliasSyncCmd = &cobra.Command{
+	Use:   "sync <source-domain> <target-domain>",
+	Short: "Sync aliases between domains",
+	Long: `Synchronize aliases from a source domain to a target domain.
+
+Modes:
+- merge: bidirectional merge, preserving unique aliases in both domains
+- replace: one-way, replace target with source
+- preserve: one-way, copy from source without deleting in target
+
+Examples:
+  forward-email alias sync example.com target.com --mode merge --dry-run
+  forward-email alias sync example.com target.com --mode replace
+  forward-email alias sync example.com target.com --mode preserve --conflicts
+`,
+	Args: cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO: Implement per docs/development/domain-alias-sync-specification.md
+		return fmt.Errorf("alias sync not implemented yet; see docs/development/domain-alias-sync-specification.md")
+	},
+}
+
+var (
+	aliasSyncMode      string
+	aliasSyncDryRun    bool
+	aliasSyncConflicts bool
+)
+
 func init() {
 	// Register with root command
 	rootCmd.AddCommand(aliasCmd)
@@ -217,6 +246,12 @@ func init() {
 	aliasCmd.AddCommand(aliasPasswordCmd)
 	aliasCmd.AddCommand(aliasQuotaCmd)
 	aliasCmd.AddCommand(aliasStatsCmd)
+
+	// Sync command flags
+	aliasCmd.AddCommand(aliasSyncCmd)
+	aliasSyncCmd.Flags().StringVar(&aliasSyncMode, "mode", "merge", "Sync mode: merge|replace|preserve")
+	aliasSyncCmd.Flags().BoolVar(&aliasSyncDryRun, "dry-run", false, "Show planned changes without applying")
+	aliasSyncCmd.Flags().BoolVar(&aliasSyncConflicts, "conflicts", false, "List conflicts during dry-run")
 
 	// Global flags (output inherited from root command)
 	aliasCmd.PersistentFlags().StringVarP(&aliasDomain, "domain", "d", "",

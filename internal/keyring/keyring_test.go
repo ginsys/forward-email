@@ -263,8 +263,8 @@ func TestNew_WithConfig(t *testing.T) {
 func TestNew_DisableKeyringViaEnv(t *testing.T) {
 	t.Setenv("FORWARDEMAIL_KEYRING_BACKEND", "none")
 	k, err := New(Config{})
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	if err == nil {
+		t.Fatalf("expected error when keyring disabled, got nil")
 	}
 	if k != nil {
 		t.Fatalf("expected nil keyring when disabled via env")

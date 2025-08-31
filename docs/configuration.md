@@ -110,6 +110,21 @@ Forward Email CLI stores credentials securely using your operating system's keyr
 - **Windows**: Credential Manager  
 - **Linux**: Secret Service (gnome-keyring, KWallet, etc.)
 
+#### Credential Store Options
+
+- CLI flags (choose at login/init):
+  - `--store auto` (default): Try system keyring; fall back to config if unavailable.
+  - `--store keyring`: Force system keyring (may prompt via OS UI).
+  - `--store file`: Encrypted file under `~/.config/forwardemail/keyring` (use `--file-pass` or provide when prompted).
+  - `--store config`: Store in `config.yaml` (not recommended).
+
+- Environment overrides (non-interactive/CI):
+  - `FORWARDEMAIL_KEYRING_BACKEND=none` disables keyring usage (uses config file).
+  - `FORWARDEMAIL_KEYRING_BACKEND=file` forces encrypted file backend.
+  - `FORWARDEMAIL_KEYRING_PASSWORD=<passphrase>` passphrase for file backend.
+
+- Testing/CI: All `make test*` targets run with `FORWARDEMAIL_KEYRING_BACKEND=none` to avoid GUI prompts.
+
 ### Credential Hierarchy
 
 Credentials are resolved in this order:
