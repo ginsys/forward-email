@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -727,6 +729,91 @@ func TestAliasRecipientsCommand(t *testing.T) {
 	}
 }
 
+func TestAliasSync_DryRun_Merge_CreateMissing(t *testing.T) {
+	// Mock server: src has info, support; dst has info only
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "2", Name: "support", Recipients: []string{"s@x"}, IsEnabled: true}})
+	})
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client.SetTestMode(srv.URL, auth.MockProvider("test"))
+	t.Cleanup(client.ResetTestMode)
+
+	var out bytes.Buffer
+	rootCmd.SetOut(&out)
+	rootCmd.SetErr(&out)
+	rootCmd.SetArgs([]string{"alias", "sync", "src.com", "dst.com", "--mode", "merge", "--dry-run"})
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("sync merge dry-run failed: %v\n%s", err, out.String())
+	}
+	s := out.String()
+	if !strings.Contains(strings.ToUpper(s), "CREATE") || !strings.Contains(s, "support") {
+		t.Fatalf("expected create of 'support' on dst in dry-run plan, got:\n%s", s)
+	}
+}
+
+func TestAliasSync_DryRun_Replace_DeletesExtra(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
+	})
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "11", Name: "help", Recipients: []string{"h@x"}, IsEnabled: true}})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client.SetTestMode(srv.URL, auth.MockProvider("test"))
+	t.Cleanup(client.ResetTestMode)
+
+	var out bytes.Buffer
+	rootCmd.SetOut(&out)
+	rootCmd.SetErr(&out)
+	rootCmd.SetArgs([]string{"alias", "sync", "src.com", "dst.com", "--mode", "replace", "--dry-run"})
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("sync replace dry-run failed: %v\n%s", err, out.String())
+	}
+	s := out.String()
+	if !strings.Contains(strings.ToUpper(s), "DELETE") || !strings.Contains(s, "help") {
+		t.Fatalf("expected delete of 'help' on dst in dry-run plan, got:\n%s", s)
+	}
+}
+
+func TestAliasSync_DryRun_Merge_ConflictMerge(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
+	})
+	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"b@x"}, IsEnabled: true}})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client.SetTestMode(srv.URL, auth.MockProvider("test"))
+	t.Cleanup(client.ResetTestMode)
+
+	var out bytes.Buffer
+	rootCmd.SetOut(&out)
+	rootCmd.SetErr(&out)
+	rootCmd.SetArgs([]string{"alias", "sync", "src.com", "dst.com", "--mode", "merge", "--conflicts", "merge", "--dry-run"})
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("sync merge conflict dry-run failed: %v\n%s", err, out.String())
+	}
+	s := out.String()
+	if !strings.Contains(strings.ToUpper(s), "UPDATE") || !strings.Contains(s, "info") {
+		t.Fatalf("expected update of 'info' on both domains in dry-run plan, got:\n%s", s)
+	}
+}
+
 func TestAliasPasswordCommand(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -1113,4 +1200,88 @@ func resetAliasFlags() {
 	viper.Set("output", "table")
 	viper.Set("profile", "")
 	viper.Set("verbose", false)
+}
+
+func TestAliasExport_CSV_WritesFile(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/domains/example.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode([]api.Alias{
+			{ID: "1", Name: "info", Recipients: []string{"a@x", "b@x"}, IsEnabled: true},
+			{ID: "2", Name: "support", Recipients: []string{"s@x"}, Labels: []string{"team"}, IsEnabled: false},
+		})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client.SetTestMode(srv.URL, auth.MockProvider("test"))
+	t.Cleanup(client.ResetTestMode)
+
+	tmp := t.TempDir()
+	outPath := filepath.Join(tmp, "aliases.csv")
+
+	var out bytes.Buffer
+	rootCmd.SetOut(&out)
+	rootCmd.SetErr(&out)
+	rootCmd.SetArgs([]string{"alias", "export", "example.com", "--file", outPath})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("export failed: %v\n%s", err, out.String())
+	}
+	b, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("failed reading csv: %v", err)
+	}
+	s := string(b)
+	if !strings.Contains(s, "Name,Recipients,Enabled,Labels,Description") || !strings.Contains(s, "info") {
+		t.Fatalf("unexpected csv content:\n%s", s)
+	}
+}
+
+func TestAliasImport_CreatesAndUpdates(t *testing.T) {
+	created := 0
+	updated := 0
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/domains/example.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
+		case http.MethodPost:
+			created++
+			_ = json.NewEncoder(w).Encode(api.Alias{ID: "11"})
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/v1/domains/example.com/aliases/10", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut {
+			updated++
+			_ = json.NewEncoder(w).Encode(api.Alias{ID: "10"})
+			return
+		}
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client.SetTestMode(srv.URL, auth.MockProvider("test"))
+	t.Cleanup(client.ResetTestMode)
+
+	// Create CSV
+	tmp := t.TempDir()
+	inPath := filepath.Join(tmp, "aliases.csv")
+	content := "Name,Recipients,Enabled,Labels,Description\ninfo,a@x,b@x,true,\nsupport,s@x,true,team,Support Alias\n"
+	if err := os.WriteFile(inPath, []byte(content), 0o600); err != nil {
+		t.Fatalf("write csv: %v", err)
+	}
+
+	var out bytes.Buffer
+	rootCmd.SetOut(&out)
+	rootCmd.SetErr(&out)
+	rootCmd.SetArgs([]string{"alias", "import", "example.com", "--file", inPath})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("import failed: %v\n%s", err, out.String())
+	}
+	if created != 1 || updated != 1 {
+		t.Fatalf("expected 1 create and 1 update, got created=%d updated=%d", created, updated)
+	}
 }

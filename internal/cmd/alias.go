@@ -4,7 +4,9 @@ package cmd
 import (
 	"bufio"
 	"context"
+	"encoding/csv"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -43,7 +45,22 @@ var (
 	aliasIMAPFlag    bool     // Enable IMAP access for the alias
 	aliasPGPFlag     bool     // Enable PGP encryption for the alias
 	aliasPublicKey   string   // PGP public key for encryption
+	aliasImportFile  string
+	aliasExportFile  string
 )
+
+type SyncAction struct {
+	typ        string
+	domain     string
+	aliasID    string
+	name       string
+	recipients []string
+	enabled    *bool
+	labels     []string
+	desc       *string
+	hasIMAP    *bool
+	hasPGP     *bool
+}
 
 // aliasCmd represents the alias command
 var aliasCmd = &cobra.Command{
@@ -201,6 +218,163 @@ You can specify the domain either as a positional argument or using the --domain
 	RunE: runAliasStats,
 }
 
+// aliasImportCmd represents importing aliases from CSV
+var aliasImportCmd = &cobra.Command{
+	Use:   "import <domain> --file <path>",
+	Short: "Import aliases from CSV",
+	Long:  "Import aliases into a domain from a CSV file with columns: Name, Recipients (comma-separated), Enabled (true/false), Labels (comma-separated), Description.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		domain := strings.TrimSpace(args[0])
+		if domain == "" {
+			return fmt.Errorf("domain is required")
+		}
+		if aliasImportFile == "" {
+			return fmt.Errorf("--file is required")
+		}
+
+		f, err := os.Open(aliasImportFile)
+		if err != nil {
+			return fmt.Errorf("failed to open CSV: %v", err)
+		}
+		defer f.Close()
+
+		r := csv.NewReader(f)
+		r.FieldsPerRecord = -1
+		rows, err := r.ReadAll()
+		if err != nil {
+			return fmt.Errorf("failed to read CSV: %v", err)
+		}
+		if len(rows) == 0 {
+			return fmt.Errorf("empty CSV")
+		}
+		// Map header
+		header := make(map[string]int)
+		for i, h := range rows[0] {
+			header[strings.ToLower(strings.TrimSpace(h))] = i
+		}
+		required := []string{"name", "recipients"}
+		for _, k := range required {
+			if _, ok := header[k]; !ok {
+				return fmt.Errorf("missing required column: %s", k)
+			}
+		}
+
+		ctx := context.Background()
+		apiClient, err := client.NewAPIClient()
+		if err != nil {
+			return fmt.Errorf("failed to create API client: %v", err)
+		}
+
+		// Fetch existing aliases to decide create/update
+		existing, err := listAllAliases(ctx, apiClient, domain)
+		if err != nil {
+			return fmt.Errorf("failed to list aliases for %s: %v", domain, err)
+		}
+		byName := mapAliasesByName(existing)
+
+		// Process rows
+		for _, row := range rows[1:] {
+			if len(row) == 0 {
+				continue
+			}
+			name := strings.TrimSpace(row[header["name"]])
+			if name == "" {
+				continue
+			}
+			var recStr string
+			if idx, ok := header["recipients"]; ok && idx < len(row) {
+				recStr = row[idx]
+			}
+			recipients := splitCSVList(recStr)
+			if len(recipients) == 0 {
+				return fmt.Errorf("alias %s: at least one recipient required", name)
+			}
+			var labels []string
+			if idx, ok := header["labels"]; ok && idx < len(row) {
+				labels = splitCSVList(row[idx])
+			}
+			var enabledPtr *bool
+			if idx, ok := header["enabled"]; ok && idx < len(row) {
+				s := strings.TrimSpace(strings.ToLower(row[idx]))
+				if s != "" {
+					v := s == "true" || s == "1" || s == "yes"
+					enabledPtr = &v
+				}
+			}
+			var descPtr *string
+			if idx, ok := header["description"]; ok && idx < len(row) {
+				d := strings.TrimSpace(row[idx])
+				if d != "" {
+					descPtr = &d
+				}
+			}
+
+			if ex, ok := byName[name]; ok {
+				// Update
+				req := &api.UpdateAliasRequest{Recipients: recipients, Labels: labels}
+				if enabledPtr != nil {
+					req.IsEnabled = enabledPtr
+				}
+				if descPtr != nil {
+					req.Description = descPtr
+				}
+				if _, err := apiClient.Aliases.UpdateAlias(ctx, domain, ex.ID, req); err != nil {
+					return fmt.Errorf("update %s failed: %v", name, err)
+				}
+			} else {
+				// Create
+				req := &api.CreateAliasRequest{Name: name, Recipients: recipients, Labels: labels, IsEnabled: true}
+				if enabledPtr != nil {
+					req.IsEnabled = *enabledPtr
+				}
+				if descPtr != nil {
+					req.Description = *descPtr
+				}
+				if _, err := apiClient.Aliases.CreateAlias(ctx, domain, req); err != nil {
+					return fmt.Errorf("create %s failed: %v", name, err)
+				}
+			}
+		}
+
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Imported aliases into %s from %s\n", domain, aliasImportFile)
+		return nil
+	},
+}
+
+// aliasExportCmd represents exporting aliases to CSV
+var aliasExportCmd = &cobra.Command{
+	Use:   "export <domain> --file <path>",
+	Short: "Export aliases to CSV",
+	Long:  "Export aliases from a domain to a CSV file with columns: Name, Recipients (comma-separated), Enabled, Labels (comma-separated), Description.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		domain := strings.TrimSpace(args[0])
+		if domain == "" {
+			return fmt.Errorf("domain is required")
+		}
+		if aliasExportFile == "" {
+			return fmt.Errorf("--file is required")
+		}
+
+		ctx := context.Background()
+		apiClient, err := client.NewAPIClient()
+		if err != nil {
+			return fmt.Errorf("failed to create API client: %v", err)
+		}
+		aliases, err := listAllAliases(ctx, apiClient, domain)
+		if err != nil {
+			return fmt.Errorf("failed to list aliases for %s: %v", domain, err)
+		}
+
+		if err := writeAliasesCSV(aliasExportFile, aliases); err != nil {
+			return fmt.Errorf("failed to write CSV: %v", err)
+		}
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Exported %d aliases from %s to %s\n", len(aliases), domain, aliasExportFile)
+		return nil
+	},
+}
+
 // aliasSyncCmd represents the alias sync command (scaffold per specification)
 var aliasSyncCmd = &cobra.Command{
 	Use:   "sync <source-domain> <target-domain>",
@@ -218,16 +392,13 @@ Examples:
   forward-email alias sync example.com target.com --mode preserve --conflicts
 `,
 	Args: cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: Implement per docs/development/domain-alias-sync-specification.md
-		return fmt.Errorf("alias sync not implemented yet; see docs/development/domain-alias-sync-specification.md")
-	},
+	RunE: runAliasSync,
 }
 
 var (
-	aliasSyncMode      string
-	aliasSyncDryRun    bool
-	aliasSyncConflicts bool
+	aliasSyncMode     string
+	aliasSyncDryRun   bool
+	aliasSyncStrategy string // overwrite|skip|merge
 )
 
 func init() {
@@ -246,12 +417,18 @@ func init() {
 	aliasCmd.AddCommand(aliasPasswordCmd)
 	aliasCmd.AddCommand(aliasQuotaCmd)
 	aliasCmd.AddCommand(aliasStatsCmd)
+	aliasCmd.AddCommand(aliasImportCmd)
+	aliasCmd.AddCommand(aliasExportCmd)
 
 	// Sync command flags
 	aliasCmd.AddCommand(aliasSyncCmd)
 	aliasSyncCmd.Flags().StringVar(&aliasSyncMode, "mode", "merge", "Sync mode: merge|replace|preserve")
 	aliasSyncCmd.Flags().BoolVar(&aliasSyncDryRun, "dry-run", false, "Show planned changes without applying")
-	aliasSyncCmd.Flags().BoolVar(&aliasSyncConflicts, "conflicts", false, "List conflicts during dry-run")
+	aliasSyncCmd.Flags().StringVar(&aliasSyncStrategy, "conflicts", "", "Conflict strategy: overwrite|skip|merge (optional)")
+
+	// CSV flags
+	aliasImportCmd.Flags().StringVar(&aliasImportFile, "file", "", "Path to input CSV file")
+	aliasExportCmd.Flags().StringVar(&aliasExportFile, "file", "", "Path to output CSV file")
 
 	// Global flags (output inherited from root command)
 	aliasCmd.PersistentFlags().StringVarP(&aliasDomain, "domain", "d", "",
@@ -310,6 +487,309 @@ func init() {
 
 	// Note: Domain flag is no longer required since all commands accept domain as a positional argument
 	// Users can specify domain either as first positional argument or using --domain flag
+}
+
+// runAliasSync performs alias synchronization between two domains.
+func runAliasSync(cmd *cobra.Command, args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("usage: forward-email alias sync <source-domain> <target-domain> [--mode merge|replace|preserve]")
+	}
+	src := strings.TrimSpace(args[0])
+	dst := strings.TrimSpace(args[1])
+	if src == dst {
+		return fmt.Errorf("source and target domains must differ")
+	}
+
+	mode := strings.ToLower(strings.TrimSpace(aliasSyncMode))
+	switch mode {
+	case "merge", "replace", "preserve":
+	default:
+		return fmt.Errorf("invalid --mode: %s (valid: merge|replace|preserve)", aliasSyncMode)
+	}
+	if aliasSyncStrategy != "" {
+		s := strings.ToLower(aliasSyncStrategy)
+		if s != "overwrite" && s != "skip" && s != "merge" {
+			return fmt.Errorf("invalid --conflicts strategy: %s (valid: overwrite|skip|merge)", aliasSyncStrategy)
+		}
+	}
+
+	ctx := context.Background()
+	apiClient, err := client.NewAPIClient()
+	if err != nil {
+		return fmt.Errorf("failed to create API client: %v", err)
+	}
+
+	// Fetch aliases for both domains
+	srcAliases, err := listAllAliases(ctx, apiClient, src)
+	if err != nil {
+		return fmt.Errorf("failed to list aliases for %s: %v", src, err)
+	}
+	dstAliases, err := listAllAliases(ctx, apiClient, dst)
+	if err != nil {
+		return fmt.Errorf("failed to list aliases for %s: %v", dst, err)
+	}
+
+	// Index by name
+	srcByName := mapAliasesByName(srcAliases)
+	dstByName := mapAliasesByName(dstAliases)
+
+	// Build plan
+	var plan []SyncAction
+
+	addCreate := func(domain, name string, a api.Alias) {
+		plan = append(plan, SyncAction{typ: "create", domain: domain, name: name, recipients: a.Recipients, enabled: &a.IsEnabled, labels: a.Labels})
+	}
+	addUpdate := func(domain string, id string, name string, desired api.Alias) {
+		plan = append(plan, SyncAction{typ: "update", domain: domain, aliasID: id, name: name, recipients: desired.Recipients, enabled: &desired.IsEnabled, labels: desired.Labels})
+	}
+	addDelete := func(domain, id, name string) {
+		plan = append(plan, SyncAction{typ: "delete", domain: domain, aliasID: id, name: name})
+	}
+
+	switch mode {
+	case "merge":
+		// union of names
+		names := make(map[string]struct{})
+		for n := range srcByName {
+			names[n] = struct{}{}
+		}
+		for n := range dstByName {
+			names[n] = struct{}{}
+		}
+		for name := range names {
+			s, sOK := srcByName[name]
+			d, dOK := dstByName[name]
+			switch {
+			case sOK && !dOK:
+				addCreate(dst, name, s)
+			case !sOK && dOK:
+				addCreate(src, name, d)
+			case sOK && dOK:
+				// conflict: compare recipients/flags
+				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
+					switch strings.ToLower(aliasSyncStrategy) {
+					case "overwrite":
+						addUpdate(dst, d.ID, d.Name, s)
+						addUpdate(src, s.ID, s.Name, d) // keep symmetric? For merge, prefer source? We'll merge both ways below
+					case "skip":
+						// do nothing
+					case "merge":
+						merged := mergeRecipients(s.Recipients, d.Recipients)
+						sDesired := s
+						sDesired.Recipients = merged
+						dDesired := d
+						dDesired.Recipients = merged
+						addUpdate(src, s.ID, s.Name, sDesired)
+						addUpdate(dst, d.ID, d.Name, dDesired)
+					default:
+						// default to merge behavior for merge mode when unspecified
+						merged := mergeRecipients(s.Recipients, d.Recipients)
+						sDesired := s
+						sDesired.Recipients = merged
+						dDesired := d
+						dDesired.Recipients = merged
+						addUpdate(src, s.ID, s.Name, sDesired)
+						addUpdate(dst, d.ID, d.Name, dDesired)
+					}
+				}
+			}
+		}
+	case "replace", "preserve":
+		// one-way from src to dst
+		for name, s := range srcByName {
+			if d, ok := dstByName[name]; !ok {
+				addCreate(dst, name, s)
+			} else {
+				// exists: update if different per strategy
+				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
+					switch strings.ToLower(aliasSyncStrategy) {
+					case "overwrite":
+						addUpdate(dst, d.ID, d.Name, s)
+					case "merge":
+						desired := d
+						desired.Recipients = mergeRecipients(s.Recipients, d.Recipients)
+						addUpdate(dst, d.ID, d.Name, desired)
+					case "skip":
+						// no-op
+					default:
+						// default to overwrite in one-way
+						addUpdate(dst, d.ID, d.Name, s)
+					}
+				}
+			}
+		}
+		if mode == "replace" {
+			for name, d := range dstByName {
+				if _, ok := srcByName[name]; !ok {
+					addDelete(dst, d.ID, d.Name)
+				}
+			}
+		}
+	}
+
+	if aliasSyncDryRun {
+		return printSyncPlan(cmd, src, dst, plan)
+	}
+
+	// Execute plan
+	for _, a := range plan {
+		switch a.typ {
+		case "create":
+			req := &api.CreateAliasRequest{Recipients: a.recipients, Labels: a.labels, Name: a.name, IsEnabled: true}
+			if a.enabled != nil {
+				req.IsEnabled = *a.enabled
+			}
+			if _, err := apiClient.Aliases.CreateAlias(ctx, a.domain, req); err != nil {
+				return fmt.Errorf("create %s@%s failed: %v", a.name, a.domain, err)
+			}
+		case "update":
+			req := &api.UpdateAliasRequest{Recipients: a.recipients}
+			if a.enabled != nil {
+				req.IsEnabled = a.enabled
+			}
+			if len(a.labels) > 0 {
+				req.Labels = a.labels
+			}
+			if _, err := apiClient.Aliases.UpdateAlias(ctx, a.domain, a.aliasID, req); err != nil {
+				return fmt.Errorf("update %s in %s failed: %v", a.aliasID, a.domain, err)
+			}
+		case "delete":
+			if err := apiClient.Aliases.DeleteAlias(ctx, a.domain, a.aliasID); err != nil {
+				return fmt.Errorf("delete %s in %s failed: %v", a.aliasID, a.domain, err)
+			}
+		}
+	}
+
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Alias sync completed: %s -> %s (mode=%s, actions=%d)\n", src, dst, mode, len(plan))
+	return nil
+}
+
+func listAllAliases(ctx context.Context, c *api.Client, domain string) ([]api.Alias, error) {
+	// Fetch single page large enough for most cases; could loop if needed
+	resp, err := c.Aliases.ListAliases(ctx, &api.ListAliasesOptions{Domain: domain, Limit: 1000})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Aliases, nil
+}
+
+func mapAliasesByName(list []api.Alias) map[string]api.Alias {
+	m := make(map[string]api.Alias, len(list))
+	for _, a := range list {
+		m[a.Name] = a
+	}
+	return m
+}
+
+func equalStringSets(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	ma := make(map[string]int, len(a))
+	for _, s := range a {
+		ma[strings.ToLower(strings.TrimSpace(s))]++
+	}
+	for _, s := range b {
+		k := strings.ToLower(strings.TrimSpace(s))
+		if ma[k] == 0 {
+			return false
+		}
+		ma[k]--
+		if ma[k] < 0 {
+			return false
+		}
+	}
+	for _, v := range ma {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func mergeRecipients(a, b []string) []string {
+	m := make(map[string]struct{}, len(a)+len(b))
+	for _, s := range a {
+		m[strings.ToLower(strings.TrimSpace(s))] = struct{}{}
+	}
+	for _, s := range b {
+		m[strings.ToLower(strings.TrimSpace(s))] = struct{}{}
+	}
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func printSyncPlan(cmd *cobra.Command, src, dst string, plan []SyncAction) error {
+	headers := []string{"ACTION", "DOMAIN", "ALIAS", "DETAILS"}
+	tbl := output.NewTableData(headers)
+	for _, a := range plan {
+		alias := a.name
+		if alias == "" {
+			alias = a.aliasID
+		}
+		details := ""
+		switch a.typ {
+		case "create":
+			details = fmt.Sprintf("recipients=%v enabled=%v", a.recipients, derefBool(a.enabled))
+		case "update":
+			details = fmt.Sprintf("recipients=%v enabled=%v", a.recipients, derefBool(a.enabled))
+		case "delete":
+			details = "remove alias"
+		}
+		tbl.AddRow([]string{strings.ToUpper(a.typ), a.domain, alias, details})
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "DRY RUN: Alias Sync Plan (%s -> %s, actions=%d)\n", src, dst, len(plan))
+	fmt.Fprintln(cmd.OutOrStdout())
+	formatter := output.NewFormatter(output.FormatTable, cmd.OutOrStdout())
+	return formatter.Format(tbl)
+}
+
+func derefBool(p *bool) bool {
+	if p == nil {
+		return false
+	}
+	return *p
+}
+
+func writeAliasesCSV(path string, aliases []api.Alias) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	if err := w.Write([]string{"Name", "Recipients", "Enabled", "Labels", "Description"}); err != nil {
+		return err
+	}
+	for _, a := range aliases {
+		rec := strings.Join(a.Recipients, ",")
+		lab := strings.Join(a.Labels, ",")
+		if err := w.Write([]string{a.Name, rec, fmt.Sprintf("%v", a.IsEnabled), lab, a.Description}); err != nil {
+			return err
+		}
+	}
+	w.Flush()
+	return w.Error()
+}
+
+func splitCSVList(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // formatAliasListMultiDomain formats aliases from multiple domains with proper domain resolution
