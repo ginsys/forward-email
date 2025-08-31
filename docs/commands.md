@@ -200,6 +200,17 @@ forward-email alias import example.com --file aliases.csv
 forward-email alias import example.com --file aliases.csv --dry-run
 ```
 
+
+CSV columns:
+
+| Column       | Required | Format/Notes                         |
+|--------------|----------|--------------------------------------|
+| Name         | Yes      | Alias local part (e.g., info)        |
+| Recipients   | Yes      | Comma-separated emails               |
+| Enabled      | No       | true/false                           |
+| Labels       | No       | Comma-separated labels               |
+| Description  | No       | Free text                            |
+
 ## Email Commands (`email`)
 
 Send and manage emails with attachment support.

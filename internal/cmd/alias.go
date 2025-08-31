@@ -48,6 +48,7 @@ var (
 	aliasImportFile   string
 	aliasExportFile   string
 	aliasImportDryRun bool
+	aliasSyncYes      bool
 )
 
 type syncAction struct {
@@ -447,6 +448,7 @@ func init() {
 	aliasSyncCmd.Flags().StringVar(&aliasSyncMode, "mode", "merge", "Sync mode: merge|replace|preserve")
 	aliasSyncCmd.Flags().BoolVar(&aliasSyncDryRun, "dry-run", false, "Show planned changes without applying")
 	aliasSyncCmd.Flags().StringVar(&aliasSyncStrategy, "conflicts", "", "Conflict strategy: overwrite|skip|merge")
+	aliasSyncCmd.Flags().BoolVar(&aliasSyncYes, "yes", false, "Do not prompt; apply --conflicts strategy to all")
 
 	// CSV flags
 	aliasImportCmd.Flags().StringVar(&aliasImportFile, "file", "", "Path to input CSV file")
@@ -607,7 +609,7 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
 				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
-					if strategy == "" && !aliasSyncDryRun {
+					if strategy == "" && !aliasSyncDryRun && !aliasSyncYes {
 						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
 						if perr != nil {
 							return perr
@@ -654,7 +656,7 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
 				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
-					if strategy == "" && !aliasSyncDryRun {
+					if strategy == "" && !aliasSyncDryRun && !aliasSyncYes {
 						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
 						if perr != nil {
 							return perr
