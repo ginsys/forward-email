@@ -18,6 +18,9 @@ GOCMD := go
 GOBUILD := $(GOCMD) build
 GOCLEAN := $(GOCMD) clean
 GOTEST := $(GOCMD) test
+
+# Test environment (avoid interactive keyring prompts)
+TEST_ENV ?= FORWARDEMAIL_KEYRING_BACKEND=none
 GOGET := $(GOCMD) get
 GOMOD := $(GOCMD) mod
 GOFMT := $(GOCMD) fmt
@@ -53,31 +56,31 @@ clean:
 # Testing commands - aligned with CI workflow
 test:
 	@echo "Running tests with race detector (default)..."
-	$(GOTEST) -v -race ./...
+	$(TEST_ENV) $(GOTEST) -v -race ./...
 
 test-ci: 
 	@echo "Running tests exactly as CI does..."
-	$(GOTEST) -v -race -coverprofile coverage.out ./...
+	$(TEST_ENV) $(GOTEST) -v -race -coverprofile coverage.out ./...
 
 test-quick:
 	@echo "Running quick tests without race detector..."
-	$(GOTEST) -short ./...
+	$(TEST_ENV) $(GOTEST) -short ./...
 
 test-unit:
 	@echo "Running unit tests only..."
-	$(GOTEST) -short -tags=unit ./...
+	$(TEST_ENV) $(GOTEST) -short -tags=unit ./...
 
 test-race:
 	@echo "Running tests with race detector..."
-	$(GOTEST) -v -race ./...
+	$(TEST_ENV) $(GOTEST) -v -race ./...
 
 test-pkg:
 	@echo "Running tests for package $(PKG)..."
 	@if [ -d "./pkg/$(PKG)" ]; then \
-		$(GOTEST) -v ./pkg/$(PKG)/...; \
+		$(TEST_ENV) $(GOTEST) -v ./pkg/$(PKG)/...; \
 	fi
 	@if [ -d "./internal/$(PKG)" ]; then \
-		$(GOTEST) -v ./internal/$(PKG)/...; \
+		$(TEST_ENV) $(GOTEST) -v ./internal/$(PKG)/...; \
 	fi
 	@if [ ! -d "./pkg/$(PKG)" ] && [ ! -d "./internal/$(PKG)" ]; then \
 		echo "Package $(PKG) not found in ./pkg/ or ./internal/"; \
@@ -86,16 +89,16 @@ test-pkg:
 
 test-verbose:
 	@echo "Running tests with verbose output..."
-	$(GOTEST) -v ./...
+	$(TEST_ENV) $(GOTEST) -v ./...
 
 test-bench:
 	@echo "Running benchmarks..."
-	$(GOTEST) -bench=. -benchmem ./...
+	$(TEST_ENV) $(GOTEST) -bench=. -benchmem ./...
 
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	$(GOTEST) -v -race -coverprofile=coverage.out ./...
+	$(TEST_ENV) $(GOTEST) -v -race -coverprofile=coverage.out ./...
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
