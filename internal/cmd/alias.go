@@ -560,10 +560,25 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 	var plan []SyncAction
 
 	addCreate := func(domain, name string, a api.Alias) {
-		plan = append(plan, SyncAction{typ: "create", domain: domain, name: name, recipients: a.Recipients, enabled: &a.IsEnabled, labels: a.Labels})
+		plan = append(plan, SyncAction{
+			typ:        "create",
+			domain:     domain,
+			name:       name,
+			recipients: a.Recipients,
+			enabled:    &a.IsEnabled,
+			labels:     a.Labels,
+		})
 	}
 	addUpdate := func(domain string, id string, name string, desired api.Alias) {
-		plan = append(plan, SyncAction{typ: "update", domain: domain, aliasID: id, name: name, recipients: desired.Recipients, enabled: &desired.IsEnabled, labels: desired.Labels})
+		plan = append(plan, SyncAction{
+			typ:        "update",
+			domain:     domain,
+			aliasID:    id,
+			name:       name,
+			recipients: desired.Recipients,
+			enabled:    &desired.IsEnabled,
+			labels:     desired.Labels,
+		})
 	}
 	addDelete := func(domain, id, name string) {
 		plan = append(plan, SyncAction{typ: "delete", domain: domain, aliasID: id, name: name})
@@ -589,7 +604,8 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				addCreate(src, name, d)
 			case sOK && dOK:
 				// conflict: compare recipients/flags
-				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
+				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
+				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
 					if strategy == "" && !aliasSyncDryRun {
 						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
@@ -635,7 +651,8 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				addCreate(dst, name, s)
 			} else {
 				// exists: update if different per strategy
-				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
+				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
+				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
 					if strategy == "" && !aliasSyncDryRun {
 						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
@@ -805,7 +822,7 @@ func writeAliasesCSV(path string, aliases []api.Alias) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	w := csv.NewWriter(f)
 	defer w.Flush()
 	if err := w.Write([]string{"Name", "Recipients", "Enabled", "Labels", "Description"}); err != nil {
