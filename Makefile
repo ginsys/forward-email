@@ -271,6 +271,12 @@ help:
 	@echo "  • make test-ci    = CI test job"
 	@echo "  • make lint-ci    = CI lint job"
 	@echo "  • make build-all  = CI build job"
+	@echo ""
+	@echo "🏷️  Release Commands:"
+	@echo "  make release <type>        - Dry-run: show exact steps (no changes)"
+	@echo "  make release-do <type>     - Execute steps shown by dry-run"
+	@echo "    <type>: alpha | beta | stable | bump {minor|major}"
+	@echo "      stable: tag base as stable, then bump to next patch alpha.0"
 
 help-test:
 	@echo "Testing Commands - Detailed Guide"
@@ -301,3 +307,43 @@ help-test:
 	@echo "  make test-pkg PKG=auth      # Test authentication package"
 	@echo "  make test-quick && make lint-fast  # Fast development cycle"
 	@echo "  make test-ci                # Run exactly what CI runs"
+# Version management (local only; does not push)
+.PHONY: release release-do
+
+release:
+	@k="$(filter alpha beta stable bump,$(MAKECMDGOALS))"; \
+	if [ "$$k" = "bump" ]; then \
+		m="$(filter minor major,$(MAKECMDGOALS))"; \
+		if [ -z "$$m" ]; then echo "usage: make release bump {minor|major}"; exit 1; fi; \
+		DRY_RUN=1 sh scripts/semver.sh release bump "$$m"; \
+	elif [ -n "$$k" ]; then \
+		DRY_RUN=1 sh scripts/semver.sh release "$$k"; \
+	else \
+		kind=$$kind; \
+		if [ -z "$$kind" ]; then echo "usage: make release {alpha|beta|stable} or 'make release bump {minor|major}'"; exit 1; fi; \
+		DRY_RUN=1 sh scripts/semver.sh release "$$kind"; \
+	fi
+
+release-do:
+	@k="$(filter alpha beta stable bump,$(MAKECMDGOALS))"; \
+	if [ "$$k" = "bump" ]; then \
+		m="$(filter minor major,$(MAKECMDGOALS))"; \
+		if [ -z "$$m" ]; then echo "usage: make release-do bump {minor|major}"; exit 1; fi; \
+		sh scripts/semver.sh release bump "$$m"; \
+	elif [ -n "$$k" ]; then \
+		sh scripts/semver.sh release "$$k"; \
+	else \
+		kind=$$kind; \
+		if [ -z "$$kind" ]; then echo "usage: make release-do {alpha|beta|stable} or 'make release-do bump {minor|major}'"; exit 1; fi; \
+		sh scripts/semver.sh release "$$kind"; \
+	fi
+
+# Positional-style usage examples:
+#   make release alpha
+#   make release beta
+#   make release stable
+#   make release bump minor
+#   make release bump major
+
+alpha beta stable bump minor major:
+	@:

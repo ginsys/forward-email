@@ -6,7 +6,34 @@ on:
       - 'v*'
 
 jobs:
+  validate:
+    name: Validate tag and changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Validate tag format and CHANGELOG
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF##*/}"
+          echo "Tag: $TAG"
+          echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$' \
+            || { echo "Invalid tag format: $TAG"; exit 1; }
+          test -f CHANGELOG.md && grep -q "^## $TAG" CHANGELOG.md \
+            || { echo "CHANGELOG.md missing section for $TAG"; exit 1; }
+          # Ensure new tag is greater than previous tag (if any)
+          LAST=$(git tag --list 'v*' --sort=-v:refname | sed -n '2p' || true)
+          if [ -n "$LAST" ]; then
+            if [ "$(printf '%s\n%s\n' "$LAST" "$TAG" | sort -V | tail -n1)" != "$TAG" ]; then
+              echo "Tag $TAG is not greater than last $LAST"; exit 1;
+            fi
+          fi
+
   goreleaser:
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: write

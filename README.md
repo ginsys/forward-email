@@ -110,6 +110,7 @@ make lint
 ## 📚 Documentation
 
 - **[Documentation Index](docs/README.md)** - Central entry point for all docs
+- **[Releasing](docs/RELEASING.md)** - Tagging and publishing guide
 - **[Quick Start Guide](docs/quick-start.md)** - Get up and running quickly
 - **[Command Reference](docs/commands.md)** - Complete command documentation
 - **[Configuration Guide](docs/configuration.md)** - Profiles, environments, and settings
