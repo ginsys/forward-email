@@ -26,7 +26,6 @@ Features:
 - Security-first design with OS keyring integration
 - Developer experience with shell completion and interactive wizards
 - Enterprise ready with audit logging and CI/CD integration`,
-	Version: buildversion.Version,
 }
 
 // Execute is the main entry point for the CLI application.

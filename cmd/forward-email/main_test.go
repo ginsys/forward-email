@@ -44,8 +44,8 @@ func TestMain_Integration(t *testing.T) {
 			timeout:  5 * time.Second,
 		},
 		{
-			name:     "version flag",
-			args:     []string{"--version"},
+			name:     "version subcommand",
+			args:     []string{"version", "--verbose"},
 			wantCode: 0,
 			wantOut:  "forward-email version",
 			timeout:  5 * time.Second,
@@ -321,7 +321,7 @@ func TestMain_OutputFormats(t *testing.T) {
 		},
 		{
 			name:     "version_output_format",
-			args:     []string{"--version"},
+			args:     []string{"version", "--verbose"},
 			wantCode: 0,
 		},
 	}

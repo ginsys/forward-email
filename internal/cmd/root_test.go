@@ -25,12 +25,6 @@ func TestRootCommand(t *testing.T) {
 			expectedOutput: "A comprehensive CLI for Forward Email API management",
 		},
 		{
-			name:           "version flag",
-			args:           []string{"--version"},
-			expectError:    false,
-			expectedOutput: "forward-email version",
-		},
-		{
 			name:        "invalid flag",
 			args:        []string{"--invalid-flag"},
 			expectError: true,
