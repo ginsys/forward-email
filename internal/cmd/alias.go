@@ -37,16 +37,17 @@ var (
 	aliasOrderBy    string // Alternative sort field specification
 
 	// Create/Update operation flags
-	aliasRecipients  []string // Recipient email addresses or webhooks
-	aliasLabelsFlag  []string // Labels to assign to the alias
-	aliasDescription string   // Alias description text
-	aliasEnableFlag  bool     // Enable the alias for forwarding
-	aliasDisableFlag bool     // Disable the alias forwarding
-	aliasIMAPFlag    bool     // Enable IMAP access for the alias
-	aliasPGPFlag     bool     // Enable PGP encryption for the alias
-	aliasPublicKey   string   // PGP public key for encryption
-	aliasImportFile  string
-	aliasExportFile  string
+	aliasRecipients   []string // Recipient email addresses or webhooks
+	aliasLabelsFlag   []string // Labels to assign to the alias
+	aliasDescription  string   // Alias description text
+	aliasEnableFlag   bool     // Enable the alias for forwarding
+	aliasDisableFlag  bool     // Disable the alias forwarding
+	aliasIMAPFlag     bool     // Enable IMAP access for the alias
+	aliasPGPFlag      bool     // Enable PGP encryption for the alias
+	aliasPublicKey    string   // PGP public key for encryption
+	aliasImportFile   string
+	aliasExportFile   string
+	aliasImportDryRun bool
 )
 
 type SyncAction struct {
@@ -222,8 +223,10 @@ You can specify the domain either as a positional argument or using the --domain
 var aliasImportCmd = &cobra.Command{
 	Use:   "import <domain> --file <path>",
 	Short: "Import aliases from CSV",
-	Long:  "Import aliases into a domain from a CSV file with columns: Name, Recipients (comma-separated), Enabled (true/false), Labels (comma-separated), Description.",
-	Args:  cobra.ExactArgs(1),
+	Long: "Import aliases into a domain from a CSV file with columns: " +
+		"Name, Recipients (comma-separated), Enabled (true/false), " +
+		"Labels (comma-separated), Description.",
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		domain := strings.TrimSpace(args[0])
 		if domain == "" {
@@ -237,7 +240,7 @@ var aliasImportCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to open CSV: %v", err)
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 
 		r := csv.NewReader(f)
 		r.FieldsPerRecord = -1
@@ -273,7 +276,9 @@ var aliasImportCmd = &cobra.Command{
 		}
 		byName := mapAliasesByName(existing)
 
-		// Process rows
+		// Plan and process rows
+		type impAction struct{ typ, name string }
+		var impPlan []impAction
 		for _, row := range rows[1:] {
 			if len(row) == 0 {
 				continue
@@ -319,8 +324,12 @@ var aliasImportCmd = &cobra.Command{
 				if descPtr != nil {
 					req.Description = descPtr
 				}
-				if _, err := apiClient.Aliases.UpdateAlias(ctx, domain, ex.ID, req); err != nil {
-					return fmt.Errorf("update %s failed: %v", name, err)
+				if aliasImportDryRun {
+					impPlan = append(impPlan, impAction{typ: "UPDATE", name: name})
+				} else {
+					if _, err := apiClient.Aliases.UpdateAlias(ctx, domain, ex.ID, req); err != nil {
+						return fmt.Errorf("update %s failed: %v", name, err)
+					}
 				}
 			} else {
 				// Create
@@ -331,12 +340,24 @@ var aliasImportCmd = &cobra.Command{
 				if descPtr != nil {
 					req.Description = *descPtr
 				}
-				if _, err := apiClient.Aliases.CreateAlias(ctx, domain, req); err != nil {
-					return fmt.Errorf("create %s failed: %v", name, err)
+				if aliasImportDryRun {
+					impPlan = append(impPlan, impAction{typ: "CREATE", name: name})
+				} else {
+					if _, err := apiClient.Aliases.CreateAlias(ctx, domain, req); err != nil {
+						return fmt.Errorf("create %s failed: %v", name, err)
+					}
 				}
 			}
 		}
-
+		if aliasImportDryRun {
+			headers := []string{"ACTION", "ALIAS"}
+			tbl := output.NewTableData(headers)
+			for _, a := range impPlan {
+				tbl.AddRow([]string{a.typ, a.name})
+			}
+			formatter := output.NewFormatter(output.FormatTable, cmd.OutOrStdout())
+			return formatter.Format(tbl)
+		}
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Imported aliases into %s from %s\n", domain, aliasImportFile)
 		return nil
 	},
@@ -346,8 +367,9 @@ var aliasImportCmd = &cobra.Command{
 var aliasExportCmd = &cobra.Command{
 	Use:   "export <domain> --file <path>",
 	Short: "Export aliases to CSV",
-	Long:  "Export aliases from a domain to a CSV file with columns: Name, Recipients (comma-separated), Enabled, Labels (comma-separated), Description.",
-	Args:  cobra.ExactArgs(1),
+	Long: "Export aliases from a domain to a CSV file with columns: " +
+		"Name, Recipients (comma-separated), Enabled, Labels (comma-separated), Description.",
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		domain := strings.TrimSpace(args[0])
 		if domain == "" {
@@ -424,10 +446,11 @@ func init() {
 	aliasCmd.AddCommand(aliasSyncCmd)
 	aliasSyncCmd.Flags().StringVar(&aliasSyncMode, "mode", "merge", "Sync mode: merge|replace|preserve")
 	aliasSyncCmd.Flags().BoolVar(&aliasSyncDryRun, "dry-run", false, "Show planned changes without applying")
-	aliasSyncCmd.Flags().StringVar(&aliasSyncStrategy, "conflicts", "", "Conflict strategy: overwrite|skip|merge (optional)")
+	aliasSyncCmd.Flags().StringVar(&aliasSyncStrategy, "conflicts", "", "Conflict strategy: overwrite|skip|merge")
 
 	// CSV flags
 	aliasImportCmd.Flags().StringVar(&aliasImportFile, "file", "", "Path to input CSV file")
+	aliasImportCmd.Flags().BoolVar(&aliasImportDryRun, "dry-run", false, "Preview import without applying changes")
 	aliasExportCmd.Flags().StringVar(&aliasExportFile, "file", "", "Path to output CSV file")
 
 	// Global flags (output inherited from root command)
@@ -567,7 +590,18 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 			case sOK && dOK:
 				// conflict: compare recipients/flags
 				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
-					switch strings.ToLower(aliasSyncStrategy) {
+					strategy := strings.ToLower(aliasSyncStrategy)
+					if strategy == "" && !aliasSyncDryRun {
+						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
+						if perr != nil {
+							return perr
+						}
+						strategy = sChosen
+						if applyAll {
+							aliasSyncStrategy = strategy
+						}
+					}
+					switch strategy {
 					case "overwrite":
 						addUpdate(dst, d.ID, d.Name, s)
 						addUpdate(src, s.ID, s.Name, d) // keep symmetric? For merge, prefer source? We'll merge both ways below
@@ -602,7 +636,18 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 			} else {
 				// exists: update if different per strategy
 				if !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels) {
-					switch strings.ToLower(aliasSyncStrategy) {
+					strategy := strings.ToLower(aliasSyncStrategy)
+					if strategy == "" && !aliasSyncDryRun {
+						sChosen, applyAll, perr := promptConflict(cmd, name, s, d)
+						if perr != nil {
+							return perr
+						}
+						strategy = sChosen
+						if applyAll {
+							aliasSyncStrategy = strategy
+						}
+					}
+					switch strategy {
 					case "overwrite":
 						addUpdate(dst, d.ID, d.Name, s)
 					case "merge":
@@ -742,8 +787,8 @@ func printSyncPlan(cmd *cobra.Command, src, dst string, plan []SyncAction) error
 		}
 		tbl.AddRow([]string{strings.ToUpper(a.typ), a.domain, alias, details})
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "DRY RUN: Alias Sync Plan (%s -> %s, actions=%d)\n", src, dst, len(plan))
-	fmt.Fprintln(cmd.OutOrStdout())
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "DRY RUN: Alias Sync Plan (%s -> %s, actions=%d)\n", src, dst, len(plan))
+	_, _ = fmt.Fprintln(cmd.OutOrStdout())
 	formatter := output.NewFormatter(output.FormatTable, cmd.OutOrStdout())
 	return formatter.Format(tbl)
 }
@@ -790,6 +835,36 @@ func splitCSVList(s string) []string {
 		}
 	}
 	return out
+}
+
+// promptConflict interactively asks the user how to resolve a conflict.
+// Returns strategy (overwrite|skip|merge) and whether to apply to all.
+func promptConflict(cmd *cobra.Command, alias string, src, dst api.Alias) (string, bool, error) {
+	r := bufio.NewReader(cmd.InOrStdin())
+	out := cmd.OutOrStdout()
+	_, _ = fmt.Fprintf(out, "Conflict for alias '%s':\n", alias)
+	_, _ = fmt.Fprintf(out, "  source → %v\n", src.Recipients)
+	_, _ = fmt.Fprintf(out, "  target → %v\n", dst.Recipients)
+	_, _ = fmt.Fprintln(out, "Choose: [o] overwrite target, [s] skip, [m] merge, [a] apply to all (with last choice)")
+	for {
+		_, _ = fmt.Fprint(out, "Choice [o/s/m/a]: ")
+		line, err := r.ReadString('\n')
+		if err != nil {
+			return "", false, err
+		}
+		c := strings.ToLower(strings.TrimSpace(line))
+		switch c {
+		case "o":
+			return "overwrite", false, nil
+		case "s":
+			return "skip", false, nil
+		case "m":
+			return "merge", false, nil
+		case "a":
+			// apply-all uses last non-empty choice; default to merge
+			return "merge", true, nil
+		}
+	}
 }
 
 // formatAliasListMultiDomain formats aliases from multiple domains with proper domain resolution

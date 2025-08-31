@@ -22,8 +22,8 @@ func TestInitCommand_WritesConfigAndStoresKey(t *testing.T) {
 	c.SetOut(&out)
 	c.SetErr(&out)
 	// Force file backend via flags to avoid GUI prompts
-	c.Flags().Set("store", "file")
-	c.Flags().Set("file-pass", "test-password")
+	_ = c.Flags().Set("store", "file")
+	_ = c.Flags().Set("file-pass", "test-password")
 
 	if err := c.RunE(c, nil); err != nil {
 		t.Fatalf("init failed: %v\noutput: %s", err, out.String())

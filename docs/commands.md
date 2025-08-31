@@ -124,8 +124,8 @@ Comprehensive alias management with all Forward Email features.
 - `enable` - Enable an alias
 - `get` - Get alias details
 - `list` - List aliases
-- `import` - Import aliases from CSV (planned)
-- `export` - Export aliases to CSV (planned)
+- `import` - Import aliases from CSV
+- `export` - Export aliases to CSV
 - `password` - Generate IMAP password
 - `quota` - Show alias quota
 - `recipients` - Update alias recipients
@@ -174,14 +174,19 @@ forward-email alias sync source.com target.com --mode replace
 forward-email alias sync source.com target.com --mode preserve --conflicts
 ```
 
-### CSV Import/Export (Planned)
+- Conflicts: specify `--conflicts overwrite|skip|merge`, or omit to be prompted interactively per conflict (option to apply to all).
+
+### CSV Import/Export
 
 ```bash
-# Export aliases to CSV (planned)
+# Export aliases to CSV
 forward-email alias export example.com --file aliases.csv
 
-# Import aliases from CSV (planned)
+# Import aliases from CSV (upsert by name)
 forward-email alias import example.com --file aliases.csv
+
+# Preview import changes without applying
+forward-email alias import example.com --file aliases.csv --dry-run
 ```
 
 ## Email Commands (`email`)
