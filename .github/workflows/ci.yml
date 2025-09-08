@@ -27,7 +27,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
         cache: false  # We handle caching manually for better control
@@ -98,7 +98,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
         cache: false  # We handle caching manually for better control
@@ -150,7 +150,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
@@ -174,7 +174,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
@@ -204,7 +204,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
