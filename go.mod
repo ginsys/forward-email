@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/99designs/keyring v1.2.2
-	github.com/olekukonko/tablewriter v1.0.9
+	github.com/olekukonko/tablewriter v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
