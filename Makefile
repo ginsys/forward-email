@@ -20,10 +20,17 @@ GOCLEAN := $(GOCMD) clean
 GOTEST := $(GOCMD) test
 
 # Test environment (avoid interactive keyring prompts)
-TEST_ENV ?= FORWARDEMAIL_KEYRING_BACKEND=none
+# Disable colors for stable CI logs
+TEST_ENV ?= FORWARDEMAIL_KEYRING_BACKEND=none FORWARDEMAIL_NO_COLOR=1
 GOGET := $(GOCMD) get
 GOMOD := $(GOCMD) mod
 GOFMT := $(GOCMD) fmt
+
+# Installation directory fallback when GOBIN is unset
+BIN_DIR := $(shell go env GOBIN)
+ifeq ($(BIN_DIR),)
+BIN_DIR := $(shell go env GOPATH)/bin
+endif
 
 .PHONY: all build clean test test-ci test-quick test-unit test-race test-pkg test-verbose test-bench coverage deps lint lint-ci lint-fast fmt fmt-check pre-commit pre-commit-full install-hooks uninstall-hooks check check-all install uninstall dev-setup help help-test
 
@@ -60,7 +67,7 @@ test:
 
 test-ci: 
 	@echo "Running tests exactly as CI does..."
-	$(TEST_ENV) $(GOTEST) -v -race -coverprofile coverage.out ./...
+	$(TEST_ENV) $(GOTEST) -v -race -covermode=atomic -coverpkg=./... -coverprofile coverage.out ./...
 
 test-quick:
 	@echo "Running quick tests without race detector..."
@@ -98,7 +105,7 @@ test-bench:
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	$(TEST_ENV) $(GOTEST) -v -race -coverprofile=coverage.out ./...
+	$(TEST_ENV) $(GOTEST) -v -race -covermode=atomic -coverpkg=./... -coverprofile=coverage.out ./...
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
@@ -157,12 +164,12 @@ fmt-check:
 # Install the binary to GOBIN
 install: build
 	@echo "Installing $(BINARY_NAME)..."
-	cp $(BUILD_DIR)/$(BINARY_NAME) $(shell go env GOBIN)/$(BINARY_NAME)
+	cp $(BUILD_DIR)/$(BINARY_NAME) $(BIN_DIR)/$(BINARY_NAME)
 
 # Uninstall the binary
 uninstall:
 	@echo "Uninstalling $(BINARY_NAME)..."
-	rm -f $(shell go env GOBIN)/$(BINARY_NAME)
+	rm -f $(BIN_DIR)/$(BINARY_NAME)
 
 # Pre-commit commands
 pre-commit: fmt-check lint-fast test-quick
@@ -198,7 +205,7 @@ dev-setup: deps install-hooks
 	@echo "Setting up development environment..."
 	@if ! command -v golangci-lint >/dev/null 2>&1; then \
 		echo "Installing golangci-lint..."; \
-		$(GOGET) -u github.com/golangci/golangci-lint/cmd/golangci-lint; \
+		GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
 	fi
 	@echo "✅ Development environment ready"
 

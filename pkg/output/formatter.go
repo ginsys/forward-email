@@ -553,11 +553,18 @@ func FormatBytes(bytes int64) string {
 		return fmt.Sprintf("%d B", bytes)
 	}
 	div, exp := int64(unit), 0
+	units := []string{"K", "M", "G", "T", "P", "E"}
 	for n := bytes / unit; n >= unit; n /= unit {
 		div *= unit
 		exp++
+		if exp >= len(units) {
+			break
+		}
 	}
-	return fmt.Sprintf("%.1f %sB", float64(bytes)/float64(div), []string{"K", "M", "G", "T", "P", "E"}[exp])
+	if exp >= len(units) {
+		exp = len(units) - 1
+	}
+	return fmt.Sprintf("%.1f %sB", float64(bytes)/float64(div), units[exp])
 }
 
 // FormatPercentage formats a percentage value

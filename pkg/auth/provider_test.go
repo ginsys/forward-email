@@ -310,6 +310,161 @@ func TestForwardEmailAuth_DeleteAPIKey(t *testing.T) {
 	}
 }
 
+func TestNewProvider_EdgeCases(t *testing.T) {
+	kr, err := keyring.MockKeyring()
+	if err != nil {
+		t.Fatalf("failed to create mock keyring: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		cfg     *config.Config
+		profile string
+		wantErr bool
+	}{
+		{
+			name: "nil keyring allowed",
+			cfg: &config.Config{
+				CurrentProfile: "test",
+				Profiles: map[string]config.Profile{
+					"test": {
+						BaseURL: "https://api.forwardemail.net",
+						APIKey:  "test-key",
+					},
+				},
+			},
+			profile: "test",
+			wantErr: false,
+		},
+		{
+			name: "empty profile name uses default",
+			cfg: &config.Config{
+				CurrentProfile: "main",
+				Profiles: map[string]config.Profile{
+					"main": {
+						BaseURL: "https://api.forwardemail.net",
+						APIKey:  "main-key",
+					},
+				},
+			},
+			profile: "",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pcfg := ProviderConfig{
+				Profile: tt.profile,
+				Config:  tt.cfg,
+				Keyring: kr,
+			}
+
+			if tt.name == "nil keyring allowed" {
+				pcfg.Keyring = nil
+			}
+
+			auth, err := NewProvider(pcfg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewProvider() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && auth == nil {
+				t.Error("NewProvider() returned nil auth without error")
+			}
+		})
+	}
+}
+
+func TestForwardEmailAuth_Apply_Real(t *testing.T) {
+	cfg := &config.Config{
+		CurrentProfile: "test",
+		Profiles: map[string]config.Profile{
+			"test": {
+				BaseURL: "https://api.forwardemail.net",
+				APIKey:  "real-test-key",
+				Timeout: "30s",
+				Output:  "table",
+			},
+		},
+	}
+
+	kr, err := keyring.MockKeyring()
+	if err != nil {
+		t.Fatalf("failed to create mock keyring: %v", err)
+	}
+
+	auth, err := NewProvider(ProviderConfig{
+		Profile: "test",
+		Config:  cfg,
+		Keyring: kr,
+	})
+	if err != nil {
+		t.Fatalf("failed to create auth provider: %v", err)
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "https://api.example.com", http.NoBody)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	err = auth.Apply(req)
+	if err != nil {
+		t.Errorf("Apply() error = %v, want nil", err)
+	}
+
+	authHeader := req.Header.Get("Authorization")
+	if authHeader == "" {
+		t.Error("Apply() should set Authorization header")
+	}
+	if authHeader != "Basic cmVhbC10ZXN0LWtleTo=" {
+		t.Errorf("Apply() Authorization header = %v, want %v", authHeader, "Basic cmVhbC10ZXN0LWtleTo=")
+	}
+}
+
+func TestForwardEmailAuth_SetAPIKey_EdgeCases(t *testing.T) {
+	cfg := &config.Config{
+		CurrentProfile: "test",
+		Profiles:       make(map[string]config.Profile),
+	}
+
+	kr, err := keyring.MockKeyring()
+	if err != nil {
+		t.Fatalf("failed to create mock keyring: %v", err)
+	}
+
+	auth, err := NewProvider(ProviderConfig{
+		Profile: "test",
+		Config:  cfg,
+		Keyring: kr,
+	})
+	if err != nil {
+		t.Fatalf("failed to create auth provider: %v", err)
+	}
+
+	extAuth, ok := auth.(ExtendedProvider)
+	if !ok {
+		t.Fatalf("auth provider does not implement ExtendedProvider")
+	}
+
+	// Test setting valid key
+	testKey := "new-api-key-123"
+	err = extAuth.SetAPIKey(testKey)
+	if err != nil {
+		t.Errorf("SetAPIKey() error = %v", err)
+	}
+
+	// Verify key was stored
+	storedKey, err := extAuth.GetAPIKey()
+	if err != nil {
+		t.Errorf("GetAPIKey() after SetAPIKey() error = %v", err)
+	}
+	if storedKey != testKey {
+		t.Errorf("GetAPIKey() after SetAPIKey() = %v, want %v", storedKey, testKey)
+	}
+}
+
 func TestMockProvider(t *testing.T) {
 	testKey := "mock-test-key"
 	mock := MockProvider(testKey)

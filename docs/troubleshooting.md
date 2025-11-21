@@ -448,7 +448,7 @@ ls -lh attachment.pdf
 
 1. **Check Go version**:
    ```bash
-   # Requires Go 1.21+
+   # Requires Go 1.24+
    go version
    
    # Update Go if needed

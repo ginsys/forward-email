@@ -733,7 +733,10 @@ func TestAliasSync_DryRun_Merge_CreateMissing(t *testing.T) {
 	// Mock server: src has info, support; dst has info only
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/domains/src.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
-		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "2", Name: "support", Recipients: []string{"s@x"}, IsEnabled: true}})
+		_ = json.NewEncoder(w).Encode([]api.Alias{
+			{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true},
+			{ID: "2", Name: "support", Recipients: []string{"s@x"}, IsEnabled: true},
+		})
 	})
 	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
@@ -764,7 +767,10 @@ func TestAliasSync_DryRun_Replace_DeletesExtra(t *testing.T) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "1", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}})
 	})
 	mux.HandleFunc("/v1/domains/dst.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
-		_ = json.NewEncoder(w).Encode([]api.Alias{{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true}, {ID: "11", Name: "help", Recipients: []string{"h@x"}, IsEnabled: true}})
+		_ = json.NewEncoder(w).Encode([]api.Alias{
+			{ID: "10", Name: "info", Recipients: []string{"a@x"}, IsEnabled: true},
+			{ID: "11", Name: "help", Recipients: []string{"h@x"}, IsEnabled: true},
+		})
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
@@ -803,7 +809,10 @@ func TestAliasSync_DryRun_Merge_ConflictMerge(t *testing.T) {
 	var out bytes.Buffer
 	rootCmd.SetOut(&out)
 	rootCmd.SetErr(&out)
-	rootCmd.SetArgs([]string{"alias", "sync", "src.com", "dst.com", "--mode", "merge", "--conflicts", "merge", "--dry-run"})
+	rootCmd.SetArgs([]string{
+		"alias", "sync", "src.com", "dst.com",
+		"--mode", "merge", "--conflicts", "merge", "--dry-run",
+	})
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("sync merge conflict dry-run failed: %v\n%s", err, out.String())
@@ -1204,7 +1213,7 @@ func resetAliasFlags() {
 
 func TestAliasExport_CSV_WritesFile(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/domains/example.com/aliases", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/domains/example.com/aliases", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode([]api.Alias{
 			{ID: "1", Name: "info", Recipients: []string{"a@x", "b@x"}, IsEnabled: true},
 			{ID: "2", Name: "support", Recipients: []string{"s@x"}, Labels: []string{"team"}, IsEnabled: false},

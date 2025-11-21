@@ -389,7 +389,7 @@ Package Breakdown:
 ## Contributing Guidelines
 
 ### Development Setup
-1. Go 1.21+ required
+1. Go 1.24+ required
 2. Run `go mod download` for dependencies
 3. Use `make test` for running tests
 4. Follow existing patterns for new features

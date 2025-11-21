@@ -59,9 +59,6 @@ type syncAction struct {
 	recipients []string
 	enabled    *bool
 	labels     []string
-	desc       *string
-	hasIMAP    *bool
-	hasPGP     *bool
 }
 
 // aliasCmd represents the alias command
@@ -606,7 +603,9 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				addCreate(src, name, d)
 			case sOK && dOK:
 				// conflict: compare recipients/flags
-				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
+				diff := !equalStringSets(s.Recipients, d.Recipients) ||
+					s.IsEnabled != d.IsEnabled ||
+					!equalStringSets(s.Labels, d.Labels)
 				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
 					if strategy == "" && !aliasSyncDryRun && !aliasSyncYes {
@@ -653,7 +652,9 @@ func runAliasSync(cmd *cobra.Command, args []string) error {
 				addCreate(dst, name, s)
 			} else {
 				// exists: update if different per strategy
-				diff := !equalStringSets(s.Recipients, d.Recipients) || s.IsEnabled != d.IsEnabled || !equalStringSets(s.Labels, d.Labels)
+				diff := !equalStringSets(s.Recipients, d.Recipients) ||
+					s.IsEnabled != d.IsEnabled ||
+					!equalStringSets(s.Labels, d.Labels)
 				if diff {
 					strategy := strings.ToLower(aliasSyncStrategy)
 					if strategy == "" && !aliasSyncDryRun && !aliasSyncYes {

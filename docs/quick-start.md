@@ -4,7 +4,7 @@ Get up and running with Forward Email CLI in minutes.
 
 ## Prerequisites
 
-- Go 1.21+ (for building from source)
+- Go 1.24+ (for building from source)
 - A [Forward Email](https://forwardemail.net/) account with API access
 - Your Forward Email API key
 

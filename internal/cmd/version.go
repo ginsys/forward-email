@@ -23,7 +23,7 @@ func newVersionCmd() *cobra.Command {
 		Short: "Show version information",
 		Long:  "Display CLI version, build metadata, and optional license.",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			info := buildversion.Get()
 
 			switch {

@@ -725,8 +725,9 @@ func TestAliasService_UpdateRecipients(t *testing.T) {
 		json.NewDecoder(r.Body).Decode(&req) //nolint:errcheck,gosec // Test mock request
 
 		expectedRecipients := []string{"new1@example.com", "new2@example.com"}
-		if len(req.Recipients) != 2 ||
-			req.Recipients[0] != expectedRecipients[0] ||
+		if len(req.Recipients) != 2 {
+			t.Errorf("Expected 2 recipients, got %d", len(req.Recipients))
+		} else if req.Recipients[0] != expectedRecipients[0] || //nolint:gosec // Length checked above
 			req.Recipients[1] != expectedRecipients[1] {
 			t.Errorf("Expected recipients %v, got %v", expectedRecipients, req.Recipients)
 		}
