@@ -12,7 +12,8 @@
       "Bash(git add:*)",
       "Bash(gh run view:*)",
       "Bash(golangci-lint:*)",
-      "Bash(go run:*)"
+      "Bash(go run:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": [],

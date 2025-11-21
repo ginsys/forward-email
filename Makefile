@@ -203,9 +203,12 @@ check-all: fmt-check lint test-ci
 # Development setup
 dev-setup: deps install-hooks
 	@echo "Setting up development environment..."
-	@if ! command -v golangci-lint >/dev/null 2>&1; then \
-		echo "Installing golangci-lint..."; \
-		GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+	@if command -v mise >/dev/null 2>&1; then \
+		echo "Installing tools via mise (including golangci-lint v2.6.2)..."; \
+		mise install || echo "⚠️  Some mise tools failed to install (non-critical)"; \
+	else \
+		echo "⚠️  mise not found. Install from https://mise.jdx.dev"; \
+		echo "   Tools defined in mise.toml will not be installed."; \
 	fi
 	@echo "✅ Development environment ready"
 
