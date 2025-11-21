@@ -27,7 +27,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
         cache: false  # We handle caching manually for better control
@@ -98,7 +98,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
         cache: false  # We handle caching manually for better control
@@ -150,7 +150,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
@@ -174,7 +174,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
@@ -185,7 +185,7 @@ jobs:
         args: '-no-fail -fmt sarif -out gosec-report.sarif ./...'
 
     - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: gosec-report.sarif
 
@@ -204,7 +204,7 @@ jobs:
         git config --global core.eol lf
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: 1.24
         cache: false
@@ -213,7 +213,7 @@ jobs:
       run: make build-all
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: binaries
         path: bin/*
