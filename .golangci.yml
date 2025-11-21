@@ -1,15 +1,7 @@
-version: "2"
-
 run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
-
-output:
-  formats:
-    json:
-      path: stdout
-  show-stats: true
 
 linters:
   disable-all: true

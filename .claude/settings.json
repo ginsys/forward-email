@@ -8,7 +8,11 @@
       "Bash(cat:*)",
       "Bash(sort:*)",
       "Bash(make test-ci:*)",
-      "Bash(FORWARDEMAIL_KEYRING_BACKEND=none go test:*)"
+      "Bash(FORWARDEMAIL_KEYRING_BACKEND=none go test:*)",
+      "Bash(git add:*)",
+      "Bash(gh run view:*)",
+      "Bash(golangci-lint:*)",
+      "Bash(go run:*)"
     ],
     "deny": [],
     "ask": [],
