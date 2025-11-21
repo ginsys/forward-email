@@ -500,7 +500,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 
 	// Read content from files if specified
 	if emailTextFile != "" {
-		content, err := os.ReadFile(emailTextFile) //nolint:gosec // G304: Legitimate file reading for email content
+		content, err := os.ReadFile(emailTextFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read text file: %v", err)
 		}
@@ -508,7 +508,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 	}
 
 	if emailHTMLFile != "" {
-		content, err := os.ReadFile(emailHTMLFile) //nolint:gosec // G304: Legitimate file reading for email content
+		content, err := os.ReadFile(emailHTMLFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read HTML file: %v", err)
 		}
@@ -542,7 +542,7 @@ func buildEmailFromFlags() (*api.SendEmailRequest, error) {
 }
 
 func processAttachment(filePath string) (*api.AttachmentData, error) {
-	content, err := os.ReadFile(filePath) //nolint:gosec // G304: Legitimate file reading for email attachments
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
 	}

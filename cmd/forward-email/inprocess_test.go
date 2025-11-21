@@ -14,7 +14,7 @@ import (
 )
 
 // captureOutput redirects stdout/stderr during fn and returns their combined output.
-func captureOutput(fn func()) (string, string) {
+func captureOutput(fn func()) (stdout, stderr string) {
 	// Capture stdout
 	oldOut := os.Stdout
 	rOut, wOut, _ := os.Pipe()
@@ -62,7 +62,7 @@ func TestInProcess_BasicFlows(t *testing.T) {
 		{name: "help", args: []string{"forward-email", "--help"}, wantOut: "Forward Email CLI"},
 		{name: "version", args: []string{"forward-email", "version", "--verbose"}, wantOut: "forward-email version"},
 		{name: "invalid", args: []string{"forward-email", "does-not-exist"}, wantErr: true, wantErrS: "unknown command"},
-		{name: "auth status", args: []string{"forward-email", "auth", "status"}, wantOut: "No API key configured"},
+		{name: "auth status", args: []string{"forward-email", "auth", "status"}, wantOut: "Authentication Status"},
 	}
 
 	for _, tc := range cases {

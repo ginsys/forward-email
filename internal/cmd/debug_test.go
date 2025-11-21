@@ -168,7 +168,6 @@ profiles:
 				Args:  cobra.MaximumNArgs(1),
 				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
-					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug keyring information would be displayed here\n")
 					return nil
 				},
@@ -181,7 +180,6 @@ profiles:
 				Args:  cobra.MaximumNArgs(1),
 				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
-					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug auth flow information would be displayed here\n")
 					return nil
 				},
@@ -194,7 +192,6 @@ profiles:
 				Args:  cobra.MaximumNArgs(1),
 				RunE: func(cmd *cobra.Command, _ []string) error {
 					// Mock implementation for testing
-					//nolint:errcheck // Test output
 					fmt.Fprintf(cmd.OutOrStdout(), "Debug API call information would be displayed here\n")
 					return nil
 				},
@@ -494,7 +491,7 @@ func TestDebugHelpOutput(t *testing.T) {
 			rootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			rootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
+			rootCmd.Execute()
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

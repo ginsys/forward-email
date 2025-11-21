@@ -344,7 +344,7 @@ in the OS keyring or configuration file.`,
 			helpRootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			helpRootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
+			helpRootCmd.Execute()
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

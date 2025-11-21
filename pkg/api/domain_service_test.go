@@ -45,7 +45,7 @@ func TestDomainService_ListDomains(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(domains) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(domains)
 	}))
 	defer server.Close()
 
@@ -103,7 +103,7 @@ func TestDomainService_GetDomain(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(domain) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(domain)
 	}))
 	defer server.Close()
 
@@ -163,7 +163,7 @@ func TestDomainService_CreateDomain(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(domain) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(domain)
 	}))
 	defer server.Close()
 
@@ -224,7 +224,7 @@ func TestDomainService_UpdateDomain(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(domain) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(domain)
 	}))
 	defer server.Close()
 
@@ -311,7 +311,7 @@ func TestDomainService_VerifyDomain(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(verification) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(verification)
 	}))
 	defer server.Close()
 
@@ -370,7 +370,7 @@ func TestDomainService_GetDomainDNSRecords(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(records) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(records)
 	}))
 	defer server.Close()
 
@@ -433,7 +433,7 @@ func TestDomainService_GetDomainQuota(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(quota) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(quota)
 	}))
 	defer server.Close()
 
@@ -483,7 +483,7 @@ func TestDomainService_GetDomainStats(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(stats) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(stats)
 	}))
 	defer server.Close()
 
@@ -548,7 +548,7 @@ func TestDomainService_AddDomainMember(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(member) //nolint:errcheck,gosec // Test mock response
+		json.NewEncoder(w).Encode(member)
 	}))
 	defer server.Close()
 
@@ -605,9 +605,8 @@ func TestDomainService_ErrorHandling(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{ //nolint:errcheck,gosec // Test mock response
-			"message": "Domain not found",
-			"code":    "DOMAIN_NOT_FOUND",
+		json.NewEncoder(w).Encode(map[string]string{"message": "Domain not found",
+			"code": "DOMAIN_NOT_FOUND",
 		})
 	}))
 	defer server.Close()

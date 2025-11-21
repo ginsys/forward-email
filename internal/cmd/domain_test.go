@@ -474,7 +474,7 @@ and configuring domain settings and DNS records.`,
 			rootCmd.SetArgs(tt.args)
 
 			// Execute command (help commands don't return errors)
-			rootCmd.Execute() //nolint:errcheck,gosec // Help command output testing
+			rootCmd.Execute()
 
 			outputStr := output.String()
 			for _, expected := range tt.expectedOutput {

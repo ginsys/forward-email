@@ -113,7 +113,7 @@ func TestMain_Integration(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			cmd := exec.CommandContext(ctx, binary, tt.args...) //nolint:gosec // Test code
+			cmd := exec.CommandContext(ctx, binary, tt.args...)
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
@@ -159,7 +159,6 @@ func TestMain_GracefulShutdown(t *testing.T) {
 		defer cancel()
 
 		// Start a long-running command that would normally wait for input
-		//nolint:gosec // Test code
 		cmd := exec.CommandContext(ctx, binary, "auth", "login", "--interactive")
 
 		err := cmd.Start()
@@ -200,7 +199,6 @@ func TestMain_GracefulShutdown(t *testing.T) {
 		defer cancel()
 
 		// Start a long-running command
-		//nolint:gosec // Test code
 		cmd := exec.CommandContext(ctx, binary, "auth", "login", "--interactive")
 
 		err := cmd.Start()
@@ -279,7 +277,7 @@ func TestMain_ErrorHandling(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			cmd := exec.CommandContext(ctx, binary, tt.args...) //nolint:gosec // Test code
+			cmd := exec.CommandContext(ctx, binary, tt.args...)
 			var stderr bytes.Buffer
 			cmd.Stderr = &stderr
 
@@ -331,7 +329,7 @@ func TestMain_OutputFormats(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			cmd := exec.CommandContext(ctx, binary, tt.args...) //nolint:gosec // Test code
+			cmd := exec.CommandContext(ctx, binary, tt.args...)
 			var stdout bytes.Buffer
 			cmd.Stdout = &stdout
 
@@ -367,7 +365,7 @@ func TestMain_EnvironmentVariables(t *testing.T) {
 		// Create temporary config directory
 		tmpDir := t.TempDir()
 
-		cmd := exec.CommandContext(ctx, binary, "profile", "list") //nolint:gosec // Test code
+		cmd := exec.CommandContext(ctx, binary, "profile", "list")
 		cmd.Env = append(os.Environ(),
 			fmt.Sprintf("XDG_CONFIG_HOME=%s", tmpDir),
 			"FORWARDEMAIL_KEYRING_BACKEND=none",
@@ -407,7 +405,6 @@ func buildTestBinary(t *testing.T) string {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	//nolint:gosec // Test code with hardcoded "go" command
 	cmd := exec.CommandContext(ctx, "go", "build", "-o", binaryPath, ".")
 	cmd.Dir = "." // Build in current directory (cmd/forward-email)
 

@@ -202,15 +202,15 @@ func TestInitConfig(t *testing.T) {
 			name: "env vars work",
 			setup: func() (cleanup func()) {
 				// Set environment variables
-				os.Setenv("FORWARDEMAIL_PROFILE", "env-test") //nolint:errcheck,gosec // Test setup
-				os.Setenv("FORWARDEMAIL_OUTPUT", "yaml")      //nolint:errcheck,gosec // Test setup
+				os.Setenv("FORWARDEMAIL_PROFILE", "env-test")
+				os.Setenv("FORWARDEMAIL_OUTPUT", "yaml")
 
 				viper.SetEnvPrefix("FORWARDEMAIL")
 				viper.AutomaticEnv()
 
 				return func() {
-					os.Unsetenv("FORWARDEMAIL_PROFILE") //nolint:errcheck // Test cleanup
-					os.Unsetenv("FORWARDEMAIL_OUTPUT")  //nolint:errcheck // Test cleanup
+					os.Unsetenv("FORWARDEMAIL_PROFILE")
+					os.Unsetenv("FORWARDEMAIL_OUTPUT")
 					viper.Reset()
 				}
 			},

@@ -100,16 +100,14 @@ func (f *Formatter) formatTable(data interface{}) error {
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			//nolint:errcheck,gosec // G104: tablewriter.Append doesn't return meaningful errors
-			table.Append(convertToInterface(row)...)
+			_ = table.Append(convertToInterface(row)...)
 		}
 	case *TableData:
 		table.Header(convertToInterface(v.Headers)...)
 		// Apply intelligent text wrapping for long content using current terminal width
 		wrappedRows := f.wrapTableContentWithWidth(v.Rows, v.Headers, terminalWidth)
 		for _, row := range wrappedRows {
-			//nolint:errcheck,gosec // G104: tablewriter.Append doesn't return meaningful errors
-			table.Append(convertToInterface(row)...)
+			_ = table.Append(convertToInterface(row)...)
 		}
 	default:
 		return fmt.Errorf("table format requires TableData struct, got %T", data)

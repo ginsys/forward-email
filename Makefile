@@ -58,14 +58,14 @@ clean:
 	@echo "Cleaning..."
 	$(GOCLEAN)
 	rm -rf $(BUILD_DIR)
-	rm -f coverage.out coverage.html
+	rm -f coverage.out coverage.html auth_coverage* cmd_coverage.out
 
 # Testing commands - aligned with CI workflow
 test:
 	@echo "Running tests with race detector (default)..."
 	$(TEST_ENV) $(GOTEST) -v -race ./...
 
-test-ci: 
+test-ci:
 	@echo "Running tests exactly as CI does..."
 	$(TEST_ENV) $(GOTEST) -v -race -covermode=atomic -coverpkg=./... -coverprofile coverage.out ./...
 

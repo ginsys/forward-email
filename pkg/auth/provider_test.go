@@ -175,8 +175,8 @@ func TestForwardEmailAuth_GetAPIKey(t *testing.T) {
 			// Setup keyring
 			testKR := kr
 			if tt.storeInKR {
-				testKR.SetAPIKey(tt.profile, tt.krKey) //nolint:errcheck,gosec // Test setup
-				defer testKR.DeleteAPIKey(tt.profile)  //nolint:errcheck // Test cleanup
+				testKR.SetAPIKey(tt.profile, tt.krKey)
+				defer testKR.DeleteAPIKey(tt.profile)
 			}
 
 			// Create auth provider

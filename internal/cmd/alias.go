@@ -234,7 +234,7 @@ var aliasImportCmd = &cobra.Command{
 			return fmt.Errorf("--file is required")
 		}
 
-		f, err := os.Open(aliasImportFile) //nolint:gosec // user-provided path is expected for CLI import
+		f, err := os.Open(aliasImportFile)
 		if err != nil {
 			return fmt.Errorf("failed to open CSV: %v", err)
 		}
@@ -825,7 +825,7 @@ func derefBool(p *bool) bool {
 }
 
 func writeAliasesCSV(path string, aliases []api.Alias) error {
-	f, err := os.Create(path) //nolint:gosec // user-provided path is expected for CLI export
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -863,7 +863,7 @@ func splitCSVList(s string) []string {
 
 // promptConflict interactively asks the user how to resolve a conflict.
 // Returns strategy (overwrite|skip|merge) and whether to apply to all.
-func promptConflict(cmd *cobra.Command, alias string, src, dst api.Alias) (string, bool, error) {
+func promptConflict(cmd *cobra.Command, alias string, src, dst api.Alias) (strategy string, applyToAll bool, err error) {
 	r := bufio.NewReader(cmd.InOrStdin())
 	out := cmd.OutOrStdout()
 	_, _ = fmt.Fprintf(out, "Conflict for alias '%s':\n", alias)
@@ -1305,7 +1305,7 @@ func runAliasList(cmd *cobra.Command, args []string) error {
 
 	// Handle different formatting scenarios
 	var tableData *output.TableData
-	if aliasColumns != "" { //nolint:gocritic // ifElseChain: Complex conditions not suitable for switch
+	if aliasColumns != "" {
 		// Custom columns specified - ensure domain map is populated for single domains
 		if len(domains) == 1 && !aliasAllDomains && len(domainMap) == 0 {
 			// For single domain with custom columns, create a simple mapping
@@ -1417,7 +1417,7 @@ func runAliasCreate(cmd *cobra.Command, args []string) error {
 		aliasName = args[1]
 	case 1:
 		// One argument provided; decide whether it's domain or alias name
-		if domain != "" { //nolint:gocritic // ifElseChain: Complex nested conditions not suitable for switch
+		if domain != "" {
 			// Domain was provided via flag; single arg must be alias name
 			aliasName = args[0]
 		} else if len(aliasRecipients) > 0 {
