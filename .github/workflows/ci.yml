@@ -161,7 +161,7 @@ jobs:
     # DO NOT UPGRADE to v2.x without full config migration (.golangci.yml)
     # v2.x requires: version as string, no disable-all, no exclude-rules, no linters-settings
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v9
       with:
         version: v1.64.8
 
