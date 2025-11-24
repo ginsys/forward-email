@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure Git for consistent line endings
       run: |
@@ -92,7 +92,7 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure Git for consistent line endings
       run: |
@@ -144,7 +144,7 @@ jobs:
     timeout-minutes: 10
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure Git for consistent line endings
       run: |
@@ -171,7 +171,7 @@ jobs:
     timeout-minutes: 10
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure Git for consistent line endings
       run: |
@@ -204,7 +204,7 @@ jobs:
     needs: [test, lint, security]  # Note: test-windows is not required for build to proceed
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure Git for consistent line endings
       run: |
