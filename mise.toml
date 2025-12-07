@@ -1,6 +1,3 @@
 [tools]
 go = "1.24"
-# golangci-lint: Pinned to v1.64.8 (DO NOT UPGRADE to v2.x without full config migration)
-# v2.x has breaking config changes: version must be string, no disable-all, no exclude-rules, no linters-settings
-# See: https://golangci-lint.run/docs/product/migration-guide/ before upgrading
-"ubi:golangci/golangci-lint" = "1.64.8"
+"ubi:golangci/golangci-lint" = "2.6.2"

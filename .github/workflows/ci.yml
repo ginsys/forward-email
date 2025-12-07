@@ -157,13 +157,12 @@ jobs:
         go-version: 1.24
         cache: false
 
-    # golangci-lint: Pinned to v1.64.8 with action@v6
-    # DO NOT UPGRADE to v2.x without full config migration (.golangci.yml)
-    # v2.x requires: version as string, no disable-all, no exclude-rules, no linters-settings
+    # golangci-lint: v2.6.2 with action@v9
+    # Config migrated to v2 schema (.golangci.yml version: "2")
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v9
       with:
-        version: v1.64.8
+        version: v2.6.2
 
   security:
     name: Security Scan

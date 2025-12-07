@@ -413,9 +413,9 @@ func wrapText(text string, width int) string {
 // calculateOptimalWidthForColumn: removed (was unused helper for column sizing)
 
 // convertToInterface converts a slice of strings to a slice of interface{}
-func convertToInterface(strings []string) []interface{} {
-	result := make([]interface{}, len(strings))
-	for i, s := range strings {
+func convertToInterface(strs []string) []interface{} {
+	result := make([]interface{}, len(strs))
+	for i, s := range strs {
 		result[i] = s
 	}
 	return result

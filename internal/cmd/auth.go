@@ -295,7 +295,7 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Initialize keyring
-	kr, err := keyring.New(keyring.Config{})
+	ring, err := keyring.New(keyring.Config{})
 	if err != nil {
 		fmt.Printf("Warning: failed to initialize keyring: %v\n", err)
 	}
@@ -303,8 +303,8 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 	if logoutAll {
 		// Logout from all profiles
 		profiles := cfg.ListProfiles()
-		if kr != nil {
-			keyringProfiles, err := kr.ListProfiles()
+		if ring != nil {
+			keyringProfiles, err := ring.ListProfiles()
 			if err == nil {
 				// Merge profiles from keyring
 				profileMap := make(map[string]bool)
@@ -325,7 +325,7 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 		}
 
 		for _, p := range profiles {
-			if err := logoutProfile(cfg, kr, p); err != nil {
+			if err := logoutProfile(cfg, ring, p); err != nil {
 				fmt.Printf("Warning: failed to logout from profile '%s': %v\n", p, err)
 			} else {
 				fmt.Printf("✅ Logged out from profile '%s'\n", p)
@@ -333,7 +333,7 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 		}
 	} else {
 		// Logout from specific profile
-		if err := logoutProfile(cfg, kr, profile); err != nil {
+		if err := logoutProfile(cfg, ring, profile); err != nil {
 			return fmt.Errorf("failed to logout from profile '%s': %w", profile, err)
 		}
 		fmt.Printf("✅ Logged out from profile '%s'\n", profile)
@@ -346,12 +346,12 @@ func runAuthLogout(cmd *cobra.Command, _ []string) error {
 // It creates an auth provider for the profile and deletes the API key from
 // the configured storage (keyring or config file). This is a helper function
 // used by runAuthLogout for both single and bulk logout operations.
-func logoutProfile(cfg *config.Config, kr *keyring.Keyring, profile string) error {
+func logoutProfile(cfg *config.Config, ring *keyring.Keyring, profile string) error {
 	// Create auth provider
 	authProvider, err := auth.NewProvider(auth.ProviderConfig{
 		Profile: profile,
 		Config:  cfg,
-		Keyring: kr,
+		Keyring: ring,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create auth provider: %w", err)
@@ -377,7 +377,7 @@ func runAuthStatus(_ *cobra.Command, _ []string) error {
 	}
 
 	// Initialize keyring
-	kr, err := keyring.New(keyring.Config{})
+	ring, err := keyring.New(keyring.Config{})
 	if err != nil {
 		fmt.Printf("Warning: failed to initialize keyring: %v\n", err)
 	}
@@ -387,8 +387,8 @@ func runAuthStatus(_ *cobra.Command, _ []string) error {
 
 	// Get all profiles
 	profiles := cfg.ListProfiles()
-	if kr != nil {
-		keyringProfiles, err := kr.ListProfiles()
+	if ring != nil {
+		keyringProfiles, err := ring.ListProfiles()
 		if err == nil {
 			// Merge profiles from keyring
 			profileMap := make(map[string]bool)
@@ -420,7 +420,7 @@ func runAuthStatus(_ *cobra.Command, _ []string) error {
 		authProvider, err := auth.NewProvider(auth.ProviderConfig{
 			Profile: profile,
 			Config:  cfg,
-			Keyring: kr,
+			Keyring: ring,
 		})
 		if err != nil {
 			fmt.Printf("  Status: ❌ Error creating auth provider: %v\n", err)
@@ -437,7 +437,7 @@ func runAuthStatus(_ *cobra.Command, _ []string) error {
 					source = "environment variable (FORWARDEMAIL_API_KEY)"
 				} else if envKey := os.Getenv(fmt.Sprintf("FORWARDEMAIL_%s_API_KEY", profile)); envKey != "" {
 					source = fmt.Sprintf("environment variable (FORWARDEMAIL_%s_API_KEY)", profile)
-				} else if kr != nil && kr.HasAPIKey(profile) {
+				} else if ring != nil && ring.HasAPIKey(profile) {
 					source = "OS keyring"
 				} else {
 					source = "configuration file"
