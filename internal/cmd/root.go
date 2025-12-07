@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	buildversion "github.com/ginsys/forward-email/internal/version"
 	"github.com/spf13/cobra"
@@ -71,16 +72,22 @@ func init() {
 // It searches for config files in standard locations (~/.config/forwardemail/, current directory),
 // sets up environment variable binding with FORWARDEMAIL_ prefix, and loads the configuration.
 // This function is called automatically by cobra.OnInitialize() before any commands run.
+//
+// It respects XDG_CONFIG_HOME environment variable for test isolation and custom config locations.
 func initConfig() {
-	// Find home directory
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error finding home directory: %v\n", err)
-		os.Exit(1)
+	// Respect XDG_CONFIG_HOME for test isolation and standard XDG Base Directory compliance
+	configDir := os.Getenv("XDG_CONFIG_HOME")
+	if configDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error finding home directory: %v\n", err)
+			os.Exit(1)
+		}
+		configDir = filepath.Join(home, ".config")
 	}
 
-	// Search config in home directory with name ".forwardemail" (without extension)
-	viper.AddConfigPath(home + "/.config/forwardemail")
+	// Search config in XDG-compliant directory and current directory
+	viper.AddConfigPath(filepath.Join(configDir, "forwardemail"))
 	viper.AddConfigPath(".")
 	viper.SetConfigType("yaml")
 	viper.SetConfigName("config")
