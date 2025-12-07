@@ -1,3 +1,7 @@
+## v0.2.0-alpha.0 - 2025-12-07
+
+- Summary: (fill in)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
