@@ -1,3 +1,4 @@
+version: 2
 project_name: forward-email
 before:
   hooks:
@@ -15,8 +16,8 @@ builds:
     goarch: [amd64, arm64]
 archives:
   - id: archive
-    builds: [forward-email]
-    format: tar.gz
+    ids: [forward-email]
+    formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 checksum:
   name_template: "checksums.txt"
