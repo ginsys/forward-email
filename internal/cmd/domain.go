@@ -197,6 +197,18 @@ func init() {
 	domainUpdateCmd.Flags().Int("caldav-port", 0, "CalDAV port")
 	domainUpdateCmd.Flags().Int("carddav-port", 0, "CardDAV port")
 	domainUpdateCmd.Flags().String("webhook-url", "", "Webhook URL")
+	// New flags for additional settings
+	domainUpdateCmd.Flags().Bool("delivery-logs", false, "Enable deliverability logs for successful emails")
+	domainUpdateCmd.Flags().String("bounce-webhook", "", "URL for bounce notifications")
+	domainUpdateCmd.Flags().Bool("regex", false, "Enable regex alias support")
+	domainUpdateCmd.Flags().Bool("catchall", false, "Enable catch-all aliases")
+	domainUpdateCmd.Flags().Bool("disable-catchall-regex", false, "Disable catch-all regex on large domains")
+	domainUpdateCmd.Flags().Int("max-recipients", 0, "Max recipients per alias (0-1000)")
+	domainUpdateCmd.Flags().Int64("max-quota", 0, "Max storage quota per alias in bytes")
+	domainUpdateCmd.Flags().String("allowlist", "", "Comma-separated list of allowed forwarding destinations")
+	domainUpdateCmd.Flags().String("denylist", "", "Comma-separated list of blocked addresses")
+	domainUpdateCmd.Flags().Bool("recipient-verification", false, "Enable recipient verification emails")
+	domainUpdateCmd.Flags().Bool("ignore-mx-check", false, "Bypass MX record validation")
 
 	// Delete command flags
 	domainDeleteCmd.Flags().BoolP("force", "f", false, "Force deletion without confirmation")
@@ -429,6 +441,74 @@ func runDomainUpdate(cmd *cobra.Command, args []string) error {
 		}
 
 		req.Settings = settings
+	}
+
+	// Handle new flags
+	if cmd.Flags().Changed("delivery-logs") {
+		deliveryLogs, _ := cmd.Flags().GetBool("delivery-logs")
+		req.HasDeliveryLogs = &deliveryLogs
+	}
+
+	if cmd.Flags().Changed("bounce-webhook") {
+		bounceWebhook, _ := cmd.Flags().GetString("bounce-webhook")
+		req.BounceWebhook = &bounceWebhook
+	}
+
+	if cmd.Flags().Changed("regex") {
+		hasRegex, _ := cmd.Flags().GetBool("regex")
+		req.HasRegex = &hasRegex
+	}
+
+	if cmd.Flags().Changed("catchall") {
+		hasCatchall, _ := cmd.Flags().GetBool("catchall")
+		req.HasCatchall = &hasCatchall
+	}
+
+	if cmd.Flags().Changed("disable-catchall-regex") {
+		disableCatchallRegex, _ := cmd.Flags().GetBool("disable-catchall-regex")
+		req.IsCatchallRegexDisabled = &disableCatchallRegex
+	}
+
+	if cmd.Flags().Changed("max-recipients") {
+		maxRecipients, _ := cmd.Flags().GetInt("max-recipients")
+		req.MaxRecipientsPerAlias = &maxRecipients
+	}
+
+	if cmd.Flags().Changed("max-quota") {
+		maxQuota, _ := cmd.Flags().GetInt64("max-quota")
+		req.MaxQuotaPerAlias = &maxQuota
+	}
+
+	if cmd.Flags().Changed("allowlist") {
+		allowlistStr, _ := cmd.Flags().GetString("allowlist")
+		if allowlistStr != "" {
+			req.Allowlist = strings.Split(allowlistStr, ",")
+			// Trim whitespace from each entry
+			for i := range req.Allowlist {
+				req.Allowlist[i] = strings.TrimSpace(req.Allowlist[i])
+			}
+		}
+	}
+
+	if cmd.Flags().Changed("denylist") {
+		denylistStr, _ := cmd.Flags().GetString("denylist")
+		if denylistStr != "" {
+			req.Denylist = strings.Split(denylistStr, ",")
+			// Trim whitespace from each entry
+			for i := range req.Denylist {
+				req.Denylist[i] = strings.TrimSpace(req.Denylist[i])
+			}
+		}
+	}
+
+	if cmd.Flags().Changed("recipient-verification") {
+		recipientVerification, _ := cmd.Flags().GetBool("recipient-verification")
+		req.HasRecipientVerification = &recipientVerification
+	}
+
+	if cmd.Flags().Changed("ignore-mx-check") {
+		ignoreMXCheck, _ := cmd.Flags().GetBool("ignore-mx-check")
+		req.IgnoreMXCheck = &ignoreMXCheck
 	}
 
 	domain, err := apiClient.Domains.UpdateDomain(ctx, args[0], req)

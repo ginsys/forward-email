@@ -32,6 +32,40 @@ type Domain struct {
 	HasSPFRecord   bool `json:"has_spf_record"`   // SPF record verification status
 	HasDKIMRecord  bool `json:"has_dkim_record"`  // DKIM signature verification status
 	IsVerified     bool `json:"is_verified"`      // Overall domain verification status
+
+	// SMTP Status
+	HasSMTP         bool      `json:"has_smtp"`                   // SMTP outbound enabled status
+	IsSMTPSuspended bool      `json:"is_smtp_suspended"`          // SMTP suspension status
+	SMTPVerifiedAt  time.Time `json:"smtp_verified_at,omitempty"` // SMTP verification timestamp
+
+	// Deliverability
+	HasDeliveryLogs bool   `json:"has_delivery_logs"`        // Opt-in for success delivery logs
+	BounceWebhook   string `json:"bounce_webhook,omitempty"` // Separate URL for bounce notifications
+
+	// Alias Settings
+	HasRegex                bool     `json:"has_regex"`                        // Enable regex alias support
+	HasCatchall             bool     `json:"has_catchall"`                     // Enable catch-all aliases
+	IsCatchallRegexDisabled bool     `json:"is_catchall_regex_disabled"`       // Disable catch-all on large domains
+	AliasCount              int      `json:"alias_count"`                      // Total alias count
+	MaxRecipientsPerAlias   int      `json:"max_recipients_per_alias"`         // Per-alias recipient limit (max: 1000)
+	MaxQuotaPerAlias        int64    `json:"max_quota_per_alias"`              // Storage quota per alias (max: 100GB)
+	Allowlist               []string `json:"allowlist,omitempty"`              // Permitted forwarding destinations
+	Denylist                []string `json:"denylist,omitempty"`               // Blocked addresses
+	RestrictedAliasNames    []string `json:"restricted_alias_names,omitempty"` // Admin-only alias name restrictions
+
+	// Verification
+	HasRecipientVerification bool `json:"has_recipient_verification"` // Enable verification emails to recipients
+	HasCustomVerification    bool `json:"has_custom_verification"`    // Enable custom verification templates
+
+	// DNS/DKIM
+	HasReturnPathRecord bool   `json:"has_return_path_record"`      // Return-path DNS record status
+	DKIMModulusLength   int    `json:"dkim_modulus_length"`         // RSA key length (1024 or 2048)
+	DKIMKeySelector     string `json:"dkim_key_selector,omitempty"` // DKIM selector
+	ReturnPath          string `json:"return_path,omitempty"`       // Return-path domain
+	IgnoreMXCheck       bool   `json:"ignore_mx_check"`             // Bypass MX validation
+
+	// Other
+	HasNewsletter bool `json:"has_newsletter"` // Newsletter capability flag
 }
 
 // DomainSettings represents configurable domain-specific settings.
@@ -111,9 +145,23 @@ type CreateDomainRequest struct {
 
 // UpdateDomainRequest represents a request to update domain settings
 type UpdateDomainRequest struct {
+	// Existing fields
 	MaxForwardedAddresses *int            `json:"max_forwarded_addresses,omitempty"`
 	RetentionDays         *int            `json:"retention_days,omitempty"`
 	Settings              *DomainSettings `json:"settings,omitempty"`
+
+	// New fields
+	HasDeliveryLogs          *bool    `json:"has_delivery_logs,omitempty"`
+	BounceWebhook            *string  `json:"bounce_webhook,omitempty"`
+	HasRegex                 *bool    `json:"has_regex,omitempty"`
+	HasCatchall              *bool    `json:"has_catchall,omitempty"`
+	IsCatchallRegexDisabled  *bool    `json:"is_catchall_regex_disabled,omitempty"`
+	MaxRecipientsPerAlias    *int     `json:"max_recipients_per_alias,omitempty"`
+	MaxQuotaPerAlias         *int64   `json:"max_quota_per_alias,omitempty"`
+	Allowlist                []string `json:"allowlist,omitempty"`
+	Denylist                 []string `json:"denylist,omitempty"`
+	HasRecipientVerification *bool    `json:"has_recipient_verification,omitempty"`
+	IgnoreMXCheck            *bool    `json:"ignore_mx_check,omitempty"`
 }
 
 // ListDomainsOptions represents options for listing domains

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 - In-process testing for better coverage attribution.
+- Full API coverage for domain settings (26 new fields): SMTP status, deliverability logs, alias settings, DNS/DKIM configuration.
+- 11 new `domain update` CLI flags: `--delivery-logs`, `--bounce-webhook`, `--regex`, `--catchall`, `--disable-catchall-regex`, `--max-recipients`, `--max-quota`, `--allowlist`, `--denylist`, `--recipient-verification`, `--ignore-mx-check`.
+- Reorganized domain detail output into logical sections.
 
 ### Changed
 - Coverage threshold temporarily lowered from 70% to 45% (TODO: investigate regression and restore).
@@ -18,6 +21,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fixed CI test failures: golangci-lint config validation, test assertions, Go 1.23 compatibility.
 - Fixed Security Scan SARIF upload by adding continue-on-error for gosec v2 format issues.
 - Fixed test environment isolation (TestInProcess_BasicFlows now environment-agnostic).
+- Keyring no longer falls back to FileBackend unexpectedly; defaults to system keyrings only (GNOME Keyring, KWallet, KeyCtl, WinCred, Keychain).
+- Config initialization now respects XDG_CONFIG_HOME for proper test isolation.
 
 ### Dependencies
 - Bump github.com/spf13/cobra from 1.9.1 to 1.10.1.

@@ -48,36 +48,116 @@ func FormatDomainDetails(domain *api.Domain, format Format) (*TableData, error) 
 	headers := []string{"PROPERTY", "VALUE"}
 	table := NewTableData(headers)
 
-	// Basic information
+	// === Basic Information ===
 	table.AddRow([]string{"ID", domain.ID})
 	table.AddRow([]string{"Name", domain.Name})
 	table.AddRow([]string{"Verified", FormatValue(domain.IsVerified)})
 	table.AddRow([]string{"Plan", domain.Plan})
 	table.AddRow([]string{"Global", FormatValue(domain.IsGlobal)})
+	if domain.VerificationRecord != "" {
+		table.AddRow([]string{"Verification Record", TruncateString(domain.VerificationRecord, 50)})
+	}
 
-	// DNS Records
+	// === DNS Records ===
 	table.AddRow([]string{"MX Record", FormatValue(domain.HasMXRecord)})
 	table.AddRow([]string{"TXT Record", FormatValue(domain.HasTXTRecord)})
 	table.AddRow([]string{"DMARC Record", FormatValue(domain.HasDMARCRecord)})
 	table.AddRow([]string{"SPF Record", FormatValue(domain.HasSPFRecord)})
 	table.AddRow([]string{"DKIM Record", FormatValue(domain.HasDKIMRecord)})
+	table.AddRow([]string{"Return Path Record", FormatValue(domain.HasReturnPathRecord)})
 
-	// Limits and settings
+	// === SMTP Status ===
+	table.AddRow([]string{"SMTP Enabled", FormatValue(domain.HasSMTP)})
+	if domain.HasSMTP {
+		table.AddRow([]string{"SMTP Suspended", FormatValue(domain.IsSMTPSuspended)})
+		if !domain.SMTPVerifiedAt.IsZero() {
+			table.AddRow([]string{"SMTP Verified", domain.SMTPVerifiedAt.Format(time.RFC3339)})
+		}
+	}
+
+	// === Deliverability Settings ===
+	table.AddRow([]string{"Delivery Logs", FormatValue(domain.HasDeliveryLogs)})
+	if domain.BounceWebhook != "" {
+		table.AddRow([]string{"Bounce Webhook", TruncateString(domain.BounceWebhook, 50)})
+	}
+
+	// === Protection Settings ===
+	if domain.Settings != nil {
+		table.AddRow([]string{"Adult Content Protection", FormatValue(domain.Settings.HasAdultContentProtection)})
+		table.AddRow([]string{"Phishing Protection", FormatValue(domain.Settings.HasPhishingProtection)})
+		table.AddRow([]string{"Executable Protection", FormatValue(domain.Settings.HasExecutableProtection)})
+		table.AddRow([]string{"Virus Protection", FormatValue(domain.Settings.HasVirusProtection)})
+	}
+
+	// === Alias Settings ===
+	table.AddRow([]string{"Alias Count", FormatValue(domain.AliasCount)})
 	table.AddRow([]string{"Max Forwarded Addresses", FormatValue(domain.MaxForwardedAddresses)})
-	table.AddRow([]string{"Retention Days", FormatValue(domain.RetentionDays)})
+	table.AddRow([]string{"Regex Aliases", FormatValue(domain.HasRegex)})
+	table.AddRow([]string{"Catch-All Aliases", FormatValue(domain.HasCatchall)})
+	if domain.IsCatchallRegexDisabled {
+		table.AddRow([]string{"Catch-All Regex Disabled", FormatValue(domain.IsCatchallRegexDisabled)})
+	}
+	if domain.MaxRecipientsPerAlias > 0 {
+		table.AddRow([]string{"Max Recipients Per Alias", FormatValue(domain.MaxRecipientsPerAlias)})
+	}
+	if domain.MaxQuotaPerAlias > 0 {
+		table.AddRow([]string{"Max Quota Per Alias", FormatBytes(domain.MaxQuotaPerAlias)})
+	}
+	if len(domain.Allowlist) > 0 {
+		table.AddRow([]string{"Allowlist", FormatValue(len(domain.Allowlist)) + " addresses"})
+	}
+	if len(domain.Denylist) > 0 {
+		table.AddRow([]string{"Denylist", FormatValue(len(domain.Denylist)) + " addresses"})
+	}
 
-	// Membership
+	// === Verification Settings ===
+	table.AddRow([]string{"Recipient Verification", FormatValue(domain.HasRecipientVerification)})
+	table.AddRow([]string{"Custom Verification", FormatValue(domain.HasCustomVerification)})
+
+	// === Webhook & Port Settings ===
+	if domain.Settings != nil {
+		if domain.Settings.WebhookURL != "" {
+			table.AddRow([]string{"Webhook URL", TruncateString(domain.Settings.WebhookURL, 50)})
+		}
+		if domain.Settings.SMTPPort > 0 {
+			table.AddRow([]string{"SMTP Port", FormatValue(domain.Settings.SMTPPort)})
+		}
+		if domain.Settings.IMAPPort > 0 {
+			table.AddRow([]string{"IMAP Port", FormatValue(domain.Settings.IMAPPort)})
+		}
+		if domain.Settings.CalDAVPort > 0 {
+			table.AddRow([]string{"CalDAV Port", FormatValue(domain.Settings.CalDAVPort)})
+		}
+		if domain.Settings.CardDAVPort > 0 {
+			table.AddRow([]string{"CardDAV Port", FormatValue(domain.Settings.CardDAVPort)})
+		}
+	}
+
+	// === DKIM Settings ===
+	if domain.DKIMModulusLength > 0 {
+		table.AddRow([]string{"DKIM Modulus Length", FormatValue(domain.DKIMModulusLength)})
+	}
+	if domain.DKIMKeySelector != "" {
+		table.AddRow([]string{"DKIM Key Selector", domain.DKIMKeySelector})
+	}
+	if domain.ReturnPath != "" {
+		table.AddRow([]string{"Return Path", domain.ReturnPath})
+	}
+
+	// === Other Settings ===
+	table.AddRow([]string{"Retention Days", FormatValue(domain.RetentionDays)})
+	table.AddRow([]string{"Newsletter", FormatValue(domain.HasNewsletter)})
+	if domain.IgnoreMXCheck {
+		table.AddRow([]string{"Ignore MX Check", FormatValue(domain.IgnoreMXCheck)})
+	}
+
+	// === Membership ===
 	table.AddRow([]string{"Members", FormatValue(len(domain.Members))})
 	table.AddRow([]string{"Pending Invitations", FormatValue(len(domain.Invitations))})
 
-	// Timestamps
+	// === Timestamps ===
 	table.AddRow([]string{"Created", domain.CreatedAt.Format(time.RFC3339)})
 	table.AddRow([]string{"Updated", domain.UpdatedAt.Format(time.RFC3339)})
-
-	// Verification record if present
-	if domain.VerificationRecord != "" {
-		table.AddRow([]string{"Verification Record", TruncateString(domain.VerificationRecord, 50)})
-	}
 
 	return table, nil
 }
