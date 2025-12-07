@@ -103,7 +103,7 @@ func TestMain_Integration(t *testing.T) {
 			name:     "auth status without authentication",
 			args:     []string{"auth", "status"},
 			wantCode: 0,
-			wantOut:  "No API key configured",
+			wantOut:  "No profiles configured",
 			timeout:  10 * time.Second,
 		},
 	}
@@ -114,6 +114,11 @@ func TestMain_Integration(t *testing.T) {
 			defer cancel()
 
 			cmd := exec.CommandContext(ctx, binary, tt.args...)
+			// Isolate tests from user's actual config
+			cmd.Env = append(os.Environ(),
+				fmt.Sprintf("XDG_CONFIG_HOME=%s", t.TempDir()),
+				"FORWARDEMAIL_KEYRING_BACKEND=none",
+			)
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr

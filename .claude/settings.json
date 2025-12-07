@@ -19,7 +19,8 @@
       "Bash(go build:*)",
       "Bash(git commit:*)",
       "Bash(make fmt:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(gh repo view:*)"
     ],
     "deny": [],
     "ask": [],
