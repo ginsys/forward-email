@@ -25,7 +25,10 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "Bash(git fetch:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git cherry-pick:*)",
+      "Bash(mise install:*)",
+      "Bash(mise exec:*)",
+      "Bash(make)"
     ],
     "deny": [],
     "ask": [],
