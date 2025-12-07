@@ -20,7 +20,12 @@
       "Bash(git commit:*)",
       "Bash(make fmt:*)",
       "Bash(git reset:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(git fetch:*)",
+      "Bash(git cherry-pick:*)"
     ],
     "deny": [],
     "ask": [],
