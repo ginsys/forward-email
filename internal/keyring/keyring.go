@@ -35,8 +35,10 @@ type Config struct {
 
 // New creates a new keyring instance with the specified configuration.
 // It initializes the OS keyring service and returns a wrapper that provides
-// secure credential storage and retrieval. Falls back to file-based storage
-// if the OS keyring is unavailable.
+// secure credential storage and retrieval. By default, only system keyrings
+// are used (GNOME Keyring, KWallet, macOS Keychain, Windows Credential Manager).
+// Returns an error if no system keyring is available, allowing callers to
+// fallback to alternative storage (e.g., config file).
 func New(config Config) (*Keyring, error) {
 	// Allow environment override to control backend selection without GUI prompts.
 	// FORWARDEMAIL_KEYRING_BACKEND values:
@@ -54,7 +56,26 @@ func New(config Config) (*Keyring, error) {
 			if config.FilePasswordFunc == nil {
 				config.FilePasswordFunc = func(string) (string, error) { return pass, nil }
 			}
+		case "os":
+			// Explicitly use OS keyring - same as default
 		}
+	}
+
+	// Default: only allow system keyrings (not file-based backends)
+	// This prevents unexpected password prompts when the system keyring is unavailable.
+	// If no system keyring is available, keyring.Open() will return an error, and
+	// the caller can fallback to config file storage instead.
+	if len(config.AllowedBackends) == 0 {
+		config.AllowedBackends = []keyring.BackendType{
+			keyring.SecretServiceBackend, // Linux: GNOME Keyring / Secret Service via D-Bus
+			keyring.KWalletBackend,       // Linux: KDE Wallet
+			keyring.KeyCtlBackend,        // Linux: kernel keyctl
+			keyring.WinCredBackend,       // Windows: Credential Manager
+			keyring.KeychainBackend,      // macOS: Keychain
+		}
+		// Note: PassBackend and FileBackend are intentionally excluded from defaults.
+		// Users can still use file backend via FORWARDEMAIL_KEYRING_BACKEND=file
+		// or by passing auth login --store=file.
 	}
 
 	if config.ServiceName == "" {
