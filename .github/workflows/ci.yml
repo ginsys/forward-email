@@ -33,7 +33,7 @@ jobs:
         cache: false  # We handle caching manually for better control
 
     - name: Cache Go modules
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cache/go-build
@@ -106,7 +106,7 @@ jobs:
         cache: false  # We handle caching manually for better control
 
     - name: Cache Go modules
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~\AppData\Local\go-build
