@@ -190,32 +190,10 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 // VerifyDomain initiates DNS verification for a domain's configuration.
 // This operation checks that required DNS records (MX, TXT, DMARC, SPF, DKIM) are properly
 // configured and validates the domain for email sending and receiving.
-// Returns verification results with status for each DNS record type.
-func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string) (*DomainVerification, error) {
+// Returns the updated domain with refreshed DNS verification status.
+func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/verify", url.PathEscape(domainIDOrName)),
-	})
-
-	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	var verification DomainVerification
-	if err := s.client.Do(ctx, req, &verification); err != nil {
-		return nil, fmt.Errorf("failed to verify domain: %w", err)
-	}
-
-	return &verification, nil
-}
-
-// GetDomainDNSRecords retrieves the required DNS records for a domain.
-// Returns a list of DNS records (MX, TXT, CNAME) that must be configured in the
-// domain's DNS zone for proper email forwarding functionality. Each record includes
-// the type, name, value, and TTL recommendations.
-func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName string) ([]DNSRecord, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/dns", url.PathEscape(domainIDOrName)),
+		Path: fmt.Sprintf("/v1/domains/%s/verify-records", url.PathEscape(domainIDOrName)),
 	})
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
@@ -223,9 +201,71 @@ func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName 
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	var records []DNSRecord
-	if err := s.client.Do(ctx, req, &records); err != nil {
-		return nil, fmt.Errorf("failed to get DNS records: %w", err)
+	// The verify-records endpoint returns a message, not structured data.
+	// We need to fetch the domain after verification to get updated status.
+	if err := s.client.Do(ctx, req, nil); err != nil {
+		return nil, fmt.Errorf("failed to verify domain: %w", err)
+	}
+
+	// Fetch the updated domain to return current verification status
+	return s.GetDomain(ctx, domainIDOrName)
+}
+
+// GetDomainDNSRecords returns the required DNS records for a domain.
+// These records are generated locally based on Forward Email's standard requirements,
+// as there is no API endpoint for this. Each record includes the type, name, value,
+// and purpose for proper email forwarding functionality.
+func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName string) ([]DNSRecord, error) {
+	// First, get the domain to retrieve the verification record
+	domain, err := s.GetDomain(ctx, domainIDOrName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get domain: %w", err)
+	}
+
+	// Generate standard Forward Email DNS records
+	records := []DNSRecord{
+		{
+			Type:     "MX",
+			Name:     "@",
+			Value:    "mx1.forwardemail.net",
+			Priority: 10,
+			TTL:      3600,
+			Purpose:  "Primary mail server",
+			Required: true,
+		},
+		{
+			Type:     "MX",
+			Name:     "@",
+			Value:    "mx2.forwardemail.net",
+			Priority: 20,
+			TTL:      3600,
+			Purpose:  "Backup mail server",
+			Required: true,
+		},
+		{
+			Type:     "TXT",
+			Name:     "@",
+			Value:    fmt.Sprintf("forward-email-site-verification=%s", domain.VerificationRecord),
+			TTL:      3600,
+			Purpose:  "Domain ownership verification",
+			Required: true,
+		},
+		{
+			Type:     "TXT",
+			Name:     "@",
+			Value:    "v=spf1 include:spf.forwardemail.net -all",
+			TTL:      3600,
+			Purpose:  "SPF record for email authentication",
+			Required: true,
+		},
+		{
+			Type:     "TXT",
+			Name:     "_dmarc",
+			Value:    "v=DMARC1; p=quarantine; pct=100",
+			TTL:      3600,
+			Purpose:  "DMARC policy for email security",
+			Required: false,
+		},
 	}
 
 	return records, nil
