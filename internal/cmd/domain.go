@@ -539,7 +539,7 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runDomainVerify(cmd *cobra.Command, args []string) error {
+func runDomainVerify(_ *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -548,55 +548,49 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Check if --smtp flag is set
-	smtpFlag, _ := cmd.Flags().GetBool("smtp")
-
-	var verification *api.DomainVerification
-	var verifyType string
-
-	if smtpFlag {
-		verification, err = apiClient.Domains.VerifySMTP(ctx, args[0])
-		verifyType = "SMTP"
-	} else {
-		verification, err = apiClient.Domains.VerifyDomain(ctx, args[0])
-		verifyType = "DNS"
-	}
-
+	// VerifyDomain triggers a DNS record check and returns the updated domain
+	domain, err := apiClient.Domains.VerifyDomain(ctx, args[0])
 	if err != nil {
 		return fmt.Errorf("failed to verify domain: %w", err)
 	}
 
-	// Get output format
-	outputFormat, err := output.ParseFormat(viper.GetString("output"))
-	if err != nil {
-		return fmt.Errorf("invalid output format: %w", err)
-	}
+	// Print verification status summary
+	fmt.Println("DNS records verified")
+	fmt.Printf("   MX Record:    %s\n", formatCheckMark(domain.HasMXRecord))
+	fmt.Printf("   TXT Record:   %s\n", formatCheckMark(domain.HasTXTRecord))
+	fmt.Printf("   DKIM Record:  %s\n", formatCheckMark(domain.HasDKIMRecord))
+	fmt.Printf("   DMARC Record: %s\n", formatCheckMark(domain.HasDMARCRecord))
+	fmt.Printf("   SPF Record:   %s\n", formatCheckMark(domain.HasSPFRecord))
 
-	// For table/CSV/plain output, just show success message
-	// (API returns plain text with no structured data to display)
-	if outputFormat == output.FormatTable || outputFormat == output.FormatCSV || outputFormat == output.FormatPlain {
-		if verification.IsVerified {
-			if smtpFlag {
-				fmt.Printf("✓ Domain '%s' SMTP outbound configuration verified successfully\n", args[0])
-			} else {
-				fmt.Printf("✓ Domain '%s' DNS records verified successfully\n", args[0])
-			}
-		} else {
-			fmt.Printf("✗ Domain '%s' %s verification failed\n", args[0], verifyType)
+	return formatOutput(domain, viper.GetString("output"), func(format output.Format) (interface{}, error) {
+		if format == output.FormatTable || format == output.FormatCSV {
+			return output.FormatDomainDetails(domain, format)
 		}
-		return nil
-	}
+		return domain, nil
+	})
+}
 
-	// For JSON/YAML output, return clean structured data
-	// (API only provides verification status, no detailed records)
-	result := map[string]interface{}{
-		"domain":      args[0],
-		"verified":    verification.IsVerified,
-		"verify_type": verifyType,
+func formatCheckMark(ok bool) string {
+	if ok {
+		return "Yes"
 	}
+	return "No"
+}
 
-	formatter := output.NewFormatter(outputFormat, nil)
-	return formatter.Format(result)
+func runDomainDNS(_ *cobra.Command, args []string) error {
+	return domainOperationRunner(
+		args,
+		func(ctx context.Context, domains *api.DomainService, domainID string) ([]api.DNSRecord, error) {
+			return domains.GetDomainDNSRecords(ctx, domainID)
+		},
+		"failed to get DNS records",
+		func(records []api.DNSRecord, format output.Format) (interface{}, error) {
+			if format == output.FormatTable || format == output.FormatCSV {
+				return output.FormatDNSRecords(records, format)
+			}
+			return records, nil
+		},
+	)
 }
 
 func runDomainMembersList(_ *cobra.Command, args []string) error {
