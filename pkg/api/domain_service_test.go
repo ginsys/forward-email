@@ -281,37 +281,51 @@ func TestDomainService_DeleteDomain(t *testing.T) {
 	}
 }
 
-func TestDomainService_VerifyDomain(t *testing.T) {
+// TestDomainService_VerifyDomain_Verified tests that when /verify-records returns 200,
+// the domain is considered verified (status code is source of truth per API maintainer).
+func TestDomainService_VerifyDomain_Verified(t *testing.T) {
 	domainID := "verify-domain-id"
+	callCount := 0
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			t.Errorf("Expected POST request, got %s", r.Method)
+		callCount++
+
+		if callCount == 1 {
+			// First call: verify-records endpoint returns 200 (verified)
+			if r.Method != "GET" {
+				t.Errorf("Expected GET request, got %s", r.Method)
+			}
+			expectedPath := "/v1/domains/" + domainID + "/verify-records"
+			if r.URL.Path != expectedPath {
+				t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+			}
+
+			// Status 200 indicates the domain is verified
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Domain is verified"})
+			return
 		}
 
-		expectedPath := "/v1/domains/" + domainID + "/verify"
+		// Second call: GetDomain to fetch updated status
+		if r.Method != "GET" {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		expectedPath := "/v1/domains/" + domainID
 		if r.URL.Path != expectedPath {
 			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
 		}
 
-		verification := DomainVerification{
+		domain := Domain{
+			ID:         domainID,
+			Name:       "verified.com",
 			IsVerified: true,
-			DNSRecords: []DNSRecord{
-				{
-					Type:     "MX",
-					Name:     "@",
-					Value:    "mx1.forwardemail.net",
-					Priority: 10,
-					Required: true,
-					Purpose:  "Email forwarding",
-				},
-			},
-			MissingRecords: []DNSRecord{},
-			LastCheckedAt:  time.Now(),
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(verification)
+		json.NewEncoder(w).Encode(domain)
 	}))
 	defer server.Close()
 
@@ -329,48 +343,110 @@ func TestDomainService_VerifyDomain(t *testing.T) {
 	if !result.IsVerified {
 		t.Error("Expected domain to be verified")
 	}
-	if len(result.DNSRecords) != 1 {
-		t.Errorf("Expected 1 DNS record, got %d", len(result.DNSRecords))
-	}
-	if len(result.MissingRecords) != 0 {
-		t.Errorf("Expected 0 missing records, got %d", len(result.MissingRecords))
+	if result.Name != "verified.com" {
+		t.Errorf("Expected domain name 'verified.com', got '%s'", result.Name)
 	}
 }
 
-func TestDomainService_GetDomainDNSRecords(t *testing.T) {
-	domainID := "dns-domain-id"
+// TestDomainService_VerifyDomain_NotVerified tests that when /verify-records returns 400,
+// the domain is NOT verified but this is NOT an error - it's a valid "pending" state.
+// Per API maintainer: "400 = not verified, 200 = verified, use status code as source of truth"
+func TestDomainService_VerifyDomain_NotVerified(t *testing.T) {
+	domainID := "unverified-domain-id"
+	callCount := 0
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount++
+
+		if callCount == 1 {
+			// First call: verify-records endpoint returns 400 (not verified)
+			if r.Method != "GET" {
+				t.Errorf("Expected GET request, got %s", r.Method)
+			}
+			expectedPath := "/v1/domains/" + domainID + "/verify-records"
+			if r.URL.Path != expectedPath {
+				t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+			}
+
+			// 400 = not verified (this is NOT an error, just pending verification)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Domain is not verified"})
+			return
+		}
+
+		// Second call: GetDomain to fetch current status
 		if r.Method != "GET" {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
-
-		expectedPath := "/v1/domains/" + domainID + "/dns"
+		expectedPath := "/v1/domains/" + domainID
 		if r.URL.Path != expectedPath {
 			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
 		}
 
-		records := []DNSRecord{
-			{
-				Type:     "MX",
-				Name:     "@",
-				Value:    "mx1.forwardemail.net",
-				Priority: 10,
-				TTL:      3600,
-				Required: true,
-				Purpose:  "Email forwarding",
-			},
-			{
-				Type:     "TXT",
-				Name:     "@",
-				Value:    "v=spf1 include:spf.forwardemail.net ~all",
-				Required: true,
-				Purpose:  "SPF record",
-			},
+		domain := Domain{
+			ID:         domainID,
+			Name:       "pending.com",
+			IsVerified: false,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(records)
+		json.NewEncoder(w).Encode(domain)
+	}))
+	defer server.Close()
+
+	client, err := createTestClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	ctx := context.Background()
+	result, err := client.Domains.VerifyDomain(ctx, domainID)
+
+	// CRITICAL: 400 from verify-records should NOT be treated as an error
+	// It simply means verification is pending
+	if err != nil {
+		t.Fatalf("VerifyDomain should NOT return error for 400 (pending verification), got: %v", err)
+	}
+
+	if result.IsVerified {
+		t.Error("Expected domain to NOT be verified")
+	}
+	if result.Name != "pending.com" {
+		t.Errorf("Expected domain name 'pending.com', got '%s'", result.Name)
+	}
+}
+
+// TestDomainService_GetDomainDNSRecords tests that DNS records are generated locally
+// based on the domain's verification_record. There is no /dns API endpoint.
+func TestDomainService_GetDomainDNSRecords(t *testing.T) {
+	domainID := "dns-domain-id"
+	verificationRecord := "abc123xyz"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// GetDomainDNSRecords first calls GetDomain to retrieve the verification_record
+		if r.Method != "GET" {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+
+		expectedPath := "/v1/domains/" + domainID
+		if r.URL.Path != expectedPath {
+			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+		}
+
+		domain := Domain{
+			ID:                 domainID,
+			Name:               "example.com",
+			VerificationRecord: verificationRecord,
+			IsVerified:         false,
+			CreatedAt:          time.Now(),
+			UpdatedAt:          time.Now(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(domain)
 	}))
 	defer server.Close()
 
@@ -385,26 +461,52 @@ func TestDomainService_GetDomainDNSRecords(t *testing.T) {
 		t.Fatalf("GetDomainDNSRecords failed: %v", err)
 	}
 
-	if len(result) != 2 {
-		t.Errorf("Expected 2 DNS records, got %d", len(result))
+	// Should return 5 DNS records: 2 MX, 1 TXT verification, 1 SPF, 1 DMARC
+	if len(result) != 5 {
+		t.Errorf("Expected 5 DNS records, got %d", len(result))
 	}
 
-	// Check MX record
-	mx := result[0]
-	if mx.Type != "MX" {
-		t.Errorf("Expected MX record type, got %s", mx.Type)
+	// Check primary MX record
+	mx1 := result[0]
+	if mx1.Type != "MX" {
+		t.Errorf("Expected MX record type, got %s", mx1.Type)
 	}
-	if mx.Priority != 10 {
-		t.Errorf("Expected MX priority 10, got %d", mx.Priority)
+	if mx1.Value != "mx1.forwardemail.net" {
+		t.Errorf("Expected mx1.forwardemail.net, got %s", mx1.Value)
+	}
+	if mx1.Priority != 10 {
+		t.Errorf("Expected MX priority 10, got %d", mx1.Priority)
 	}
 
-	// Check TXT record
-	txt := result[1]
-	if txt.Type != "TXT" {
-		t.Errorf("Expected TXT record type, got %s", txt.Type)
+	// Check backup MX record
+	mx2 := result[1]
+	if mx2.Type != "MX" {
+		t.Errorf("Expected MX record type, got %s", mx2.Type)
 	}
-	if txt.Purpose != "SPF record" {
-		t.Errorf("Expected TXT purpose 'SPF record', got %s", txt.Purpose)
+	if mx2.Value != "mx2.forwardemail.net" {
+		t.Errorf("Expected mx2.forwardemail.net, got %s", mx2.Value)
+	}
+	if mx2.Priority != 20 {
+		t.Errorf("Expected MX priority 20, got %d", mx2.Priority)
+	}
+
+	// Check verification TXT record includes the verification token
+	verificationTXT := result[2]
+	if verificationTXT.Type != "TXT" {
+		t.Errorf("Expected TXT record type, got %s", verificationTXT.Type)
+	}
+	expectedValue := "forward-email-site-verification=" + verificationRecord
+	if verificationTXT.Value != expectedValue {
+		t.Errorf("Expected verification value '%s', got '%s'", expectedValue, verificationTXT.Value)
+	}
+
+	// Check SPF record
+	spf := result[3]
+	if spf.Type != "TXT" {
+		t.Errorf("Expected TXT record type for SPF, got %s", spf.Type)
+	}
+	if spf.Value != "v=spf1 include:spf.forwardemail.net -all" {
+		t.Errorf("Expected SPF record value, got %s", spf.Value)
 	}
 }
 

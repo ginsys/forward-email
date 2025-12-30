@@ -89,6 +89,31 @@ func WithUserAgent(userAgent string) ClientOption {
 	}
 }
 
+// DoWithStatus performs an HTTP request and returns the status code along with any error.
+// Unlike Do, this method does NOT treat 4xx status codes as errors - it returns the
+// status code for the caller to interpret. This is useful for endpoints where
+// different status codes represent different valid states (e.g., verify-records
+// returns 400 for "not verified" and 200 for "verified").
+func (c *Client) DoWithStatus(ctx context.Context, req *http.Request) (int, error) {
+	// Apply authentication using the configured auth provider
+	if err := c.Auth.Apply(req); err != nil {
+		return 0, fmt.Errorf("authentication failed: %w", err)
+	}
+
+	// Set standard headers expected by the Forward Email API
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.UserAgent)
+
+	// Execute request with context for cancellation support
+	resp, err := c.HTTPClient.Do(req.WithContext(ctx))
+	if err != nil {
+		return 0, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	return resp.StatusCode, nil
+}
+
 // Do performs an HTTP request with authentication and error handling.
 // The request context is used for cancellation and timeout control.
 // If v is provided, the response body will be JSON decoded into it.
