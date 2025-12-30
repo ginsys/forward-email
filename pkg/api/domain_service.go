@@ -191,6 +191,12 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 // This operation checks that required DNS records (MX, TXT, DMARC, SPF, DKIM) are properly
 // configured and validates the domain for email sending and receiving.
 // Returns the updated domain with refreshed DNS verification status.
+//
+// The /verify-records endpoint uses HTTP status codes as the source of truth:
+//   - 200: Domain is verified
+//   - 400: Domain is not verified (pending DNS configuration)
+//
+// Both are valid states; 400 is NOT treated as an error.
 func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string) (*Domain, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/verify-records", url.PathEscape(domainIDOrName)),
@@ -201,10 +207,17 @@ func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string)
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// The verify-records endpoint returns a message, not structured data.
-	// We need to fetch the domain after verification to get updated status.
-	if err := s.client.Do(ctx, req, nil); err != nil {
+	// Use DoWithStatus because the verify-records endpoint uses status codes
+	// to indicate verification state: 200 = verified, 400 = not verified.
+	// Neither is an error - they're both valid states.
+	statusCode, err := s.client.DoWithStatus(ctx, req)
+	if err != nil {
 		return nil, fmt.Errorf("failed to verify domain: %w", err)
+	}
+
+	// Only 200 and 400 are expected; anything else is an actual error
+	if statusCode != http.StatusOK && statusCode != http.StatusBadRequest {
+		return nil, fmt.Errorf("failed to verify domain: unexpected status code %d", statusCode)
 	}
 
 	// Fetch the updated domain to return current verification status
