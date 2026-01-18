@@ -66,9 +66,16 @@ var domainCreateCmd = &cobra.Command{
 var domainUpdateCmd = &cobra.Command{
 	Use:   "update <domain-name-or-id>",
 	Short: "Update domain settings",
-	Long:  `Update settings for an existing domain.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runDomainUpdate,
+	Long: `Update settings for an existing domain.
+
+Note: Some fields shown in 'domain get' are read-only and cannot be updated:
+  - plan (view only, use separate plan management)
+  - DKIM settings (managed automatically by Forward Email)
+  - return_path (configured automatically)
+  - created_at, updated_at (system timestamps)
+  - id, name (immutable identifiers)`,
+	Args: cobra.ExactArgs(1),
+	RunE: runDomainUpdate,
 }
 
 // domainDeleteCmd represents the domain delete command
