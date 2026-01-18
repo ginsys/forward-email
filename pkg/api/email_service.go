@@ -244,7 +244,7 @@ func (s *EmailService) DeleteEmail(ctx context.Context, emailID string) error {
 // and any temporary restrictions. Quotas are enforced per account and
 // may vary based on subscription plan and sending reputation.
 func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/quota"})
+	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/limit"})
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
