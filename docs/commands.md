@@ -11,7 +11,7 @@ These flags are available for all commands:
 ```bash
 --debug               Enable debug output
 --help, -h            Help for any command
---output, -o string   Output format (table|json|yaml|csv) (default "table")
+--output, -o string   Output format (table|json|yaml|csv|plain) (default "table")
 --profile, -p string  Configuration profile to use
 --timeout duration    Request timeout duration
 --verbose, -v         Enable verbose output

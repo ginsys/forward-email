@@ -28,7 +28,7 @@ A quick map to user guides, command help, configuration, troubleshooting, and de
 ## Tips
 - Global help: `forward-email --help`
 - Command help: `forward-email <cmd> --help` (e.g., `forward-email domain --help`)
-- Output formats: `--output table|json|yaml|csv`
+- Output formats: `--output table|json|yaml|csv|plain`
 
 ---
 

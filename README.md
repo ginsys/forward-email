@@ -10,7 +10,7 @@ A comprehensive command-line interface for managing [Forward Email](https://forw
 - **Multi-Profile Support**: Development, staging, and production environments
 - **Security First**: OS keyring integration with secure credential storage
 - **Developer Experience**: Comprehensive help system and interactive operations
-- **Multiple Output Formats**: Table, JSON, YAML, CSV with filtering and sorting
+- **Multiple Output Formats**: Table, JSON, YAML, CSV, plain with filtering and sorting
 - **Cross-Platform**: Native support for Linux, macOS, and Windows
 - **First-Mover Advantage**: Forward Email's first official CLI tool
 

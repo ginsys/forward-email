@@ -218,6 +218,7 @@ Configure default output formats for different use cases:
 - **json**: Machine-readable JSON
 - **yaml**: Human-readable YAML
 - **csv**: Spreadsheet-compatible CSV
+- **plain**: Borderless fixed-width columns
 
 ### Setting Default Format
 
