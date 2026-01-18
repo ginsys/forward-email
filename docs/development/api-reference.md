@@ -65,10 +65,12 @@ Complete domain lifecycle management with DNS verification.
 | `GET` | `/v1/domains/:domain_id` | `domain get <domain>` | ✅ | Get domain details |
 | `PUT` | `/v1/domains/:domain_id` | `domain update <domain>` | ✅ | Update domain settings |
 | `DELETE` | `/v1/domains/:domain_id` | `domain delete <domain>` | ✅ | Delete domain |
-| `GET` | `/v1/domains/:domain_id/verify-records` | `domain verify <domain>` | ✅ | Verify DNS records |
-| `GET` | `/v1/domains/:domain_id/verify-smtp` | `domain verify --smtp <domain>` | ✅ | Verify SMTP outbound configuration |
+| `GET` | `/v1/domains/:domain_id/verify-records` | `domain verify <domain>` | ✅ | Verify DNS records (returns plain text) |
+| `GET` | `/v1/domains/:domain_id/verify-smtp` | `domain verify --smtp <domain>` | ✅ | Verify SMTP configuration (returns plain text) |
 
 **Implementation**: Fully complete (100%)
+
+**Note**: The verify-records and verify-smtp endpoints return plain text responses instead of JSON, unlike other API endpoints.
 
 ---
 
@@ -330,18 +332,22 @@ Utility and configuration endpoints.
 #### `GET /v1/domains/:domain_id/verify-records`
 **Verify DNS Records**
 
-- **CLI**: `domain verify <domain> [flags]`
+- **CLI**: `domain verify <domain>`
 - **Status**: ✅ Fully implemented
-- **File**: `internal/cmd/domain/verify.go:39`
+- **Response**: Plain text (not JSON) - "Domain's DNS records have been verified."
+- **File**: `internal/cmd/domain.go:572`
+- **API Method**: `pkg/api/domain_service.go:195`
 
 #### `GET /v1/domains/:domain_id/verify-smtp`
 **Verify SMTP Configuration**
 
 - **CLI**: `domain verify --smtp <domain>`
 - **Status**: ✅ Fully implemented
+- **Response**: Plain text (not JSON) - "You have successfully configured and verified DNS records for outbound SMTP."
 - **Flags**:
   - `--smtp`: Verify SMTP outbound configuration instead of DNS records
 - **File**: `internal/cmd/domain.go:572`
+- **API Method**: `pkg/api/domain_service.go:222`
 
 ---
 
