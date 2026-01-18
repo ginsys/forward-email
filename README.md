@@ -89,7 +89,7 @@ This project is under active development towards v1.0.0. Until then:
 The CLI targets Forward Email API v1. While we strive for stability, please pin to specific versions in production use.
 
 ### Release Process
-See the Versioning & Release Plan for details on semantic versioning, tagging, and CI/CD automation: `.claude/VERSIONING_RELEASE_PLAN.md`.
+See the Versioning & Release Plan for details on semantic versioning, tagging, and CI/CD automation: `docs/VERSIONING_RELEASE_PLAN.md`.
 
 ## 🛠️ Development
 
@@ -122,7 +122,7 @@ make lint
 - **[API Integration](docs/development/api-integration.md)** - Forward Email API details
 - **[Testing Strategy](docs/development/testing.md)** - Testing approach and standards
 - **[Domain Alias Sync Specification](docs/development/domain-alias-sync-specification.md)** - Bulk alias synchronization feature
-- **Versioning & Release Plan** - See `.claude/VERSIONING_RELEASE_PLAN.md`
+- **Versioning & Release Plan** - See `docs/VERSIONING_RELEASE_PLAN.md`
 
 ## 🤝 Contributing
 

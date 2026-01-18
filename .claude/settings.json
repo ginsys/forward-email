@@ -28,7 +28,8 @@
       "Bash(git cherry-pick:*)",
       "Bash(mise install:*)",
       "Bash(mise exec:*)",
-      "Bash(make)"
+      "Bash(make)",
+      "Bash(ln:*)"
     ],
     "deny": [],
     "ask": [],

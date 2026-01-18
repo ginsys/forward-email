@@ -22,7 +22,7 @@ A quick map to user guides, command help, configuration, troubleshooting, and de
 - Domain Alias Sync Spec: `docs/development/domain-alias-sync-specification.md`
 
 ## Release & Versioning
-- Plan and checklist: `.claude/VERSIONING_RELEASE_PLAN.md`
+- Plan and checklist: `VERSIONING_RELEASE_PLAN.md`
 
 ## Tips
 - Global help: `forward-email --help`
