@@ -1,7 +1,7 @@
 # Forward Email API Reference
 
 **Last Updated**: 2026-01-18
-**CLI Version**: 1.3.x
+**CLI Version**: v0.2.0-alpha.1 (Phase 1.3)
 **API Base URL**: `https://api.forwardemail.net/v1/`
 **Authentication**: HTTP Basic (API key + `:`)
 
@@ -112,13 +112,12 @@ Complete alias lifecycle with recipient and password management.
 | `GET` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias get <domain> <alias>` | ✅ | Get alias details |
 | `PUT` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias update <domain> <alias>` | ✅ | Update alias |
 | `DELETE` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias delete <domain> <alias>` | ✅ | Delete alias |
-| `POST` | `/v1/domains/:domain_id/aliases/:alias_id/generate-password` | `alias password` | ⚠️ | Defined but not exposed |
+| `POST` | `/v1/domains/:domain_id/aliases/:domain_id/generate-password` | `alias password` | ✅ | Generate alias password |
 | `GET` | `/v1/domains/:domain_id/catch-all-passwords` | - | ❌ | List catch-all passwords |
 | `POST` | `/v1/domains/:domain_id/catch-all-passwords` | - | ❌ | Generate catch-all password |
 | `DELETE` | `/v1/domains/:domain_id/catch-all-passwords/:token_id` | - | ❌ | Delete catch-all password |
 
-**Implementation**: Core functionality complete (56%)
-**Known Issue**: Password generation endpoint implemented but command not exposed
+**Implementation**: Core functionality complete (67%)
 **Missing**: Catch-all password management
 
 ---
@@ -131,12 +130,12 @@ Email sending and management with attachment support.
 |--------|----------|-------------|--------|-------|
 | `POST` | `/v1/emails` | `email send` | ✅ | Send email with attachments |
 | `GET` | `/v1/emails` | `email list` | ✅ | List sent emails |
-| `GET` | `/v1/emails/limit` | `email quota` | ⚠️ | Uses `/quota` not `/limit` |
+| `GET` | `/v1/emails/limit` | `email quota` | ⚠️ | TODO: verify `/v1/emails/quota` vs `/v1/emails/limit` against live API |
 | `GET` | `/v1/emails/:id` | `email get <id>` | ✅ | Get email details |
 | `DELETE` | `/v1/emails/:id` | `email delete <id>` | ✅ | Delete email |
 
 **Implementation**: Mostly complete (80%)
-**Known Issue**: `email quota` may be using incorrect endpoint path
+**TODO**: Verify email quota endpoint path (`/v1/emails/quota` vs `/v1/emails/limit`) against live API
 
 ---
 
@@ -677,7 +676,7 @@ When implementing new endpoints:
 - [Forward Email API Docs](https://forwardemail.net/en/email-api)
 - [Forward Email Source Code](https://github.com/forwardemail/forwardemail.net)
 - [CLI TASKS.md](../../TASKS.md)
-- [CLI User Guide](../USER_GUIDE.md)
+- [CLI User Guide](../../README.md)
 
 ---
 
