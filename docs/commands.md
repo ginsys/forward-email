@@ -261,7 +261,7 @@ Troubleshooting utilities for system diagnostics.
 forward-email debug auth
 
 # Debug keyring operations
-forward-email debug keyring
+forward-email debug keys
 
 # Test API connectivity
 forward-email debug api
