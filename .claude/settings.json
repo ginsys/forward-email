@@ -35,7 +35,9 @@
       "Bash(make build:*)",
       "Bash(./bin/forward-email:*)",
       "Bash(curl:*)",
-      "Bash(bin/forward-email:*)"
+      "Bash(bin/forward-email:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": [],
