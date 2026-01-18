@@ -98,33 +98,6 @@ By default, verifies DNS records. Use --smtp to verify SMTP outbound configurati
 	RunE: runDomainVerify,
 }
 
-// domainDNSCmd represents the domain dns command
-var domainDNSCmd = &cobra.Command{
-	Use:   "dns <domain-name-or-id>",
-	Short: "Show required DNS records",
-	Long:  `Show the DNS records required for domain configuration.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runDomainDNS,
-}
-
-// domainQuotaCmd represents the domain quota command
-var domainQuotaCmd = &cobra.Command{
-	Use:   "quota <domain-name-or-id>",
-	Short: "Show domain quota information",
-	Long:  `Show quota usage and limits for a domain.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runDomainQuota,
-}
-
-// domainStatsCmd represents the domain stats command
-var domainStatsCmd = &cobra.Command{
-	Use:   "stats <domain-name-or-id>",
-	Short: "Show domain statistics",
-	Long:  `Show statistics and metrics for a domain.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runDomainStats,
-}
-
 // domainMembersCmd represents the domain members command group
 var domainMembersCmd = &cobra.Command{
 	Use:   "members",
@@ -169,9 +142,6 @@ func init() {
 	domainCmd.AddCommand(domainUpdateCmd)
 	domainCmd.AddCommand(domainDeleteCmd)
 	domainCmd.AddCommand(domainVerifyCmd)
-	domainCmd.AddCommand(domainDNSCmd)
-	domainCmd.AddCommand(domainQuotaCmd)
-	domainCmd.AddCommand(domainStatsCmd)
 	domainCmd.AddCommand(domainMembersCmd)
 
 	// Add members subcommands
@@ -627,54 +597,6 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 
 	formatter := output.NewFormatter(outputFormat, nil)
 	return formatter.Format(result)
-}
-
-func runDomainDNS(_ *cobra.Command, args []string) error {
-	return domainOperationRunner(
-		args,
-		func(ctx context.Context, domains *api.DomainService, domainID string) ([]api.DNSRecord, error) {
-			return domains.GetDomainDNSRecords(ctx, domainID)
-		},
-		"failed to get DNS records",
-		func(records []api.DNSRecord, format output.Format) (interface{}, error) {
-			if format == output.FormatTable || format == output.FormatCSV {
-				return output.FormatDNSRecords(records, format)
-			}
-			return records, nil
-		},
-	)
-}
-
-func runDomainQuota(_ *cobra.Command, args []string) error {
-	return domainOperationRunner(
-		args,
-		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainQuota, error) {
-			return domains.GetDomainQuota(ctx, domainID)
-		},
-		"failed to get domain quota",
-		func(quota *api.DomainQuota, format output.Format) (interface{}, error) {
-			if format == output.FormatTable || format == output.FormatCSV {
-				return output.FormatDomainQuota(quota, format)
-			}
-			return quota, nil
-		},
-	)
-}
-
-func runDomainStats(_ *cobra.Command, args []string) error {
-	return domainOperationRunner(
-		args,
-		func(ctx context.Context, domains *api.DomainService, domainID string) (*api.DomainStats, error) {
-			return domains.GetDomainStats(ctx, domainID)
-		},
-		"failed to get domain stats",
-		func(stats *api.DomainStats, format output.Format) (interface{}, error) {
-			if format == output.FormatTable || format == output.FormatCSV {
-				return output.FormatDomainStats(stats, format)
-			}
-			return stats, nil
-		},
-	)
 }
 
 func runDomainMembersList(_ *cobra.Command, args []string) error {

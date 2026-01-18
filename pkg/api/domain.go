@@ -190,31 +190,6 @@ type Pagination struct {
 	HasPrev    bool `json:"has_prev"`
 }
 
-// DomainQuota represents domain quota information
-type DomainQuota struct {
-	StorageUsed      int64 `json:"storage_used"`
-	StorageLimit     int64 `json:"storage_limit"`
-	AliasesUsed      int   `json:"aliases_used"`
-	AliasesLimit     int   `json:"aliases_limit"`
-	ForwardingUsed   int   `json:"forwarding_used"`
-	ForwardingLimit  int   `json:"forwarding_limit"`
-	BandwidthUsed    int64 `json:"bandwidth_used"`
-	BandwidthLimit   int64 `json:"bandwidth_limit"`
-	EmailsSentToday  int   `json:"emails_sent_today"`
-	EmailsLimitDaily int   `json:"emails_limit_daily"`
-}
-
-// DomainStats represents domain statistics
-type DomainStats struct {
-	LastActivityAt time.Time `json:"last_activity_at"`
-	CreatedAt      time.Time `json:"created_at"`
-	TotalAliases   int       `json:"total_aliases"`
-	ActiveAliases  int       `json:"active_aliases"`
-	TotalMembers   int       `json:"total_members"`
-	EmailsSent     int       `json:"emails_sent"`
-	EmailsReceived int       `json:"emails_received"`
-}
-
 // DomainGroup represents domain permission groups
 type DomainGroup string
 

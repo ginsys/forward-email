@@ -21,17 +21,27 @@ func FormatEmailList(emails []api.Email, format Format) (*TableData, error) {
 	for _, email := range emails {
 		var id, from, to, subject string
 
+		// Extract from/to from headers map
+		fromHeader := email.Headers["From"]
+		toHeader := email.Headers["To"]
+		if fromHeader == "" {
+			fromHeader = "-"
+		}
+		if toHeader == "" {
+			toHeader = "-"
+		}
+
 		// For CSV, show full data without truncation
 		if format == FormatCSV {
 			id = email.ID
-			from = email.From
-			to = strings.Join(email.To, ", ")
+			from = fromHeader
+			to = toHeader
 			subject = email.Subject
 		} else {
 			// For table, truncate for readability
 			id = TruncateString(email.ID, 8)
-			from = TruncateString(email.From, 25)
-			to = strings.Join(email.To, ", ")
+			from = TruncateString(fromHeader, 25)
+			to = toHeader
 			if len(to) > 30 {
 				to = TruncateString(to, 27) + "..."
 			}
@@ -78,15 +88,34 @@ func FormatEmailDetails(email *api.Email, format Format) (*TableData, error) {
 
 	// Basic information
 	table.AddRow([]string{"ID", email.ID})
-	table.AddRow([]string{"Message ID", email.MessageID})
-	table.AddRow([]string{"From", email.From})
-	table.AddRow([]string{"To", strings.Join(email.To, ", ")})
 
-	if len(email.CC) > 0 {
-		table.AddRow([]string{"CC", strings.Join(email.CC, ", ")})
+	// Extract fields from headers map
+	messageID := email.Headers["Message-ID"]
+	if messageID == "" {
+		messageID = "-"
 	}
-	if len(email.BCC) > 0 {
-		table.AddRow([]string{"BCC", strings.Join(email.BCC, ", ")})
+	table.AddRow([]string{"Message ID", messageID})
+
+	from := email.Headers["From"]
+	if from == "" {
+		from = "-"
+	}
+	table.AddRow([]string{"From", from})
+
+	to := email.Headers["To"]
+	if to == "" {
+		to = "-"
+	}
+	table.AddRow([]string{"To", to})
+
+	cc := email.Headers["Cc"]
+	if cc != "" {
+		table.AddRow([]string{"CC", cc})
+	}
+
+	bcc := email.Headers["Bcc"]
+	if bcc != "" {
+		table.AddRow([]string{"BCC", bcc})
 	}
 
 	table.AddRow([]string{"Subject", email.Subject})

@@ -5,19 +5,15 @@ import (
 )
 
 // Email represents a Forward Email message
+// Note: From, To, and Message-ID are available in the Headers map, not as separate fields
 type Email struct {
 	SentAt      time.Time         `json:"sent_at"`
 	CreatedAt   time.Time         `json:"created_at"`
 	UpdatedAt   time.Time         `json:"updated_at"`
 	DeliveredAt *time.Time        `json:"delivered_at,omitempty"`
-	Headers     map[string]string `json:"headers,omitempty"`
-	To          []string          `json:"to"`
-	CC          []string          `json:"cc,omitempty"`
-	BCC         []string          `json:"bcc,omitempty"`
+	Headers     map[string]string `json:"headers,omitempty"` // Contains From, To, Message-ID, etc.
 	Attachments []EmailAttachment `json:"attachments,omitempty"`
 	ID          string            `json:"id"`
-	MessageID   string            `json:"message_id"`
-	From        string            `json:"from"`
 	Subject     string            `json:"subject"`
 	Text        string            `json:"text,omitempty"`
 	HTML        string            `json:"html,omitempty"`

@@ -33,7 +33,9 @@
       "Bash(go get:*)",
       "Bash(make test:*)",
       "Bash(make build:*)",
-      "Bash(./bin/forward-email:*)"
+      "Bash(./bin/forward-email:*)",
+      "Bash(curl:*)",
+      "Bash(bin/forward-email:*)"
     ],
     "deny": [],
     "ask": [],

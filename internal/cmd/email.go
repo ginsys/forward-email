@@ -338,7 +338,11 @@ func runEmailDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("⚠️  Are you sure you want to delete email '%s'?\n", email.Subject)
-	fmt.Printf("Sent to: %s\n", strings.Join(email.To, ", "))
+	to := email.Headers["To"]
+	if to == "" {
+		to = "(unknown)"
+	}
+	fmt.Printf("Sent to: %s\n", to)
 	fmt.Printf("Sent at: %s\n", email.SentAt.Format(time.RFC3339))
 	fmt.Print("Type 'yes' to confirm: ")
 	reader := bufio.NewReader(cmd.InOrStdin())

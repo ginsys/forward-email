@@ -598,9 +598,9 @@ These endpoints were speculatively implemented but don't exist in the actual API
 | Endpoint | CLI Command | Status | Action Required |
 |----------|-------------|--------|-----------------|
 | ~~`/v1/emails/stats`~~ | ~~`email stats`~~ | ✅ | Already removed |
-| `/v1/domains/:id/dns` | `domain dns` | ⚠️ | Verify existence or remove |
-| `/v1/domains/:id/quota` | `domain quota` | ⚠️ | Verify existence or remove |
-| `/v1/domains/:id/stats` | `domain stats` | ⚠️ | Verify existence or remove |
+| ~~`/v1/domains/:id/dns`~~ | ~~`domain dns`~~ | ✅ | Removed: endpoint does not exist |
+| ~~`/v1/domains/:id/quota`~~ | ~~`domain quota`~~ | ✅ | Removed: endpoint does not exist |
+| ~~`/v1/domains/:id/stats`~~ | ~~`domain stats`~~ | ✅ | Removed: endpoint does not exist |
 | ~~`/v1/emails/quota`~~ | ~~`email quota`~~ | ✅ | Fixed: now uses `/v1/emails/limit` |
 
 ### Partial Implementations

@@ -229,68 +229,6 @@ func FormatDomainVerification(verification *api.DomainVerification, format Forma
 	return table, nil
 }
 
-// FormatDomainQuota formats domain quota information
-func FormatDomainQuota(quota *api.DomainQuota, format Format) (*TableData, error) {
-	if format != FormatTable && format != FormatCSV {
-		return nil, fmt.Errorf("use direct JSON/YAML encoding for domain quota")
-	}
-
-	headers := []string{"RESOURCE", "USED", "LIMIT", "PERCENTAGE"}
-	table := NewTableData(headers)
-
-	// Storage
-	storageUsed := FormatBytes(quota.StorageUsed)
-	storageLimit := FormatBytes(quota.StorageLimit)
-	storagePct := FormatPercentage(quota.StorageUsed, quota.StorageLimit)
-	table.AddRow([]string{"Storage", storageUsed, storageLimit, storagePct})
-
-	// Aliases
-	aliasesPct := FormatPercentage(int64(quota.AliasesUsed), int64(quota.AliasesLimit))
-	table.AddRow([]string{"Aliases", FormatValue(quota.AliasesUsed), FormatValue(quota.AliasesLimit), aliasesPct})
-
-	// Forwarding
-	forwardingPct := FormatPercentage(int64(quota.ForwardingUsed), int64(quota.ForwardingLimit))
-	table.AddRow([]string{
-		"Forwarding", FormatValue(quota.ForwardingUsed),
-		FormatValue(quota.ForwardingLimit), forwardingPct,
-	})
-
-	// Bandwidth
-	bandwidthUsed := FormatBytes(quota.BandwidthUsed)
-	bandwidthLimit := FormatBytes(quota.BandwidthLimit)
-	bandwidthPct := FormatPercentage(quota.BandwidthUsed, quota.BandwidthLimit)
-	table.AddRow([]string{"Bandwidth", bandwidthUsed, bandwidthLimit, bandwidthPct})
-
-	// Daily emails
-	emailsPct := FormatPercentage(int64(quota.EmailsSentToday), int64(quota.EmailsLimitDaily))
-	table.AddRow([]string{
-		"Daily Emails", FormatValue(quota.EmailsSentToday),
-		FormatValue(quota.EmailsLimitDaily), emailsPct,
-	})
-
-	return table, nil
-}
-
-// FormatDomainStats formats domain statistics
-func FormatDomainStats(stats *api.DomainStats, format Format) (*TableData, error) {
-	if format != FormatTable && format != FormatCSV {
-		return nil, fmt.Errorf("use direct JSON/YAML encoding for domain stats")
-	}
-
-	headers := []string{"METRIC", "VALUE"}
-	table := NewTableData(headers)
-
-	table.AddRow([]string{"Total Aliases", FormatValue(stats.TotalAliases)})
-	table.AddRow([]string{"Active Aliases", FormatValue(stats.ActiveAliases)})
-	table.AddRow([]string{"Total Members", FormatValue(stats.TotalMembers)})
-	table.AddRow([]string{"Emails Sent", FormatValue(stats.EmailsSent)})
-	table.AddRow([]string{"Emails Received", FormatValue(stats.EmailsReceived)})
-	table.AddRow([]string{"Last Activity", stats.LastActivityAt.Format(time.RFC3339)})
-	table.AddRow([]string{"Created", stats.CreatedAt.Format(time.RFC3339)})
-
-	return table, nil
-}
-
 // FormatDomainMembers formats domain members list
 func FormatDomainMembers(members []api.DomainMember, format Format) (*TableData, error) {
 	if format != FormatTable && format != FormatCSV {

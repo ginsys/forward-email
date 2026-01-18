@@ -11,10 +11,7 @@
 - Debug utilities
 
 ## Known Issues
-- Domain dns command: endpoint `/v1/domains/{id}/dns` may not exist
-- Domain quota command: endpoint `/v1/domains/{id}/quota` may not exist
-- Email list: from/to fields empty (JSON response structure mismatch)
-- Email get: id/from/to fields empty (JSON response structure mismatch)
+None currently identified.
 
 ## API Implementation Tasks
 
@@ -27,11 +24,11 @@
 - [x] Verify/fix `email quota` endpoint path (may use `/quota` instead of `/limit`)
 
 ### Fix Implementation Errors
-- [ ] Verify `domain dns` endpoint exists, remove command if not (`/v1/domains/:id/dns`)
-- [ ] Verify `domain quota` endpoint exists, remove command if not (`/v1/domains/:id/quota`)
-- [ ] Verify `domain stats` endpoint exists, remove command if not (`/v1/domains/:id/stats`)
-- [ ] Fix `email list` from/to field mapping (JSON response structure mismatch)
-- [ ] Fix `email get` id/from/to field mapping (JSON response structure mismatch)
+- [x] Verify `domain dns` endpoint exists, remove command if not (`/v1/domains/:id/dns`) - **REMOVED: endpoint does not exist**
+- [x] Verify `domain quota` endpoint exists, remove command if not (`/v1/domains/:id/quota`) - **REMOVED: endpoint does not exist**
+- [x] Verify `domain stats` endpoint exists, remove command if not (`/v1/domains/:id/stats`) - **REMOVED: endpoint does not exist**
+- [x] Fix `email list` from/to field mapping - **FIXED: updated to use headers map**
+- [x] Fix `email get` id/from/to field mapping - **FIXED: updated to use headers map**
 
 ### New Commands - Account Management
 - [ ] `account show` - Get account details (`GET /v1/account`)

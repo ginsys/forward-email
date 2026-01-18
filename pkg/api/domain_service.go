@@ -241,42 +241,6 @@ func (s *DomainService) VerifySMTP(ctx context.Context, domainIDOrName string) (
 	}, nil
 }
 
-// GetDomainDNSRecords retrieves the required DNS records for a domain.
-// Returns a list of DNS records (MX, TXT, CNAME) that must be configured in the
-// domain's DNS zone for proper email forwarding functionality. Each record includes
-// the type, name, value, and TTL recommendations.
-func (s *DomainService) GetDomainDNSRecords(ctx context.Context, domainIDOrName string) ([]DNSRecord, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/dns", url.PathEscape(domainIDOrName)),
-	})
-
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	var records []DNSRecord
-	if err := s.client.Do(ctx, req, &records); err != nil {
-		return nil, fmt.Errorf("failed to get DNS records: %w", err)
-	}
-
-	return records, nil
-}
-
-// GetDomainQuota retrieves quota information for a domain.
-// Returns current usage statistics including storage used, email count, and bandwidth consumption
-// along with the configured limits for the domain's subscription plan.
-func (s *DomainService) GetDomainQuota(ctx context.Context, domainIDOrName string) (*DomainQuota, error) {
-	return domainGetHelper[DomainQuota](ctx, s, "/v1/domains/%s/quota", domainIDOrName, "failed to get domain quota")
-}
-
-// GetDomainStats retrieves usage statistics for a domain.
-// Returns metrics including total emails sent/received, bounce rates, spam scores,
-// and historical usage data for monitoring and analytics purposes.
-func (s *DomainService) GetDomainStats(ctx context.Context, domainIDOrName string) (*DomainStats, error) {
-	return domainGetHelper[DomainStats](ctx, s, "/v1/domains/%s/stats", domainIDOrName, "failed to get domain stats")
-}
-
 // AddDomainMember adds a new member to a domain with specified permissions.
 // The email parameter specifies the member's email address, and group determines their
 // access level (e.g., "admin", "user"). The member will receive an invitation to
