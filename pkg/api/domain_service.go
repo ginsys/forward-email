@@ -191,28 +191,34 @@ func (s *DomainService) DeleteDomain(ctx context.Context, domainIDOrName string)
 // This operation checks that required DNS records (MX, TXT, DMARC, SPF, DKIM) are properly
 // configured and validates the domain for email sending and receiving.
 // Returns verification results with status for each DNS record type.
+// Note: The API returns plain text, not JSON.
 func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string) (*DomainVerification, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/v1/domains/%s/verify", url.PathEscape(domainIDOrName)),
+		Path: fmt.Sprintf("/v1/domains/%s/verify-records", url.PathEscape(domainIDOrName)),
 	})
 
-	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	var verification DomainVerification
-	if err := s.client.Do(ctx, req, &verification); err != nil {
+	// Note: verify-records endpoint returns plain text, not JSON
+	// Call with nil to skip JSON decoding
+	if err := s.client.Do(ctx, req, nil); err != nil {
 		return nil, fmt.Errorf("failed to verify domain: %w", err)
 	}
 
-	return &verification, nil
+	// API returned 200 OK, verification successful
+	return &DomainVerification{
+		IsVerified: true,
+	}, nil
 }
 
 // VerifySMTP initiates SMTP verification for a domain's outbound configuration.
 // This operation checks that the SMTP outbound settings are correctly configured
 // and validates the domain for sending emails through the Forward Email SMTP service.
 // Returns verification results with status for the SMTP configuration.
+// Note: The API returns plain text, not JSON.
 func (s *DomainService) VerifySMTP(ctx context.Context, domainIDOrName string) (*DomainVerification, error) {
 	u := s.client.BaseURL.ResolveReference(&url.URL{
 		Path: fmt.Sprintf("/v1/domains/%s/verify-smtp", url.PathEscape(domainIDOrName)),
@@ -223,12 +229,16 @@ func (s *DomainService) VerifySMTP(ctx context.Context, domainIDOrName string) (
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	var verification DomainVerification
-	if err := s.client.Do(ctx, req, &verification); err != nil {
+	// Note: verify-smtp endpoint returns plain text, not JSON
+	// Call with nil to skip JSON decoding
+	if err := s.client.Do(ctx, req, nil); err != nil {
 		return nil, fmt.Errorf("failed to verify SMTP: %w", err)
 	}
 
-	return &verification, nil
+	// API returned 200 OK, verification successful
+	return &DomainVerification{
+		IsVerified: true,
+	}, nil
 }
 
 // GetDomainDNSRecords retrieves the required DNS records for a domain.

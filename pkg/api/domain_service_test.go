@@ -285,33 +285,18 @@ func TestDomainService_VerifyDomain(t *testing.T) {
 	domainID := "verify-domain-id"
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			t.Errorf("Expected POST request, got %s", r.Method)
+		if r.Method != "GET" {
+			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 
-		expectedPath := "/v1/domains/" + domainID + "/verify"
+		expectedPath := "/v1/domains/" + domainID + "/verify-records"
 		if r.URL.Path != expectedPath {
 			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
 		}
 
-		verification := DomainVerification{
-			IsVerified: true,
-			DNSRecords: []DNSRecord{
-				{
-					Type:     "MX",
-					Name:     "@",
-					Value:    "mx1.forwardemail.net",
-					Priority: 10,
-					Required: true,
-					Purpose:  "Email forwarding",
-				},
-			},
-			MissingRecords: []DNSRecord{},
-			LastCheckedAt:  time.Now(),
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(verification)
+		// API returns plain text, not JSON
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("Domain's DNS records have been verified."))
 	}))
 	defer server.Close()
 
@@ -326,14 +311,9 @@ func TestDomainService_VerifyDomain(t *testing.T) {
 		t.Fatalf("VerifyDomain failed: %v", err)
 	}
 
+	// API returns plain text, so we only get IsVerified=true
 	if !result.IsVerified {
 		t.Error("Expected domain to be verified")
-	}
-	if len(result.DNSRecords) != 1 {
-		t.Errorf("Expected 1 DNS record, got %d", len(result.DNSRecords))
-	}
-	if len(result.MissingRecords) != 0 {
-		t.Errorf("Expected 0 missing records, got %d", len(result.MissingRecords))
 	}
 }
 
