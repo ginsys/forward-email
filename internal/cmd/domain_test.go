@@ -339,6 +339,14 @@ func TestDomainCommandFlags(t *testing.T) {
 				"output",
 			},
 		},
+		{
+			name:        "domain verify flags",
+			commandName: "verify",
+			expectedFlags: []string{
+				"output",
+				"smtp",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -369,6 +377,15 @@ func TestDomainCommandFlags(t *testing.T) {
 				}
 				cmd.Flags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
 
+			case "verify":
+				cmd = &cobra.Command{
+					Use:   "verify <domain-name-or-id>",
+					Short: "Verify domain DNS configuration",
+					Args:  cobra.ExactArgs(1),
+				}
+				cmd.Flags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
+				cmd.Flags().Bool("smtp", false, "Verify SMTP configuration instead of DNS records")
+
 			default:
 				t.Fatalf("Unknown command: %s", tt.commandName)
 			}
@@ -395,6 +412,18 @@ func TestDomainCommandFlags(t *testing.T) {
 				err := cmd.ParseFlags([]string{"--output", "yaml"})
 				if err != nil {
 					t.Errorf("Failed to parse flags: %v", err)
+				}
+
+			case "verify":
+				cmd.SetArgs([]string{"example.com", "--smtp", "--output", "json"})
+				err := cmd.ParseFlags([]string{"--smtp", "--output", "json"})
+				if err != nil {
+					t.Errorf("Failed to parse flags: %v", err)
+				}
+				// Verify the smtp flag was parsed correctly
+				smtpFlag, _ := cmd.Flags().GetBool("smtp")
+				if !smtpFlag {
+					t.Error("Expected smtp flag to be true")
 				}
 			}
 		})
@@ -432,6 +461,15 @@ func TestDomainHelpOutput(t *testing.T) {
 				"specific domain",
 			},
 		},
+		{
+			name: "domain verify help shows smtp flag",
+			args: []string{"domain", "verify", "--help"},
+			expectedOutput: []string{
+				"Verify that the DNS records",
+				"--smtp",
+				"SMTP outbound configuration",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -459,12 +497,22 @@ and configuring domain settings and DNS records.`,
 				Args:  cobra.ExactArgs(1),
 			}
 
+			domainVerifyCmd := &cobra.Command{
+				Use:   "verify <domain-name-or-id>",
+				Short: "Verify domain DNS configuration",
+				Long: `Verify that the DNS records for a domain are correctly configured.
+
+By default, verifies DNS records. Use --smtp to verify SMTP outbound configuration.`,
+				Args: cobra.ExactArgs(1),
+			}
+
 			// Add flags
 			domainListCmd.Flags().IntVar(&testDomainPage, "page", 1, "Page number")
 			domainListCmd.Flags().IntVar(&testDomainLimit, "limit", 50, "Number of results per page")
+			domainVerifyCmd.Flags().Bool("smtp", false, "Verify SMTP configuration instead of DNS records")
 
 			// Build command hierarchy
-			domainCmd.AddCommand(domainListCmd, domainGetCmd)
+			domainCmd.AddCommand(domainListCmd, domainGetCmd, domainVerifyCmd)
 			rootCmd.AddCommand(domainCmd)
 
 			// Capture output

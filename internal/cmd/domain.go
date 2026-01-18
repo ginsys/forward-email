@@ -91,9 +91,11 @@ var domainDeleteCmd = &cobra.Command{
 var domainVerifyCmd = &cobra.Command{
 	Use:   "verify <domain-name-or-id>",
 	Short: "Verify domain DNS configuration",
-	Long:  `Verify that the DNS records for a domain are correctly configured.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runDomainVerify,
+	Long: `Verify that the DNS records for a domain are correctly configured.
+
+By default, verifies DNS records. Use --smtp to verify SMTP outbound configuration.`,
+	Args: cobra.ExactArgs(1),
+	RunE: runDomainVerify,
 }
 
 // domainDNSCmd represents the domain dns command
@@ -219,6 +221,9 @@ func init() {
 
 	// Delete command flags
 	domainDeleteCmd.Flags().BoolP("force", "f", false, "Force deletion without confirmation")
+
+	// Verify command flags
+	domainVerifyCmd.Flags().Bool("smtp", false, "Verify SMTP configuration instead of DNS records")
 
 	// Members add command flags
 	domainMembersAddCmd.Flags().String("group", "user", "Member group (admin, user)")
@@ -564,7 +569,7 @@ func runDomainDelete(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runDomainVerify(_ *cobra.Command, args []string) error {
+func runDomainVerify(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -573,15 +578,28 @@ func runDomainVerify(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	verification, err := apiClient.Domains.VerifyDomain(ctx, args[0])
+	// Check if --smtp flag is set
+	smtpFlag, _ := cmd.Flags().GetBool("smtp")
+
+	var verification *api.DomainVerification
+	var verifyType string
+
+	if smtpFlag {
+		verification, err = apiClient.Domains.VerifySMTP(ctx, args[0])
+		verifyType = "SMTP"
+	} else {
+		verification, err = apiClient.Domains.VerifyDomain(ctx, args[0])
+		verifyType = "DNS"
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to verify domain: %w", err)
 	}
 
 	if verification.IsVerified {
-		fmt.Printf("Domain '%s' is verified ✓\n", args[0])
+		fmt.Printf("Domain '%s' %s is verified ✓\n", args[0], verifyType)
 	} else {
-		fmt.Printf("Domain '%s' verification failed ✗\n", args[0])
+		fmt.Printf("Domain '%s' %s verification failed ✗\n", args[0], verifyType)
 	}
 
 	return formatOutput(verification, viper.GetString("output"), func(format output.Format) (interface{}, error) {

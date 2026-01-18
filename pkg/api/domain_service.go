@@ -209,6 +209,28 @@ func (s *DomainService) VerifyDomain(ctx context.Context, domainIDOrName string)
 	return &verification, nil
 }
 
+// VerifySMTP initiates SMTP verification for a domain's outbound configuration.
+// This operation checks that the SMTP outbound settings are correctly configured
+// and validates the domain for sending emails through the Forward Email SMTP service.
+// Returns verification results with status for the SMTP configuration.
+func (s *DomainService) VerifySMTP(ctx context.Context, domainIDOrName string) (*DomainVerification, error) {
+	u := s.client.BaseURL.ResolveReference(&url.URL{
+		Path: fmt.Sprintf("/v1/domains/%s/verify-smtp", url.PathEscape(domainIDOrName)),
+	})
+
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	var verification DomainVerification
+	if err := s.client.Do(ctx, req, &verification); err != nil {
+		return nil, fmt.Errorf("failed to verify SMTP: %w", err)
+	}
+
+	return &verification, nil
+}
+
 // GetDomainDNSRecords retrieves the required DNS records for a domain.
 // Returns a list of DNS records (MX, TXT, CNAME) that must be configured in the
 // domain's DNS zone for proper email forwarding functionality. Each record includes
