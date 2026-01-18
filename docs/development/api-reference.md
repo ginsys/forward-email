@@ -16,11 +16,11 @@ This document provides a complete mapping between Forward Email API endpoints an
 | Category | Implemented | Total | Coverage |
 |----------|-------------|-------|----------|
 | Accounts | 0 | 3 | 0% |
-| Domains | 6 | 7 | 86% |
+| Domains | 7 | 7 | 100% |
 | Domain Invites | 0 | 3 | 0% |
 | Domain Members | 1 | 2 | 50% |
-| Aliases | 5 | 9 | 56% |
-| Emails | 4 | 5 | 80% |
+| Aliases | 6 | 9 | 67% |
+| Emails | 5 | 5 | 100% |
 | Logs | 0 | 2 | 0% |
 | Contacts (CardDAV) | 0 | 5 | 0% |
 | Calendars (CalDAV) | 0 | 5 | 0% |
@@ -28,7 +28,7 @@ This document provides a complete mapping between Forward Email API endpoints an
 | Messages (IMAP) | 0 | 5 | 0% |
 | Folders (IMAP) | 0 | 5 | 0% |
 | Utility | 0 | 5 | 0% |
-| **Total** | **16** | **61** | **26%** |
+| **Total** | **19** | **61** | **31%** |
 
 ### Implementation Legend
 
@@ -66,10 +66,9 @@ Complete domain lifecycle management with DNS verification.
 | `PUT` | `/v1/domains/:domain_id` | `domain update <domain>` | ✅ | Update domain settings |
 | `DELETE` | `/v1/domains/:domain_id` | `domain delete <domain>` | ✅ | Delete domain |
 | `GET` | `/v1/domains/:domain_id/verify-records` | `domain verify <domain>` | ✅ | Verify DNS records |
-| `GET` | `/v1/domains/:domain_id/verify-smtp` | `domain verify --smtp` | ⚠️ | SMTP verification (flag missing) |
+| `GET` | `/v1/domains/:domain_id/verify-smtp` | `domain verify --smtp <domain>` | ✅ | Verify SMTP outbound configuration |
 
-**Implementation**: Core functionality complete (86%)
-**Known Issue**: SMTP verification endpoint exists but `--smtp` flag not exposed in CLI
+**Implementation**: Fully complete (100%)
 
 ---
 
@@ -112,7 +111,7 @@ Complete alias lifecycle with recipient and password management.
 | `GET` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias get <domain> <alias>` | ✅ | Get alias details |
 | `PUT` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias update <domain> <alias>` | ✅ | Update alias |
 | `DELETE` | `/v1/domains/:domain_id/aliases/:alias_id` | `alias delete <domain> <alias>` | ✅ | Delete alias |
-| `POST` | `/v1/domains/:domain_id/aliases/:domain_id/generate-password` | `alias password` | ✅ | Generate alias password |
+| `POST` | `/v1/domains/:domain_id/aliases/:alias_id/generate-password` | `alias password <domain> <alias>` | ✅ | Generate alias password |
 | `GET` | `/v1/domains/:domain_id/catch-all-passwords` | - | ❌ | List catch-all passwords |
 | `POST` | `/v1/domains/:domain_id/catch-all-passwords` | - | ❌ | Generate catch-all password |
 | `DELETE` | `/v1/domains/:domain_id/catch-all-passwords/:token_id` | - | ❌ | Delete catch-all password |
@@ -130,12 +129,11 @@ Email sending and management with attachment support.
 |--------|----------|-------------|--------|-------|
 | `POST` | `/v1/emails` | `email send` | ✅ | Send email with attachments |
 | `GET` | `/v1/emails` | `email list` | ✅ | List sent emails |
-| `GET` | `/v1/emails/limit` | `email quota` | ⚠️ | TODO: verify `/v1/emails/quota` vs `/v1/emails/limit` against live API |
+| `GET` | `/v1/emails/limit` | `email quota` | ✅ | Get email sending quota |
 | `GET` | `/v1/emails/:id` | `email get <id>` | ✅ | Get email details |
 | `DELETE` | `/v1/emails/:id` | `email delete <id>` | ✅ | Delete email |
 
-**Implementation**: Mostly complete (80%)
-**TODO**: Verify email quota endpoint path (`/v1/emails/quota` vs `/v1/emails/limit`) against live API
+**Implementation**: Fully complete (100%)
 
 ---
 
@@ -339,10 +337,11 @@ Utility and configuration endpoints.
 #### `GET /v1/domains/:domain_id/verify-smtp`
 **Verify SMTP Configuration**
 
-- **CLI**: `domain verify --smtp <domain>` (flag not exposed)
-- **Status**: ⚠️ Partial
-- **Issue**: Endpoint exists but CLI flag missing
-- **Fix Required**: Add `--smtp` flag to verify command
+- **CLI**: `domain verify --smtp <domain>`
+- **Status**: ✅ Fully implemented
+- **Flags**:
+  - `--smtp`: Verify SMTP outbound configuration instead of DNS records
+- **File**: `internal/cmd/domain.go:572`
 
 ---
 
@@ -453,10 +452,9 @@ Utility and configuration endpoints.
 #### `POST /v1/domains/:domain_id/aliases/:alias_id/generate-password`
 **Generate Alias Password**
 
-- **CLI**: `alias password <domain> <alias>` (not exposed)
-- **Status**: ⚠️ Partial
-- **Issue**: Client method exists but command not exposed
-- **Fix Required**: Expose password generation command
+- **CLI**: `alias password <domain> <alias>`
+- **Status**: ✅ Fully implemented
+- **File**: `internal/cmd/alias.go:1762`
 
 #### `GET /v1/domains/:domain_id/catch-all-passwords`
 **List Catch-All Passwords**
@@ -530,10 +528,8 @@ Utility and configuration endpoints.
 **Get Email Quota**
 
 - **CLI**: `email quota`
-- **Status**: ⚠️ Potential issue
-- **Issue**: CLI may use `/v1/emails/quota` instead of `/v1/emails/limit`
-- **Fix Required**: Verify correct endpoint path
-- **File**: `internal/client/client.go` (needs verification)
+- **Status**: ✅ Fully implemented
+- **File**: `pkg/api/email_service.go:246`
 
 #### `GET /v1/emails/:id`
 **Get Email Details**
@@ -599,15 +595,11 @@ These endpoints were speculatively implemented but don't exist in the actual API
 | `/v1/domains/:id/dns` | `domain dns` | ⚠️ | Verify existence or remove |
 | `/v1/domains/:id/quota` | `domain quota` | ⚠️ | Verify existence or remove |
 | `/v1/domains/:id/stats` | `domain stats` | ⚠️ | Verify existence or remove |
-| `/v1/emails/quota` | `email quota` | ⚠️ | Should use `/v1/emails/limit` |
+| ~~`/v1/emails/quota`~~ | ~~`email quota`~~ | ✅ | Fixed: now uses `/v1/emails/limit` |
 
 ### Partial Implementations
 
-| Endpoint | Issue | Fix Required |
-|----------|-------|--------------|
-| `/v1/domains/:id/verify-smtp` | `--smtp` flag not exposed | Add flag to `domain verify` command |
-| `/v1/domains/:id/aliases/:id/generate-password` | Command not exposed | Expose `alias password` command |
-| `/v1/emails/limit` | May be using wrong path | Verify endpoint path in client |
+None remaining - all partial implementations have been completed.
 
 ---
 
@@ -623,9 +615,9 @@ These endpoints were speculatively implemented but don't exist in the actual API
 - [ ] `logs download` - Download logs (`GET /v1/logs/download`)
 
 **Priority: Fixes**
-- [ ] Add `--smtp` flag to `domain verify`
-- [ ] Expose `alias password` command
-- [ ] Verify/fix `email quota` endpoint path
+- [x] Add `--smtp` flag to `domain verify`
+- [x] Expose `alias password` command
+- [x] Verify/fix `email quota` endpoint path
 
 ### Phase 1.5 (Q2 2026)
 

@@ -22,9 +22,9 @@
 > When completing tasks, update both files and mark items as complete.
 
 ### Complete Partial Implementations
-- [ ] Add `--smtp` flag to `domain verify` command (endpoint exists, flag missing)
-- [ ] Expose `alias password` command (client method exists, command not wired)
-- [ ] Verify/fix `email quota` endpoint path (may use `/quota` instead of `/limit`)
+- [x] Add `--smtp` flag to `domain verify` command (endpoint exists, flag missing)
+- [x] Expose `alias password` command (client method exists, command not wired)
+- [x] Verify/fix `email quota` endpoint path (may use `/quota` instead of `/limit`)
 
 ### Fix Implementation Errors
 - [ ] Verify `domain dns` endpoint exists, remove command if not (`/v1/domains/:id/dns`)
