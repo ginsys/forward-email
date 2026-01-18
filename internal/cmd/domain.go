@@ -617,9 +617,16 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// For JSON/YAML output, return the structured data
+	// For JSON/YAML output, return clean structured data
+	// (API only provides verification status, no detailed records)
+	result := map[string]interface{}{
+		"domain":      args[0],
+		"verified":    verification.IsVerified,
+		"verify_type": verifyType,
+	}
+
 	formatter := output.NewFormatter(outputFormat, nil)
-	return formatter.Format(verification)
+	return formatter.Format(result)
 }
 
 func runDomainDNS(_ *cobra.Command, args []string) error {
