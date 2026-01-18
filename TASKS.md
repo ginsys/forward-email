@@ -16,6 +16,55 @@
 - Email list: from/to fields empty (JSON response structure mismatch)
 - Email get: id/from/to fields empty (JSON response structure mismatch)
 
+## API Implementation Tasks
+
+> **Note**: Keep this section in sync with `docs/development/api-reference.md`.
+> When completing tasks, update both files and mark items as complete.
+
+### Complete Partial Implementations
+- [ ] Add `--smtp` flag to `domain verify` command (endpoint exists, flag missing)
+- [ ] Expose `alias password` command (client method exists, command not wired)
+- [ ] Verify/fix `email quota` endpoint path (may use `/quota` instead of `/limit`)
+
+### Fix Implementation Errors
+- [ ] Verify `domain dns` endpoint exists, remove command if not (`/v1/domains/:id/dns`)
+- [ ] Verify `domain quota` endpoint exists, remove command if not (`/v1/domains/:id/quota`)
+- [ ] Verify `domain stats` endpoint exists, remove command if not (`/v1/domains/:id/stats`)
+- [ ] Fix `email list` from/to field mapping (JSON response structure mismatch)
+- [ ] Fix `email get` id/from/to field mapping (JSON response structure mismatch)
+
+### New Commands - Account Management
+- [ ] `account show` - Get account details (`GET /v1/account`)
+- [ ] `account update` - Update account settings (`PUT /v1/account`)
+
+### New Commands - Domain Management
+- [ ] `domain members update` - Update member role (`PUT /v1/domains/:id/members/:member_id`)
+- [ ] `domain invites list` - List pending invites (`GET /v1/domains/:id/invites`)
+- [ ] `domain invites send` - Send invitation (`POST /v1/domains/:id/invites`)
+- [ ] `domain invites cancel` - Cancel invitation (`DELETE /v1/domains/:id/invites`)
+
+### New Commands - Alias Management
+- [ ] `alias catch-all list` - List catch-all passwords (`GET /v1/domains/:id/catch-all-passwords`)
+- [ ] `alias catch-all create` - Generate catch-all password (`POST /v1/domains/:id/catch-all-passwords`)
+- [ ] `alias catch-all delete` - Delete catch-all password (`DELETE /v1/domains/:id/catch-all-passwords/:token_id`)
+
+### New Commands - Logs
+- [ ] `logs download` - Download logs with rate limits (`GET /v1/logs/download`)
+
+### New Commands - Debug/Utility
+- [ ] `debug lookup` - Email address lookup (`GET /v1/lookup`)
+- [ ] `debug port` - Port availability check (`GET /v1/port`)
+- [ ] `debug self-test` - Run self-test (`POST /v1/self-test`)
+- [ ] `debug settings` - Get settings (`GET /v1/settings`)
+- [ ] `debug max-forwarded` - Get forwarding limits (`GET /v1/max-forwarded-addresses`)
+
+### Deferred (Low Priority)
+- Contacts API (5 endpoints) - CardDAV, better via native apps
+- Calendars API (5 endpoints) - CalDAV, better via native apps
+- Calendar Events API (5 endpoints) - CalDAV, better via native apps
+- Messages API (5 endpoints) - IMAP, better via protocol
+- Folders API (5 endpoints) - IMAP, better via protocol
+
 ## Planned Features
 
 ### Testing
