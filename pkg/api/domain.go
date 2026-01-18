@@ -93,7 +93,6 @@ type DomainSettings struct {
 type DomainMember struct {
 	JoinedAt time.Time `json:"joined_at"` // When the user joined this domain
 	User     User      `json:"user"`      // User information and profile
-	ID       string    `json:"id"`        // Unique member identifier
 	Group    string    `json:"group"`     // Permission group: admin, user
 }
 

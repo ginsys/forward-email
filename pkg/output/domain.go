@@ -311,7 +311,7 @@ func FormatDomainMembers(members []api.DomainMember, format Format) (*TableData,
 		}
 
 		row := []string{
-			TruncateString(member.ID, 8),
+			TruncateString(member.User.ID, 8),
 			member.User.Email,
 			displayName,
 			member.Group,

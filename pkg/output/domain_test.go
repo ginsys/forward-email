@@ -408,7 +408,6 @@ func TestFormatDomainStats(t *testing.T) {
 func TestFormatDomainMembers(t *testing.T) {
 	members := []api.DomainMember{
 		{
-			ID:    "member1",
 			Group: "admin",
 			User: api.User{
 				ID:          "user1",
@@ -420,7 +419,6 @@ func TestFormatDomainMembers(t *testing.T) {
 			JoinedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			ID:    "member2",
 			Group: "user",
 			User: api.User{
 				ID:         "user2",
@@ -431,7 +429,6 @@ func TestFormatDomainMembers(t *testing.T) {
 			JoinedAt: time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			ID:    "member3",
 			Group: "user",
 			User: api.User{
 				ID:    "user3",
@@ -457,8 +454,8 @@ func TestFormatDomainMembers(t *testing.T) {
 
 	// Check first member (with display name)
 	member1 := table.Rows[0]
-	if member1[0] != "member1" {
-		t.Errorf("Expected ID 'member1', got %s", member1[0])
+	if member1[0] != "user1" {
+		t.Errorf("Expected ID 'user1', got %s", member1[0])
 	}
 	if member1[1] != "admin@example.com" {
 		t.Errorf("Expected email 'admin@example.com', got %s", member1[1])

@@ -536,7 +536,6 @@ func TestDomainService_AddDomainMember(t *testing.T) {
 		}
 
 		member := DomainMember{
-			ID:    "new-member-id",
 			Group: reqBody["group"],
 			User: User{
 				ID:          "user-id",
