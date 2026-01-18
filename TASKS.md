@@ -92,6 +92,16 @@
 - [ ] **Package Distribution**: Setup for Homebrew, Chocolatey, and other package managers
 - [ ] **Version Management**: Implement semantic versioning with automated changelog
 
+### Priority 5 - Bug Fixes / Known Issues
+- [ ] **Fix domain members**: ID field always empty (use `member.User.ID` instead of `member.ID`)
+- [ ] **Investigate domain dns command**: "not found" error - endpoint `/v1/domains/{id}/dns` may not exist
+- [ ] **Investigate domain quota command**: "not found" error - endpoint `/v1/domains/{id}/quota` may not exist
+- [ ] **Fix email list**: from/to fields always empty - JSON response structure mismatch
+- [ ] **Fix email get**: id/from/to fields empty - JSON response structure mismatch
+- [ ] **Investigate email stats**: may call non-existent endpoint `/v1/emails/stats`
+- [ ] **Add plain output format**: borderless, fixed-width columns, no truncation (includes `golang.org/x/term` v0.37.0 → v0.39.0 update)
+- [ ] **Clarify domain get vs update**: document which fields are read-only (plan, DKIM, return_path, etc.)
+
 ### Phase 2+ - Advanced Features (FUTURE)
 
 ### Phase 2.1 - Professional Features
