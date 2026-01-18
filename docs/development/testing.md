@@ -38,39 +38,13 @@ Package Breakdown:
 
 ### Test Execution
 
-#### Using Makefile (Recommended)
+For detailed information on test commands and build automation, see [Makefile Guide](makefile-guide.md).
+
+Quick reference:
 ```bash
-# Quick development cycle
-make check              # Basic checks (fmt, lint-fast, test-quick)
-make check-all          # Full checks (fmt, lint, test-ci)
-
-# Testing commands
-make test               # Standard tests with race detector
-make test-quick         # Fast feedback (no race detector)
-make test-ci            # Exact CI execution (with coverage)
-make test-pkg PKG=api   # Test specific package
-
-# Pre-commit workflow
-make pre-commit         # Quick pre-commit checks
-make pre-commit-full    # Full pre-commit validation
-```
-
-#### Direct Go Commands
-```bash
-# Run all tests
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Run with race detection
-go test -race ./...
-
-# Run specific package
-go test ./pkg/api/...
-
-# Verbose output
-go test -v ./pkg/auth/...
+make test               # Run tests with race detector
+make test-ci            # CI execution with coverage
+make pre-commit         # Pre-commit checks
 ```
 
 ## Test Architecture
@@ -164,27 +138,7 @@ func TestDomainService_List(t *testing.T) {
 
 ### Mock Server Setup
 
-```go
-// Test helper for creating mock HTTP server
-func createMockServer(responses map[string]mockResponse) *httptest.Server {
-    mux := http.NewServeMux()
-    
-    for path, response := range responses {
-        mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-            w.WriteHeader(response.StatusCode)
-            w.Header().Set("Content-Type", "application/json")
-            fmt.Fprint(w, response.Body)
-        })
-    }
-    
-    return httptest.NewServer(mux)
-}
-
-type mockResponse struct {
-    StatusCode int
-    Body       string
-}
-```
+Tests use `httptest.Server` for API mocking. For detailed mock server patterns and API integration testing, see [API Integration](api-integration.md).
 
 ## Authentication Testing
 
@@ -897,7 +851,8 @@ For more information on development practices, see:
 - [Architecture Overview](architecture.md)
 - [API Integration](api-integration.md)
 - [Contributing Guide](contributing.md)
+- [Makefile Guide](makefile-guide.md)
 
 ---
 
-Docs navigation (Dev): [Prev: API Integration](api-integration.md) | [Next: Makefile Guide](makefile-guide.md) | [Back: Dev Index](README.md)
+*Last Updated: 2026-01-18*

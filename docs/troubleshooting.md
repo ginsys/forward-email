@@ -611,8 +611,4 @@ A: Yes, create separate profiles for each account using `forward-email profile c
 
 ---
 
-*Last Updated: 2025-08-27 | Comprehensive troubleshooting guide for current implementation*
-
----
-
-Docs navigation: [Prev: Configuration](configuration.md) | [Next: Docs Index](README.md)
+*Last Updated: 2026-01-18*

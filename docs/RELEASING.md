@@ -1,6 +1,27 @@
 # Releasing
 
-Use semantic version tags. GoReleaser publishes prereleases automatically when the tag has a prerelease suffix.
+## Versioning Policy
+
+### Version Format
+- **Standard**: `v{MAJOR}.{MINOR}.{PATCH}` (e.g., v0.1.0, v1.0.0)
+- **Pre-release**: `v{MAJOR}.{MINOR}.{PATCH}-{PRERELEASE}` (e.g., v0.1.0-alpha.1, v0.1.0-beta.2)
+
+### Version Bumping Rules
+- **MAJOR**: Breaking API changes, major CLI command restructuring
+- **MINOR**: New features, new commands, backward-compatible changes
+- **PATCH**: Bug fixes, documentation updates, minor improvements
+
+### Pre-1.0 Development Policy
+- **Breaking Changes**: Allowed in any release without deprecation notices
+- **API Stability**: No backwards compatibility guarantees
+- **CLI Interface**: Commands, flags, and output formats may change
+- **Configuration**: Profile and config structure may evolve
+
+### Post-1.0 Stability Commitment
+- **Semantic Versioning**: Strict adherence to SemVer after v1.0.0
+- **Deprecation Cycle**: Minimum 1 major version warning period
+- **Breaking Changes**: Only in major version releases
+- **Migration Guides**: Provided for all breaking changes
 
 ## Simple Workflow
 - Only one entrypoint: `make release <type>`
@@ -52,3 +73,7 @@ git push --delete origin vWRONG || true
 git tag -d vWRONG || true
 ```
 Then correct locally and re‑push.
+
+---
+
+*Last Updated: 2026-01-18*

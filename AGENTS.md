@@ -56,7 +56,7 @@ completion  - Shell completion scripts
 
 ## Planning Documents
 - **[TASKS.md](./TASKS.md)**: Centralized task management and roadmap
-- **[VERSIONING_RELEASE_PLAN.md](./docs/VERSIONING_RELEASE_PLAN.md)**: Release automation strategy
+- **[RELEASING.md](./docs/RELEASING.md)**: Versioning policy and release workflow
 - **[API_REFERENCE.md](./docs/development/api-reference.md)**: Complete API endpoint to CLI command mapping
 
 ## Next Phase (1.4)
@@ -109,7 +109,7 @@ completion  - Shell completion scripts
 ## Agent-Specific Instructions (.claude/)
 - `settings.json`: Allowed commands and memory path. Do not loosen permissions; prefer `make` targets over ad‑hoc commands.
 - Agents: run `make pre-commit` locally; use `make test-ci` for CI parity; avoid real API calls in tests—use mocks and env vars (`FORWARDEMAIL_*`).
-- See **Planning Documents** section above for TASKS.md (root) and VERSIONING_RELEASE_PLAN.md (docs/).
+- See **Planning Documents** section above for TASKS.md (root) and RELEASING.md (docs/).
 - **Task Tracking**: Always update TASKS.md when implementing features or fixing bugs. Mark completed items and add new issues as discovered.
 
 ---

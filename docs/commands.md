@@ -294,7 +294,7 @@ forward-email version --check-update
 {
   "version": "v0.1.0",
   "commit": "abc1234",
-  "date": "2025-08-27T12:34:56Z",
+  "date": "2026-01-18T12:34:56Z",
   "go_version": "go1.21.10",
   "os": "linux",
   "arch": "amd64"
@@ -356,5 +356,4 @@ forward-email profile show --output yaml
 
 ---
 
-Docs navigation: [Prev: Quick Start](quick-start.md) | [Next: Configuration](configuration.md)
-*Last Updated: 2025-08-27 | All commands tested and fully functional*
+*Last Updated: 2026-01-18*

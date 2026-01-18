@@ -3,7 +3,6 @@
 A quick map to user guides, command help, configuration, troubleshooting, and developer docs for the Forward Email CLI.
 
 ## User Guides
-- Quick Start: `docs/quick-start.md` — install, auth, first commands.
 - Command Reference: `docs/commands.md` — full CLI command list with examples.
 - Configuration Guide: `docs/configuration.md` — profiles, env vars, config files.
 - Troubleshooting: `docs/troubleshooting.md` — common issues and fixes.
@@ -18,11 +17,13 @@ A quick map to user guides, command help, configuration, troubleshooting, and de
 - Contributing Guide: `docs/development/contributing.md`
 - Architecture Overview: `docs/development/architecture.md`
 - API Integration: `docs/development/api-integration.md`
+- API Reference: `docs/development/api-reference.md`
 - Testing Strategy: `docs/development/testing.md`
+- Makefile Guide: `docs/development/makefile-guide.md`
 - Domain Alias Sync Spec: `docs/development/domain-alias-sync-specification.md`
 
 ## Release & Versioning
-- Plan and checklist: `VERSIONING_RELEASE_PLAN.md`
+- Versioning policy and release workflow: `docs/RELEASING.md`
 
 ## Tips
 - Global help: `forward-email --help`
@@ -31,4 +32,4 @@ A quick map to user guides, command help, configuration, troubleshooting, and de
 
 ---
 
-Docs navigation: [Next: Quick Start](quick-start.md)
+*Last Updated: 2026-01-18*

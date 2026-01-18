@@ -7,19 +7,11 @@ Complete guide to Forward Email API integration patterns, authentication, and se
 ### Forward Email API Details
 
 **Base URL**: `https://api.forwardemail.net/v1/`  
-**Authentication**: HTTP Basic Authentication  
-**API Documentation**: Limited official docs, reverse-engineered from Auth.js examples  
-**Rate Limiting**: Respectful usage required, 10 requests/day limit for logs  
+**Authentication**: HTTP Basic Authentication
+**API Documentation**: Limited official docs, reverse-engineered from Auth.js examples
+**Rate Limiting**: Respectful usage required, 10 requests/day limit for logs
 
-### Current API Coverage Status
-
-| Resource | Status | Operations | Notes |
-|----------|--------|------------|--------|
-| **Domains** | ✅ Implemented | CRUD, DNS/SMTP verification, members | Complete |
-| **Aliases** | ✅ Implemented | Complete lifecycle, recipients, settings | Complete |
-| **Emails** | ✅ Implemented | Send operations, attachment support | Complete |
-| **Account** | ⏳ Planned | Profile management, quota monitoring | Phase 2 |
-| **Logs** | ⏳ Planned | Download with rate limit respect (10/day) | Phase 2 |
+For complete API coverage status and endpoint mapping, see [API Reference](api-reference.md).
 
 ## Authentication System
 
@@ -526,50 +518,7 @@ type ListResponse struct {
 
 ## Testing API Integration
 
-### Mock API Server
-
-```go
-// Test setup
-func setupTestServer() *httptest.Server {
-    mux := http.NewServeMux()
-    
-    mux.HandleFunc("/domains", func(w http.ResponseWriter, r *http.Request) {
-        // Mock domain list response
-        domains := []Domain{
-            {ID: "1", Name: "example.com", Plan: "free"},
-            {ID: "2", Name: "test.com", Plan: "enhanced"},
-        }
-        json.NewEncoder(w).Encode(domains)
-    })
-    
-    return httptest.NewServer(mux)
-}
-```
-
-### Integration Tests
-
-```go
-func TestDomainService_List(t *testing.T) {
-    server := setupTestServer()
-    defer server.Close()
-    
-    client := &Client{
-        baseURL:    server.URL,
-        httpClient: server.Client(),
-    }
-    
-    service := &DomainService{client: client}
-    
-    domains, err := service.List(context.Background(), DomainListOptions{})
-    if err != nil {
-        t.Fatalf("List failed: %v", err)
-    }
-    
-    if len(domains.Data) != 2 {
-        t.Errorf("Expected 2 domains, got %d", len(domains.Data))
-    }
-}
-```
+For detailed information on testing API integration, including mock server setup and integration test patterns, see [Testing Strategy](testing.md).
 
 ## Performance Considerations
 
@@ -699,4 +648,4 @@ For more information on testing and contributing, see:
 
 ---
 
-Docs navigation (Dev): [Prev: Architecture](architecture.md) | [Next: Testing Strategy](testing.md) | [Back: Dev Index](README.md)
+*Last Updated: 2026-01-18*

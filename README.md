@@ -89,7 +89,7 @@ This project is under active development towards v1.0.0. Until then:
 The CLI targets Forward Email API v1. While we strive for stability, please pin to specific versions in production use.
 
 ### Release Process
-See the Versioning & Release Plan for details on semantic versioning, tagging, and CI/CD automation: `docs/VERSIONING_RELEASE_PLAN.md`.
+See `docs/RELEASING.md` for details on versioning policy, semantic versioning, and release workflow.
 
 ## 🛠️ Development
 
@@ -110,8 +110,7 @@ make lint
 ## 📚 Documentation
 
 - **[Documentation Index](docs/README.md)** - Central entry point for all docs
-- **[Releasing](docs/RELEASING.md)** - Tagging and publishing guide
-- **[Quick Start Guide](docs/quick-start.md)** - Get up and running quickly
+- **[Releasing](docs/RELEASING.md)** - Versioning policy and release workflow
 - **[Command Reference](docs/commands.md)** - Complete command documentation
 - **[Configuration Guide](docs/configuration.md)** - Profiles, environments, and settings
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
@@ -120,9 +119,10 @@ make lint
 - **[Contributing Guide](docs/development/contributing.md)** - How to contribute to the project
 - **[Architecture Overview](docs/development/architecture.md)** - System design and structure
 - **[API Integration](docs/development/api-integration.md)** - Forward Email API details
+- **[API Reference](docs/development/api-reference.md)** - Complete API endpoint mapping
 - **[Testing Strategy](docs/development/testing.md)** - Testing approach and standards
+- **[Makefile Guide](docs/development/makefile-guide.md)** - Build and development commands
 - **[Domain Alias Sync Specification](docs/development/domain-alias-sync-specification.md)** - Bulk alias synchronization feature
-- **Versioning & Release Plan** - See `docs/VERSIONING_RELEASE_PLAN.md`
 
 ## 🤝 Contributing
 
@@ -148,4 +148,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for the Forward Email community** | *Last Updated: 2025-08-27*
+**Built with ❤️ for the Forward Email community** | *Last Updated: 2026-01-18*
