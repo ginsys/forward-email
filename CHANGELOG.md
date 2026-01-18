@@ -19,9 +19,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Full API coverage for domain settings (26 new fields): SMTP status, deliverability logs, alias settings, DNS/DKIM configuration.
 - 11 new `domain update` CLI flags: `--delivery-logs`, `--bounce-webhook`, `--regex`, `--catchall`, `--disable-catchall-regex`, `--max-recipients`, `--max-quota`, `--allowlist`, `--denylist`, `--recipient-verification`, `--ignore-mx-check`.
 - Reorganized domain detail output into logical sections.
+- Added `--smtp` flag to `domain verify` command for SMTP outbound verification.
+- Added `alias password` command to generate and regenerate alias-specific passwords.
 
 ### Changed
 - Coverage threshold temporarily lowered from 70% to 45% (TODO: investigate regression and restore).
+- Improved `domain verify` output formatting with clearer JSON/YAML/plain text responses.
+- Email quota command now correctly uses `/v1/emails/limit` endpoint instead of `/v1/emails/quota`.
 
 ### Fixed
 - Reverted golangci-lint from v2.6.2 to v1.64.8 due to incompatible v2.x config schema (exclude-rules, disable-all, linters-settings not supported).
@@ -31,6 +35,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fixed test environment isolation (TestInProcess_BasicFlows now environment-agnostic).
 - Keyring no longer falls back to FileBackend unexpectedly; defaults to system keyrings only (GNOME Keyring, KWallet, KeyCtl, WinCred, Keychain).
 - Config initialization now respects XDG_CONFIG_HOME for proper test isolation.
+- Removed non-existent domain commands: `domain dns`, `domain quota`, `domain stats` (API endpoints return 404).
+- Fixed email list/get field mapping: From/To/MessageID now correctly extracted from headers map instead of non-existent root fields.
+- Corrected `domain verify` endpoint from `/v1/domains/:id/verify/dns` to `/v1/domains/:id/verify` and added SMTP verification support.
 
 ### Dependencies
 - Bump github.com/spf13/cobra from 1.9.1 to 1.10.1.
