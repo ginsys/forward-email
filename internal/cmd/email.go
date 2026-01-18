@@ -100,14 +100,6 @@ var emailQuotaCmd = &cobra.Command{
 	RunE:  runEmailQuota,
 }
 
-// emailStatsCmd represents the email stats command
-var emailStatsCmd = &cobra.Command{
-	Use:   "stats",
-	Short: "Show email statistics",
-	Long:  `Show email sending statistics and metrics.`,
-	RunE:  runEmailStats,
-}
-
 func init() {
 	// Register with root command
 	rootCmd.AddCommand(emailCmd)
@@ -118,7 +110,6 @@ func init() {
 	emailCmd.AddCommand(emailGetCmd)
 	emailCmd.AddCommand(emailDeleteCmd)
 	emailCmd.AddCommand(emailQuotaCmd)
-	emailCmd.AddCommand(emailStatsCmd)
 
 	// Note: output flag now inherited from global root command
 
@@ -393,39 +384,6 @@ func runEmailQuota(cmd *cobra.Command, _ []string) error {
 
 	// Format as table
 	tableData, err := output.FormatEmailQuota(quota, format)
-	if err != nil {
-		return fmt.Errorf("failed to format output: %v", err)
-	}
-
-	formatter := output.NewFormatter(format, cmd.OutOrStdout())
-	return formatter.Format(tableData)
-}
-
-func runEmailStats(cmd *cobra.Command, _ []string) error {
-	ctx := context.Background()
-
-	apiClient, err := client.NewAPIClient()
-	if err != nil {
-		return fmt.Errorf("failed to create API client: %v", err)
-	}
-
-	stats, err := apiClient.Emails.GetEmailStats(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get email stats: %v", err)
-	}
-
-	format, err := output.ParseFormat(viper.GetString("output"))
-	if err != nil {
-		return fmt.Errorf("invalid output format: %v", err)
-	}
-
-	if format == output.FormatJSON || format == output.FormatYAML {
-		formatter := output.NewFormatter(format, cmd.OutOrStdout())
-		return formatter.Format(stats)
-	}
-
-	// Format as table
-	tableData, err := output.FormatEmailStats(stats, format)
 	if err != nil {
 		return fmt.Errorf("failed to format output: %v", err)
 	}

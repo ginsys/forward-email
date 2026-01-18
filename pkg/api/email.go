@@ -98,18 +98,6 @@ type ListEmailsResponse struct {
 	TotalPages int     `json:"total_pages"`
 }
 
-// EmailStats represents email usage statistics
-type EmailStats struct {
-	LastSent       time.Time `json:"last_sent"`
-	TopRecipients  []string  `json:"top_recipients,omitempty"`
-	TotalSent      int64     `json:"total_sent"`
-	TotalDelivered int64     `json:"total_delivered"`
-	TotalBounced   int64     `json:"total_bounced"`
-	TotalFailed    int64     `json:"total_failed"`
-	DeliveryRate   float64   `json:"delivery_rate"` // percentage
-	BounceRate     float64   `json:"bounce_rate"`   // percentage
-}
-
 // BulkEmailRequest represents a request to send multiple emails
 type BulkEmailRequest struct {
 	Emails   []SendEmailRequest `json:"emails"`             // list of emails to send

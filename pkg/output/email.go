@@ -179,42 +179,6 @@ func FormatEmailQuota(quota *api.EmailQuota, format Format) (*TableData, error) 
 	return table, nil
 }
 
-// FormatEmailStats formats email usage statistics
-func FormatEmailStats(stats *api.EmailStats, format Format) (*TableData, error) {
-	if format != FormatTable && format != FormatCSV {
-		return nil, fmt.Errorf("use direct JSON/YAML encoding for email stats")
-	}
-
-	headers := []string{"STATISTIC", "COUNT", "PERCENTAGE"}
-	table := NewTableData(headers)
-
-	total := stats.TotalSent
-	if total == 0 {
-		total = 1 // Avoid division by zero
-	}
-
-	table.AddRow([]string{"Total Sent", fmt.Sprintf("%d", stats.TotalSent), "100%"})
-	table.AddRow([]string{"Delivered", fmt.Sprintf("%d", stats.TotalDelivered), fmt.Sprintf("%.1f%%", stats.DeliveryRate)})
-	table.AddRow([]string{"Bounced", fmt.Sprintf("%d", stats.TotalBounced), fmt.Sprintf("%.1f%%", stats.BounceRate)})
-	failedPct := float64(stats.TotalFailed) / float64(total) * 100
-	table.AddRow([]string{"Failed", fmt.Sprintf("%d", stats.TotalFailed), fmt.Sprintf("%.1f%%", failedPct)})
-
-	if !stats.LastSent.IsZero() {
-		table.AddRow([]string{"Last Sent", stats.LastSent.Format(time.RFC3339), "-"})
-	}
-
-	// Top recipients
-	if len(stats.TopRecipients) > 0 {
-		recipients := strings.Join(stats.TopRecipients, ", ")
-		if len(recipients) > 80 {
-			recipients = TruncateString(recipients, 77) + "..."
-		}
-		table.AddRow([]string{"Top Recipients", recipients, "-"})
-	}
-
-	return table, nil
-}
-
 // FormatEmailAttachments formats email attachments for display
 func FormatEmailAttachments(attachments []api.EmailAttachment, format Format) (*TableData, error) {
 	if format != FormatTable && format != FormatCSV {

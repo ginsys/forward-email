@@ -98,7 +98,7 @@
 - [ ] **Investigate domain quota command**: "not found" error - endpoint `/v1/domains/{id}/quota` may not exist
 - [ ] **Fix email list**: from/to fields always empty - JSON response structure mismatch
 - [ ] **Fix email get**: id/from/to fields empty - JSON response structure mismatch
-- [ ] **Investigate email stats**: may call non-existent endpoint `/v1/emails/stats`
+- [x] **Remove email stats command**: Removed non-existent endpoint `/v1/emails/stats` - command has been deleted
 - [ ] **Add plain output format**: borderless, fixed-width columns, no truncation (includes `golang.org/x/term` v0.37.0 → v0.39.0 update)
 - [ ] **Clarify domain get vs update**: document which fields are read-only (plan, DKIM, return_path, etc.)
 

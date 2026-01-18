@@ -259,26 +259,6 @@ func (s *EmailService) GetEmailQuota(ctx context.Context) (*EmailQuota, error) {
 	return &quota, nil
 }
 
-// GetEmailStats retrieves comprehensive email usage statistics.
-// Returns metrics including total emails sent, delivery rates, bounce rates,
-// spam scores, and historical trends. Useful for monitoring sending reputation
-// and optimizing email delivery performance.
-func (s *EmailService) GetEmailStats(ctx context.Context) (*EmailStats, error) {
-	u := s.client.BaseURL.ResolveReference(&url.URL{Path: "/v1/emails/stats"})
-
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	var stats EmailStats
-	if err := s.client.Do(ctx, req, &stats); err != nil {
-		return nil, fmt.Errorf("failed to get email stats: %w", err)
-	}
-
-	return &stats, nil
-}
-
 // ValidateRecipients validates email addresses before sending.
 // Performs basic format validation to catch obvious errors early and reduce
 // bounce rates. This is a client-side validation - the API performs additional
