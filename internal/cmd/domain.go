@@ -596,18 +596,30 @@ func runDomainVerify(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to verify domain: %w", err)
 	}
 
-	if verification.IsVerified {
-		fmt.Printf("Domain '%s' %s is verified ✓\n", args[0], verifyType)
-	} else {
-		fmt.Printf("Domain '%s' %s verification failed ✗\n", args[0], verifyType)
+	// Get output format
+	outputFormat, err := output.ParseFormat(viper.GetString("output"))
+	if err != nil {
+		return fmt.Errorf("invalid output format: %w", err)
 	}
 
-	return formatOutput(verification, viper.GetString("output"), func(format output.Format) (interface{}, error) {
-		if format == output.FormatTable || format == output.FormatCSV {
-			return output.FormatDomainVerification(verification, format)
+	// For table/CSV/plain output, just show success message
+	// (API returns plain text with no structured data to display)
+	if outputFormat == output.FormatTable || outputFormat == output.FormatCSV || outputFormat == output.FormatPlain {
+		if verification.IsVerified {
+			if smtpFlag {
+				fmt.Printf("✓ Domain '%s' SMTP outbound configuration verified successfully\n", args[0])
+			} else {
+				fmt.Printf("✓ Domain '%s' DNS records verified successfully\n", args[0])
+			}
+		} else {
+			fmt.Printf("✗ Domain '%s' %s verification failed\n", args[0], verifyType)
 		}
-		return verification, nil
-	})
+		return nil
+	}
+
+	// For JSON/YAML output, return the structured data
+	formatter := output.NewFormatter(outputFormat, nil)
+	return formatter.Format(verification)
 }
 
 func runDomainDNS(_ *cobra.Command, args []string) error {
