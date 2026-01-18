@@ -17,7 +17,7 @@ Forward Email CLI uses a hierarchical configuration system that prioritizes sett
 
 ### Authentication Priority
 For API key authentication specifically:
-1. **Environment variable** (`FORWARD_EMAIL_API_KEY`)
+1. **Environment variable** (`FORWARDEMAIL_API_KEY`)
 2. **OS keyring storage** (secure credential storage)
 3. **Profile configuration** (config file - not recommended for production)
 
@@ -187,7 +187,7 @@ forward-email auth logout --all
 | `FORWARDEMAIL_API_KEY` | Global API key | `your-api-key` |
 | `FORWARDEMAIL_{PROFILE}_API_KEY` | Profile-specific API key | `FORWARDEMAIL_PROD_API_KEY` |
 | `FORWARDEMAIL_PROFILE` | Active profile name | `production` |
-| `FORWARDEMAIL_BASE_URL` | API base URL | `https://api.forwardemail.net` |
+| `FORWARDEMAIL_API_BASE_URL` | API base URL | `https://api.forwardemail.net` |
 | `FORWARDEMAIL_TIMEOUT` | Request timeout | `30s` |
 | `FORWARDEMAIL_OUTPUT` | Default output format | `table` |
 | `FORWARDEMAIL_DEBUG` | Enable debug mode | `true` |
@@ -283,7 +283,7 @@ Configure timeouts for different scenarios:
 forward-email debug api --timeout 5s
 
 # Long timeout for bulk operations
-forward-email alias bulk-import aliases.csv --timeout 300s
+forward-email alias import --domain example.com --file aliases.csv --timeout 300s
 ```
 
 ### Debug Mode
