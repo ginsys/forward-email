@@ -91,11 +91,18 @@ var domainDeleteCmd = &cobra.Command{
 var domainVerifyCmd = &cobra.Command{
 	Use:   "verify <domain-name-or-id>",
 	Short: "Verify domain DNS configuration",
-	Long: `Verify that the DNS records for a domain are correctly configured.
+	Long:  `Verify that the DNS records for a domain are correctly configured.`,
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDomainVerify,
+}
 
-By default, verifies DNS records. Use --smtp to verify SMTP outbound configuration.`,
-	Args: cobra.ExactArgs(1),
-	RunE: runDomainVerify,
+// domainDNSCmd represents the domain dns command
+var domainDNSCmd = &cobra.Command{
+	Use:   "dns <domain-name-or-id>",
+	Short: "Get required DNS records for a domain",
+	Long:  `Get the required DNS records that need to be configured for a domain to work with Forward Email.`,
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDomainDNS,
 }
 
 // domainMembersCmd represents the domain members command group
@@ -142,6 +149,7 @@ func init() {
 	domainCmd.AddCommand(domainUpdateCmd)
 	domainCmd.AddCommand(domainDeleteCmd)
 	domainCmd.AddCommand(domainVerifyCmd)
+	domainCmd.AddCommand(domainDNSCmd)
 	domainCmd.AddCommand(domainMembersCmd)
 
 	// Add members subcommands
@@ -191,9 +199,6 @@ func init() {
 
 	// Delete command flags
 	domainDeleteCmd.Flags().BoolP("force", "f", false, "Force deletion without confirmation")
-
-	// Verify command flags
-	domainVerifyCmd.Flags().Bool("smtp", false, "Verify SMTP configuration instead of DNS records")
 
 	// Members add command flags
 	domainMembersAddCmd.Flags().String("group", "user", "Member group (admin, user)")

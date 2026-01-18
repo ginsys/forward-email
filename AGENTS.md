@@ -111,6 +111,7 @@ completion  - Shell completion scripts
 - Agents: run `make pre-commit` locally; use `make test-ci` for CI parity; avoid real API calls in tests—use mocks and env vars (`FORWARDEMAIL_*`).
 - See **Planning Documents** section above for TASKS.md (root) and RELEASING.md (docs/).
 - **Task Tracking**: Always update TASKS.md when implementing features or fixing bugs. Mark completed items and add new issues as discovered.
+- **Contributors**: Update CONTRIBUTORS.md when merging PRs from external contributors. Add GitHub username and a brief description of their contribution.
 
 ---
 *Last Updated: 2026-01-18*
