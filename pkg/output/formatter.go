@@ -32,6 +32,7 @@ const (
 	FormatJSON  Format = "json"  // Machine-readable JSON for API integration
 	FormatYAML  Format = "yaml"  // Human-readable YAML for configuration
 	FormatCSV   Format = "csv"   // Comma-separated values for spreadsheet import
+	FormatPlain Format = "plain" // Borderless, fixed-width columns without truncation
 )
 
 // Formatter handles output formatting for CLI responses.
@@ -68,6 +69,8 @@ func (f *Formatter) Format(data interface{}) error {
 		return f.formatYAML(data)
 	case FormatCSV:
 		return f.formatCSV(data)
+	case FormatPlain:
+		return f.formatPlain(data)
 	default:
 		return fmt.Errorf("unsupported format: %s", f.format)
 	}
@@ -488,6 +491,81 @@ func (f *Formatter) formatCSV(data interface{}) error {
 	return nil
 }
 
+// formatPlain outputs data as plain text with fixed-width columns
+// No borders, no truncation, just aligned columns separated by 2 spaces
+func (f *Formatter) formatPlain(data interface{}) error {
+	switch v := data.(type) {
+	case TableData:
+		return f.formatPlainTable(&v)
+	case *TableData:
+		return f.formatPlainTable(v)
+	default:
+		return fmt.Errorf("plain format requires TableData struct")
+	}
+}
+
+// formatPlainTable formats a TableData as plain text with fixed-width columns
+func (f *Formatter) formatPlainTable(td *TableData) error {
+	if len(td.Headers) == 0 {
+		return nil
+	}
+
+	// Calculate column widths based on actual content (no truncation)
+	colWidths := make([]int, len(td.Headers))
+
+	// Initialize with header widths
+	for i, header := range td.Headers {
+		colWidths[i] = len(header)
+	}
+
+	// Update with row content widths
+	for _, row := range td.Rows {
+		for i, cell := range row {
+			if i < len(colWidths) && len(cell) > colWidths[i] {
+				colWidths[i] = len(cell)
+			}
+		}
+	}
+
+	// Format and write headers
+	headerParts := make([]string, len(td.Headers))
+	for i, header := range td.Headers {
+		// Don't pad the last column to avoid trailing spaces
+		if i == len(td.Headers)-1 {
+			headerParts[i] = header
+		} else {
+			headerParts[i] = padRight(header, colWidths[i])
+		}
+	}
+	_, _ = fmt.Fprintln(f.writer, strings.Join(headerParts, "  "))
+
+	// Format and write rows
+	for _, row := range td.Rows {
+		rowParts := make([]string, len(row))
+		for i, cell := range row {
+			// Don't pad the last column to avoid trailing spaces
+			if i == len(row)-1 {
+				rowParts[i] = cell
+			} else if i < len(colWidths) {
+				rowParts[i] = padRight(cell, colWidths[i])
+			} else {
+				rowParts[i] = cell
+			}
+		}
+		_, _ = fmt.Fprintln(f.writer, strings.Join(rowParts, "  "))
+	}
+
+	return nil
+}
+
+// padRight pads a string with spaces on the right to reach the desired width
+func padRight(s string, width int) string {
+	if len(s) >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-len(s))
+}
+
 // TableData represents tabular data
 type TableData struct {
 	Headers []string
@@ -585,6 +663,8 @@ func ParseFormat(s string) (Format, error) {
 		return FormatYAML, nil
 	case "csv":
 		return FormatCSV, nil
+	case "plain":
+		return FormatPlain, nil
 	default:
 		return "", fmt.Errorf("unsupported format: %s", s)
 	}

@@ -19,6 +19,7 @@ func TestNewFormatter(t *testing.T) {
 		{"YAML formatter", FormatYAML, &bytes.Buffer{}},
 		{"Table formatter", FormatTable, &bytes.Buffer{}},
 		{"CSV formatter", FormatCSV, &bytes.Buffer{}},
+		{"Plain formatter", FormatPlain, &bytes.Buffer{}},
 		{"With nil writer", FormatJSON, nil},
 	}
 
@@ -267,6 +268,102 @@ func TestFormatter_FormatCSV(t *testing.T) {
 	}
 }
 
+func TestFormatter_FormatPlain(t *testing.T) {
+	tests := []struct {
+		name        string
+		data        interface{}
+		shouldError bool
+		expected    []string
+	}{
+		{
+			name: "TableData struct",
+			data: TableData{
+				Headers: []string{"Name", "Count", "Active"},
+				Rows: [][]string{
+					{"test1", "10", "true"},
+					{"test2", "20", "false"},
+				},
+			},
+			shouldError: false,
+			expected: []string{
+				"Name   Count  Active",
+				"test1  10     true",
+				"test2  20     false",
+			},
+		},
+		{
+			name: "TableData pointer",
+			data: &TableData{
+				Headers: []string{"ID", "Name"},
+				Rows: [][]string{
+					{"1", "Alice"},
+					{"2", "Bob"},
+				},
+			},
+			shouldError: false,
+			expected: []string{
+				"ID  Name",
+				"1   Alice",
+				"2   Bob",
+			},
+		},
+		{
+			name: "varying column widths",
+			data: &TableData{
+				Headers: []string{"Short", "VeryLongHeader"},
+				Rows: [][]string{
+					{"A", "B"},
+					{"ShortValue", "VeryVeryLongValue"},
+				},
+			},
+			shouldError: false,
+			expected: []string{
+				"Short       VeryLongHeader",
+				"A           B",
+				"ShortValue  VeryVeryLongValue",
+			},
+		},
+		{
+			name:        "invalid data type",
+			data:        "invalid",
+			shouldError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			formatter := NewFormatter(FormatPlain, &buf)
+
+			err := formatter.Format(tt.data)
+
+			if tt.shouldError {
+				if err == nil {
+					t.Fatal("Expected error but got success")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+
+			output := strings.TrimSpace(buf.String())
+			lines := strings.Split(output, "\n")
+
+			if len(lines) != len(tt.expected) {
+				t.Errorf("Expected %d lines, got %d", len(tt.expected), len(lines))
+			}
+
+			for i, expectedLine := range tt.expected {
+				if i < len(lines) && lines[i] != expectedLine {
+					t.Errorf("Line %d:\nexpected: %q\ngot:      %q", i, expectedLine, lines[i])
+				}
+			}
+		})
+	}
+}
+
 func TestFormatter_UnsupportedFormat(t *testing.T) {
 	var buf bytes.Buffer
 	formatter := NewFormatter("unsupported", &buf)
@@ -360,6 +457,8 @@ func TestParseFormat(t *testing.T) {
 		{"YAML", "YAML", FormatYAML, false},
 		{"csv", "csv", FormatCSV, false},
 		{"CSV", "CSV", FormatCSV, false},
+		{"plain", "plain", FormatPlain, false},
+		{"PLAIN", "PLAIN", FormatPlain, false},
 		{"invalid", "invalid", "", true},
 		{"empty", "", "", true},
 	}

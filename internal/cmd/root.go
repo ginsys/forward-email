@@ -45,7 +45,7 @@ func Execute(ctx context.Context) error {
 func initFlags() {
 	// Global flags with short options
 	rootCmd.PersistentFlags().StringP("profile", "p", "", "Configuration profile to use")
-	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format (table|json|yaml|csv)")
+	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format (table|json|yaml|csv|plain)")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug output")
 	rootCmd.PersistentFlags().Duration("timeout", 0, "Request timeout duration")

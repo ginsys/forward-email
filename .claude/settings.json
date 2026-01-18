@@ -29,7 +29,8 @@
       "Bash(mise install:*)",
       "Bash(mise exec:*)",
       "Bash(make)",
-      "Bash(ln:*)"
+      "Bash(ln:*)",
+      "Bash(go get:*)"
     ],
     "deny": [],
     "ask": [],
