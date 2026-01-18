@@ -1,6 +1,10 @@
-## v0.2.0-alpha.2 - 2026-01-18
+## v0.2.0-alpha.3 - 2026-01-19
 
 - Summary: (fill in)
+
+## v0.2.0-alpha.2 - 2026-01-18
+
+- Summary: Domain verification improvements and DNS record generation
 
 ## v0.2.0-alpha.1 - 2025-12-07
 
@@ -23,8 +27,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Full API coverage for domain settings (26 new fields): SMTP status, deliverability logs, alias settings, DNS/DKIM configuration.
 - 11 new `domain update` CLI flags: `--delivery-logs`, `--bounce-webhook`, `--regex`, `--catchall`, `--disable-catchall-regex`, `--max-recipients`, `--max-quota`, `--allowlist`, `--denylist`, `--recipient-verification`, `--ignore-mx-check`.
 - Reorganized domain detail output into logical sections.
-- Added `--smtp` flag to `domain verify` command for SMTP outbound verification.
 - Added `alias password` command to generate and regenerate alias-specific passwords.
+- Added `domain dns` command to display required DNS records (generated locally, no API call).
+- Added CONTRIBUTORS.md to track external contributions.
 
 ### Changed
 - Coverage threshold temporarily lowered from 70% to 45% (TODO: investigate regression and restore).
@@ -39,9 +44,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fixed test environment isolation (TestInProcess_BasicFlows now environment-agnostic).
 - Keyring no longer falls back to FileBackend unexpectedly; defaults to system keyrings only (GNOME Keyring, KWallet, KeyCtl, WinCred, Keychain).
 - Config initialization now respects XDG_CONFIG_HOME for proper test isolation.
-- Removed non-existent domain commands: `domain dns`, `domain quota`, `domain stats` (API endpoints return 404).
+- Removed non-existent domain commands: `domain quota`, `domain stats` (API endpoints return 404).
 - Fixed email list/get field mapping: From/To/MessageID now correctly extracted from headers map instead of non-existent root fields.
-- Corrected `domain verify` endpoint from `/v1/domains/:id/verify/dns` to `/v1/domains/:id/verify` and added SMTP verification support.
+- Fixed `domain verify` endpoint to use `/v1/domains/:id/verify-records` and return full domain object with updated verification status (@salmonumbrella).
+- Fixed `domain dns` to generate records locally using domain's verification token instead of calling non-existent API endpoint (@salmonumbrella).
 
 ### Dependencies
 - Bump github.com/spf13/cobra from 1.9.1 to 1.10.1.
