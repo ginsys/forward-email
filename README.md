@@ -6,8 +6,8 @@ A comprehensive command-line interface for managing [Forward Email](https://forw
 
 ## ✨ Features
 
-- **Complete API Coverage**: Full domain, alias, and email management
-- **Multi-Profile Support**: Development, staging, and production environments  
+- **Complete API Coverage**: Full coverage for domains, aliases, and email; account/logs planned
+- **Multi-Profile Support**: Development, staging, and production environments
 - **Security First**: OS keyring integration with secure credential storage
 - **Developer Experience**: Comprehensive help system and interactive operations
 - **Multiple Output Formats**: Table, JSON, YAML, CSV with filtering and sorting
@@ -38,6 +38,12 @@ go build -o bin/forward-email ./cmd/forward-email
 ## 📋 Core Commands
 
 ```bash
+# First-time setup
+forward-email init                   # Interactive setup wizard
+
+# Version info
+forward-email version --verbose      # Detailed version info
+
 # Authentication & Profiles
 forward-email auth login              # Interactive API key setup
 forward-email profile create prod    # Create production profile
@@ -62,17 +68,17 @@ forward-email email list             # View sent email history
 
 ### ✅ Fully Implemented
 - **Authentication**: Multi-source credential management (env → keyring → config)
-- **Profiles**: Multi-environment configuration management  
+- **Profiles**: Multi-environment configuration management
 - **Domains**: Complete CRUD operations with DNS verification
 - **Aliases**: Full lifecycle management with all settings
 - **Email**: Interactive and programmatic sending with attachments
 - **Output**: Multiple formats with filtering and sorting
+- **Init Wizard**: Interactive first-time setup
+- **Shell Completion**: bash, zsh, fish, PowerShell
 - **Testing**: 100+ test cases across all packages
 
 ### 🔄 In Development (Phase 1.4)
 - Enhanced test coverage for email services
-- Interactive setup wizards
-- Shell completion scripts  
 - Bulk operations and CSV import/export
 - Automated CI/CD pipeline
 
