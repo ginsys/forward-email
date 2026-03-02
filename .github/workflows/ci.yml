@@ -184,7 +184,7 @@ jobs:
         cache: false
 
     - name: Install gosec
-      run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      run: go install github.com/securego/gosec/v2/cmd/gosec@v2.23.0
 
     - name: Run gosec security scanner
       run: gosec -no-fail -fmt sarif -out gosec-report.sarif ./...
