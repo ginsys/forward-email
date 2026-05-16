@@ -15,7 +15,7 @@ jobs:
       fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go-version: [1.24]
+        go-version: [1.25]
 
     steps:
     - name: Check out code
@@ -56,7 +56,7 @@ jobs:
       run: make test-ci
 
     - name: Check coverage threshold
-      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
       run: |
         # Extract coverage percentage
         if [ -f coverage.out ]; then
@@ -75,7 +75,7 @@ jobs:
         fi
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
       uses: codecov/codecov-action@v6
       with:
         files: ./coverage.out
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: [1.24]
+        go-version: [1.25]
 
     steps:
     - name: Check out code
@@ -154,7 +154,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v6
       with:
-        go-version: 1.24
+        go-version: 1.25
         cache: false
 
     # golangci-lint: v2.6.2 with action@v9
@@ -180,7 +180,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v6
       with:
-        go-version: 1.24
+        go-version: 1.25
         cache: false
 
     - name: Install gosec
@@ -213,7 +213,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v6
       with:
-        go-version: 1.24
+        go-version: 1.25
         cache: false
 
     - name: Build for multiple platforms
