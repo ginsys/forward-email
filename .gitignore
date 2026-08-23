@@ -63,3 +63,6 @@ testdata/temp/
 # Coverage reports
 coverage.html
 coverage.out
+
+# Local Claude Code settings (machine-specific, never tracked)
+.claude/settings.local.json

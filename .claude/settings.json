@@ -41,11 +41,7 @@
     ],
     "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "/home/serge/scratch",
-      "/tmp"
-    ]
+    "defaultMode": "acceptEdits"
   },
   "memory": ".claude/CLAUDE.md",
   "saveSettingsPath": ".claude/settings.json",
