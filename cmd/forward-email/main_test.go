@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -397,40 +396,6 @@ func TestMain_EnvironmentVariables(t *testing.T) {
 }
 
 // Helper functions
-
-// buildTestBinary compiles the CLI binary for testing
-func buildTestBinary(t *testing.T) string {
-	t.Helper()
-
-	// Create a temporary binary path
-	tmpDir := t.TempDir()
-	binaryPath := filepath.Join(tmpDir, "forward-email-test")
-
-	// Build the binary
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "go", "build", "-o", binaryPath, ".")
-	cmd.Dir = "." // Build in current directory (cmd/forward-email)
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	require.NoError(t, err, "failed to build test binary: %s", stderr.String())
-
-	// Verify the binary was created and is executable
-	info, err := os.Stat(binaryPath)
-	require.NoError(t, err, "test binary should exist")
-	require.False(t, info.IsDir(), "test binary should not be a directory")
-
-	return binaryPath
-}
-
-// cleanupTestBinary removes the test binary
-func cleanupTestBinary(t *testing.T, binaryPath string) {
-	t.Helper()
-	if binaryPath != "" {
-		_ = os.Remove(binaryPath) // Ignore cleanup error
-	}
-}
+//
+// buildTestBinary and cleanupTestBinary, together with the compile budget they
+// enforce, live in buildbinary_test.go.

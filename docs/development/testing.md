@@ -793,6 +793,38 @@ make lint-ci            # CI-compatible linting
 make pre-commit         # Full pre-commit checks
 ```
 
+#### Integration Test Build Budget
+
+The integration tests in `cmd/forward-email/` compile the CLI binary before exercising it. That
+compile runs under a finite budget, defaulting to **5 minutes** — long enough for a cold module
+and build cache (the normal state on a hosted CI runner after a dependency change), short enough
+that a hung build fails on its own instead of waiting for the Go test timeout.
+
+Raise it on a slow machine with a Go duration:
+
+```bash
+FORWARDEMAIL_TEST_BUILD_TIMEOUT=8m go test -timeout 30m -race ./cmd/forward-email/
+```
+
+Raise `go test -timeout` along with it. `go test` defaults to a 10-minute timeout for the whole
+package (`go help testflag`), and that clock starts before the build does — a build budget at or
+near 10 minutes is never reached, because the package panics first and the harness never gets to
+report anything. The 5-minute default is chosen to stay well inside that 10-minute default.
+
+An unparseable or non-positive value fails the test rather than falling back to the default, so
+the budget can never be silently disabled.
+
+The two failure modes are reported separately:
+
+- **Budget reached** — names the budget, the elapsed time and `ctx.Err()`, and points at this
+  override. The build is killed at the deadline, so its output is usually empty or truncated; if
+  the reported output does contain compiler diagnostics, the build failed on its own just as the
+  budget ran out.
+- **Build failed** — a non-zero exit well inside the budget, reported with the captured stderr and
+  stdout. Empty output here means the toolchain produced none (a missing `go` binary, for
+  instance); it is not by itself evidence of a timeout — read the budget/elapsed line, not the
+  absence of output.
+
 #### Development Setup
 ```bash
 # One-time setup
