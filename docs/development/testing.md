@@ -816,14 +816,22 @@ the budget can never be silently disabled.
 
 The two failure modes are reported separately:
 
-- **Budget reached** — names the budget, the elapsed time and `ctx.Err()`, and points at this
-  override. The build is killed at the deadline, so its output is usually empty or truncated; if
-  the reported output does contain compiler diagnostics, the build failed on its own just as the
-  budget ran out.
-- **Build failed** — a non-zero exit well inside the budget, reported with the captured stderr and
+- **Budget not met** — the build did not finish within the budget. The report names the budget,
+  the elapsed time, `ctx.Err()`, the run error and whatever output was captured, and states that
+  the cause is undetermined. It is not established either way from a single failure: the kill can
+  truncate or suppress output, so empty output does not prove the environment was merely slow, and
+  output that is present does not prove the build had failed on its own at the deadline. Re-run
+  with a larger budget and compare the elapsed time and output you get then.
+- **Build failed** — a non-zero exit inside the budget, reported with the captured stderr and
   stdout. Empty output here means the toolchain produced none (a missing `go` binary, for
   instance); it is not by itself evidence of a timeout — read the budget/elapsed line, not the
   absence of output.
+
+What the budget does and does not bound: it bounds the build's own runtime, and `cmd.WaitDelay`
+additionally caps how long `Wait` may keep draining the output pipes afterwards. Neither fixes a
+latest return time for the helper — cancellation, the child's exit and scheduling all take their
+own time on top — and neither establishes that every descendant process the toolchain spawned has
+terminated.
 
 #### Development Setup
 ```bash

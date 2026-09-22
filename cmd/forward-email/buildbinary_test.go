@@ -32,10 +32,13 @@ const (
 	// timeout.
 	defaultBuildTimeout = 5 * time.Minute
 
-	// waitDelayAfterKill bounds how long Wait may keep draining the build's
-	// output pipes after the deadline killed it. Without it (exec.Cmd.WaitDelay
-	// defaults to zero) those pipes are read until EOF, which a surviving
-	// grandchild of the compiler can postpone indefinitely.
+	// waitDelayAfterKill bounds the *additional* waiting Wait may do after the
+	// deadline fired, no more than that. Without it (exec.Cmd.WaitDelay defaults
+	// to zero) the output pipes are read until EOF, which a surviving grandchild
+	// of the compiler can postpone indefinitely. It caps that extra waiting only:
+	// it fixes no latest return time (cancellation, the child's exit and
+	// scheduling all take their own unbounded time on top), and it does not
+	// establish that every descendant process was terminated.
 	waitDelayAfterKill = 15 * time.Second
 
 	// buildHelperEnv selects the behaviour of the helper child process used by
@@ -73,13 +76,26 @@ func buildBudget(t *testing.T) time.Duration {
 	return budget
 }
 
-// lastBuildBudget records the budget the most recent buildTestBinary call ran
-// under, so a test can prove the environment override actually reaches the
-// build rather than merely being parseable in isolation.
-var lastBuildBudget atomic.Int64
+// lastRunBound records the bound the most recent runBuildWithBudget call was
+// actually subject to: the deadline read back off the context it created,
+// minus the instant that context was created from. It is written at the
+// execution boundary, from the same context the command is then built and run
+// under, so a test reading it observes the enforced bound rather than a value
+// a caller intended to pass. Zero means no run has been observed yet.
+var lastRunBound atomic.Int64
 
-// buildCommandFunc builds the compile command, bound to the budget's context.
-type buildCommandFunc func(ctx context.Context) *exec.Cmd
+// buildSpec describes a command to run under the budget. It deliberately
+// carries no context: runBuildWithBudget builds the exec.Cmd itself, so no
+// caller can hand the command a context other than the budget's.
+type buildSpec struct {
+	name string
+	args []string
+	dir  string
+	env  []string
+}
+
+// buildCommandFunc supplies the command to run under the budget.
+type buildCommandFunc func() buildSpec
 
 // runBuildWithBudget runs the command returned by newCmd under a finite budget
 // and, on failure, returns an error a CI reader can act on: it separates a
@@ -90,10 +106,30 @@ type buildCommandFunc func(ctx context.Context) *exec.Cmd
 // fires: the run error is then only "signal: killed" and the captured output is
 // usually empty, which on its own names neither the deadline nor the budget.
 func runBuildWithBudget(budget time.Duration, newCmd buildCommandFunc) error {
-	ctx, cancel := context.WithTimeout(context.Background(), budget)
+	// WithDeadline rather than WithTimeout so the bound is exact and readable
+	// back off the context: ctx.Deadline() returns this very instant, making the
+	// observation below free of the clock skew a WithTimeout round-trip adds.
+	created := time.Now()
+	ctx, cancel := context.WithDeadline(context.Background(), created.Add(budget))
 	defer cancel()
 
-	cmd := newCmd(ctx)
+	// Observe the bound this run is really subject to, read back off the context
+	// itself. The command is built from that same context immediately below, in
+	// this function rather than by the caller, so the recorded bound cannot
+	// drift from the one actually enforced.
+	if deadline, ok := ctx.Deadline(); ok {
+		lastRunBound.Store(int64(deadline.Sub(created)))
+	} else {
+		lastRunBound.Store(0)
+	}
+
+	spec := newCmd()
+	cmd := exec.CommandContext(ctx, spec.name, spec.args...)
+	cmd.Dir = spec.dir
+	if spec.env != nil {
+		cmd.Env = spec.env
+	}
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -115,10 +151,12 @@ func runBuildWithBudget(budget time.Duration, newCmd buildCommandFunc) error {
 	output := buildOutputDetails(stdout.String(), stderr.String())
 	if ctxErr := ctx.Err(); errors.Is(ctxErr, context.DeadlineExceeded) {
 		return fmt.Errorf(
-			"build hit its %s budget: elapsed %s, ctx.Err()=%v, run error=%v. "+
-				"The build was killed at the deadline, so any output below may be truncated or empty; "+
-				"if it does contain compiler diagnostics, the build failed on its own just as the budget ran out. "+
-				"Otherwise this environment is simply slow (cold module/build cache) — raise the budget with %s=<duration>.%s",
+			"build did not finish within its %s budget: elapsed %s, ctx.Err()=%v, run error=%v. "+
+				"The context signalled the build at the deadline, so why it did not finish is undetermined here: "+
+				"output below may be missing or truncated by the kill, and output that is present does not by "+
+				"itself establish a failure independent of the deadline. To narrow it down, re-run with a larger "+
+				"budget (%s=<duration>, raising go test -timeout alongside it) and compare the elapsed time and "+
+				"the output you get then.%s",
 			budget, elapsed, ctxErr, runErr, buildTimeoutEnv, output)
 	}
 
@@ -156,11 +194,12 @@ func buildTestBinary(t *testing.T) string {
 	}
 
 	budget := buildBudget(t)
-	lastBuildBudget.Store(int64(budget))
-	err := runBuildWithBudget(budget, func(ctx context.Context) *exec.Cmd {
-		cmd := exec.CommandContext(ctx, "go", "build", "-o", binaryPath, ".")
-		cmd.Dir = "." // Build in current directory (cmd/forward-email)
-		return cmd
+	err := runBuildWithBudget(budget, func() buildSpec {
+		return buildSpec{
+			name: "go",
+			args: []string{"build", "-o", binaryPath, "."},
+			dir:  ".", // Build in current directory (cmd/forward-email)
+		}
 	})
 	require.NoError(t, err, "failed to build test binary")
 
@@ -180,13 +219,15 @@ func cleanupTestBinary(t *testing.T, binaryPath string) {
 	}
 }
 
-// helperCommand returns a command re-running this test binary as a child in the
-// given helper mode. It touches nothing outside the test process: no network, no
+// helperSpec describes a child process re-running this test binary in the given
+// helper mode. It touches nothing outside the test process: no network, no
 // configuration, no credentials.
-func helperCommand(ctx context.Context, mode string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestBuildHelperProcess$")
-	cmd.Env = append(os.Environ(), buildHelperEnv+"="+mode)
-	return cmd
+func helperSpec(mode string) buildSpec {
+	return buildSpec{
+		name: os.Args[0],
+		args: []string{"-test.run=^TestBuildHelperProcess$"},
+		env:  append(os.Environ(), buildHelperEnv+"="+mode),
+	}
 }
 
 // TestBuildHelperProcess is not an independent test: it is the child process
@@ -223,18 +264,19 @@ func TestRunBuildWithBudget_DeadlineExceeded(t *testing.T) {
 	const budget = 200 * time.Millisecond
 
 	start := time.Now()
-	err := runBuildWithBudget(budget, func(ctx context.Context) *exec.Cmd {
-		return helperCommand(ctx, "block")
+	err := runBuildWithBudget(budget, func() buildSpec {
+		return helperSpec("block")
 	})
 	elapsed := time.Since(start)
 
 	require.Error(t, err, "a build that outlives its budget must fail")
 	msg := err.Error()
 
-	assert.Contains(t, msg, "hit its 200ms budget", "must name the budget it exceeded")
+	assert.Contains(t, msg, "did not finish within its 200ms budget", "must name the budget it ran out of")
 	assert.Contains(t, msg, context.DeadlineExceeded.Error(), "must report ctx.Err()")
 	assert.Contains(t, msg, "elapsed ", "must report how long the build actually ran")
-	assert.Contains(t, msg, buildTimeoutEnv, "must point at the override for slow environments")
+	assert.Contains(t, msg, buildTimeoutEnv, "must point at the override to re-run with")
+	assert.Contains(t, msg, "undetermined", "must state that the cause is not established by this failure")
 	assert.NotContains(t, msg, "build failed after", "must not be reported as a compile failure")
 
 	assert.Less(t, elapsed, 30*time.Second,
@@ -244,8 +286,8 @@ func TestRunBuildWithBudget_DeadlineExceeded(t *testing.T) {
 // TestRunBuildWithBudget_CompileError proves a real compile failure is reported
 // as such — with the compiler output — and is not mislabelled as a timeout.
 func TestRunBuildWithBudget_CompileError(t *testing.T) {
-	err := runBuildWithBudget(30*time.Second, func(ctx context.Context) *exec.Cmd {
-		return helperCommand(ctx, "fail")
+	err := runBuildWithBudget(30*time.Second, func() buildSpec {
+		return helperSpec("fail")
 	})
 
 	require.Error(t, err, "a non-zero build exit must fail")
@@ -253,15 +295,15 @@ func TestRunBuildWithBudget_CompileError(t *testing.T) {
 
 	assert.Contains(t, msg, "build failed after", "must be reported as a build failure")
 	assert.Contains(t, msg, helperCompileErrorText, "must surface the captured compiler output")
-	assert.NotContains(t, msg, "hit its", "must not be mislabelled as a budget overrun")
+	assert.NotContains(t, msg, "did not finish within", "must not be mislabelled as a budget overrun")
 	assert.NotContains(t, msg, context.DeadlineExceeded.Error(), "must not claim a deadline fired")
 }
 
 // TestRunBuildWithBudget_Success proves the happy path returns no error and does
 // not report phantom output.
 func TestRunBuildWithBudget_Success(t *testing.T) {
-	err := runBuildWithBudget(30*time.Second, func(ctx context.Context) *exec.Cmd {
-		return helperCommand(ctx, "succeed")
+	err := runBuildWithBudget(30*time.Second, func() buildSpec {
+		return helperSpec("succeed")
 	})
 	assert.NoError(t, err, "a command that exits zero must be reported as a successful build")
 }
@@ -300,8 +342,12 @@ func TestParseBuildBudget(t *testing.T) {
 }
 
 // TestBuildBudget_EnvOverrideIsReachable proves the override is actually wired
-// into the value buildTestBinary uses, not merely parseable in isolation: the
-// second half would fail if buildTestBinary stopped consulting buildBudget.
+// into the bound the build runs under, not merely parseable in isolation. The
+// second half asserts on lastRunBound, which is read back off the context
+// runBuildWithBudget created and built the command from — downstream of the
+// call being tested — so replacing buildTestBinary's argument with any other
+// duration fails it, and so does handing the command a different context,
+// since runBuildWithBudget is the only place a command is constructed.
 func TestBuildBudget_EnvOverrideIsReachable(t *testing.T) {
 	// Neutralise any override the surrounding environment already set, so both
 	// halves of this test assert on a known starting point.
@@ -314,10 +360,17 @@ func TestBuildBudget_EnvOverrideIsReachable(t *testing.T) {
 
 	// The build itself must run under that same value. The compile is a cache
 	// hit here, since other tests in this package have already built it.
+	lastRunBound.Store(0)
 	binary := buildTestBinary(t)
 	defer cleanupTestBinary(t, binary)
-	assert.Equal(t, int64(override), lastBuildBudget.Load(),
-		"buildTestBinary must build under the overridden budget, not a hard-coded one")
+
+	// Exact, not approximate: runBuildWithBudget derives the context from a
+	// deadline it computes itself, so reading that deadline back yields the
+	// budget with no clock slack. Any other duration at the runner call — one
+	// second out, or defaultBuildTimeout — fails this.
+	observed := time.Duration(lastRunBound.Load())
+	assert.Equal(t, override, observed,
+		"the build must run under the overridden budget, not any other value")
 }
 
 // TestBuildTestBinary_HealthyPath proves a successful build still yields a
