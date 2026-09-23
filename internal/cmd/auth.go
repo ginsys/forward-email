@@ -80,7 +80,7 @@ func init() {
 	authCmd.AddCommand(authStatusCmd)
 
 	// Add flags for profile specification
-	authVerifyCmd.Flags().String("profile", "", "Profile to verify (defaults to current profile)")
+	authVerifyCmd.Flags().StringP("profile", "p", "", "Profile to verify (defaults to current profile)")
 	authLoginCmd.Flags().String("profile", "", "Profile to log in to (defaults to current profile)")
 	authLoginCmd.Flags().String("store", "auto", "Credential store: auto|keyring|file|config")
 	authLoginCmd.Flags().String("file-pass", "", "Passphrase for file keyring (used when --store=file)")
