@@ -37,6 +37,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Email quota command now correctly uses `/v1/emails/limit` endpoint instead of `/v1/emails/quota`.
 
 ### Fixed
+- `auth verify` now accepts `-p` as shorthand for `--profile`, like the other commands (#50).
 - Reverted golangci-lint from v2.6.2 to v1.64.8 due to incompatible v2.x config schema (exclude-rules, disable-all, linters-settings not supported).
 - Resolved 38 linting issues: named return values (2), removed unused nolint directives (68), error handling (2).
 - Fixed CI test failures: golangci-lint config validation, test assertions, Go 1.23 compatibility.
