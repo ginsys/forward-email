@@ -207,7 +207,7 @@ check-all: fmt-check lint test-ci
 dev-setup: deps install-hooks
 	@echo "Setting up development environment..."
 	@if command -v mise >/dev/null 2>&1; then \
-		echo "Installing tools via mise (including golangci-lint v2.6.2)..."; \
+		echo "Installing tools via mise (including golangci-lint v2.12.2)..."; \
 		mise install || echo "⚠️  Some mise tools failed to install (non-critical)"; \
 	else \
 		echo "⚠️  mise not found. Install from https://mise.jdx.dev"; \

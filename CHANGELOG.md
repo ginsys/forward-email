@@ -60,6 +60,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Bump github/codeql-action from 3 to 4.
 - Bump actions/upload-artifact from 4 to 5.
 - Bump actions/setup-go from 5 to 6.
+- Build and test with Go 1.26 (needed by golang.org/x/term 0.46.0); golangci-lint v2.12.2, which is built with Go 1.26.
 
 ## v0.1.0 - 2025-08-31
 

@@ -185,7 +185,7 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 			cfgDir = filepath.Join(home, ".config")
 		}
 		feDir := filepath.Join(cfgDir, "forwardemail", "keyring")
-		if mkErr := os.MkdirAll(feDir, 0o750); mkErr != nil {
+		if mkErr := os.MkdirAll(feDir, 0o750); mkErr != nil { //nolint:gosec // G703: path is the user's own XDG_CONFIG_HOME or home dir
 			return fmt.Errorf("failed to create keyring dir: %w", mkErr)
 		}
 		if filePass == "" {
