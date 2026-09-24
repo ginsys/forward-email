@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -182,6 +183,36 @@ func buildOutputDetails(stdout, stderr string) string {
 	return b.String()
 }
 
+// firstBuildFailure holds the first failed build of this test process, guarded
+// by buildFailureMu. A build that failed — above all one that ran out of its
+// budget — would most likely fail again, and every integration test builds the
+// binary: rebuilding in each of them stacks those budgets until go test's own
+// -timeout panics and ends the package without the bounded report this harness
+// exists to give. Once a build has failed, later ones therefore fail at once.
+var (
+	buildFailureMu    sync.Mutex
+	firstBuildFailure error
+)
+
+// runBuildOnce runs newCmd under budget, unless an earlier build in this test
+// process already failed: then it returns that failure without constructing or
+// running the command at all.
+func runBuildOnce(budget time.Duration, newCmd buildCommandFunc) error {
+	buildFailureMu.Lock()
+	defer buildFailureMu.Unlock()
+
+	if firstBuildFailure != nil {
+		return fmt.Errorf("not rebuilding: an earlier build in this test process failed, and repeating it "+
+			"would only add another budget towards the go test timeout. The first failure was: %w",
+			firstBuildFailure)
+	}
+	if err := runBuildWithBudget(budget, newCmd); err != nil {
+		firstBuildFailure = err
+		return err
+	}
+	return nil
+}
+
 // buildTestBinary compiles the CLI binary for testing and returns its path.
 func buildTestBinary(t *testing.T) string {
 	t.Helper()
@@ -194,7 +225,7 @@ func buildTestBinary(t *testing.T) string {
 	}
 
 	budget := buildBudget(t)
-	err := runBuildWithBudget(budget, func() buildSpec {
+	err := runBuildOnce(budget, func() buildSpec {
 		return buildSpec{
 			name: "go",
 			args: []string{"build", "-o", binaryPath, "."},
@@ -308,6 +339,40 @@ func TestRunBuildWithBudget_Success(t *testing.T) {
 	assert.NoError(t, err, "a command that exits zero must be reported as a successful build")
 }
 
+// TestRunBuildOnce_StopsAfterFirstFailure proves a failed build is not repeated:
+// the next build fails at once with the first failure, without its command even
+// being constructed, so the package cannot stack budgets into the go test
+// timeout.
+func TestRunBuildOnce_StopsAfterFirstFailure(t *testing.T) {
+	// Start from, and restore, the process-wide state so neither this test nor
+	// the real integration builds see the other's failure.
+	buildFailureMu.Lock()
+	saved := firstBuildFailure
+	firstBuildFailure = nil
+	buildFailureMu.Unlock()
+	t.Cleanup(func() {
+		buildFailureMu.Lock()
+		firstBuildFailure = saved
+		buildFailureMu.Unlock()
+	})
+
+	first := runBuildOnce(30*time.Second, func() buildSpec {
+		return helperSpec("fail")
+	})
+	require.Error(t, first, "the failing build must fail")
+
+	constructed := false
+	second := runBuildOnce(30*time.Second, func() buildSpec {
+		constructed = true
+		return helperSpec("succeed")
+	})
+	require.Error(t, second, "a build after a failed one must fail instead of rebuilding")
+	assert.False(t, constructed, "no command may be constructed after a failed build")
+	assert.ErrorIs(t, second, first, "the later failure must carry the first one")
+	assert.Contains(t, second.Error(), "not rebuilding", "must say why nothing was run")
+	assert.Contains(t, second.Error(), helperCompileErrorText, "must repeat the first failure's diagnostic")
+}
+
 // TestParseBuildBudget covers the override's parsing, including the values that
 // must be rejected rather than silently turned into an unbounded build.
 func TestParseBuildBudget(t *testing.T) {
@@ -342,8 +407,8 @@ func TestParseBuildBudget(t *testing.T) {
 }
 
 // TestBuildBudget_EnvOverrideIsReachable proves the override is actually wired
-// into the bound the build runs under, not merely parseable in isolation. The
-// second half asserts on lastRunBound, which is read back off the context
+// into the bound the build runs under, not merely parseable in isolation. Both
+// builds assert on lastRunBound, which is read back off the context
 // runBuildWithBudget created and built the command from — downstream of the
 // call being tested — so replacing buildTestBinary's argument with any other
 // duration fails it, and so does handing the command a different context,
@@ -354,12 +419,24 @@ func TestBuildBudget_EnvOverrideIsReachable(t *testing.T) {
 	t.Setenv(buildTimeoutEnv, "")
 	assert.Equal(t, defaultBuildTimeout, buildBudget(t), "an unset override must yield the default")
 
+	// In the first iteration of an unshuffled run this is the first test to
+	// build the binary, so any compile work a warm Go build cache does not already
+	// cover happens here. Do it under the default budget, so that work is held to
+	// the advertised default rather than the larger override set below, and check
+	// that it really ran under the default. Whether the cache was cold is up to the
+	// environment (a fresh CI runner, say), not to this test.
+	lastRunBound.Store(0)
+	defaultBinary := buildTestBinary(t)
+	defer cleanupTestBinary(t, defaultBinary)
+	assert.Equal(t, defaultBuildTimeout, time.Duration(lastRunBound.Load()),
+		"with no override the build must run under the default budget")
+
 	const override = 7*time.Minute + 30*time.Second
 	t.Setenv(buildTimeoutEnv, "7m30s")
 	assert.Equal(t, override, buildBudget(t), "the environment override must win")
 
-	// The build itself must run under that same value. The compile is a cache
-	// hit here, since other tests in this package have already built it.
+	// The build itself must run under that same value. This compile is a cache
+	// hit: the same package was built just above.
 	lastRunBound.Store(0)
 	binary := buildTestBinary(t)
 	defer cleanupTestBinary(t, binary)
