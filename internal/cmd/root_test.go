@@ -102,6 +102,15 @@ func TestExecute(t *testing.T) {
 
 			ctx := context.Background()
 
+			// rootCmd is a package-level global: undo the args, output and parsed --help so
+			// later tests that execute it start from defaults.
+			t.Cleanup(func() {
+				rootCmd.SetArgs(nil)
+				rootCmd.SetOut(nil)
+				rootCmd.SetErr(nil)
+				resetChangedFlags(t, rootCmd, []string{"help"})
+			})
+
 			// Capture output to avoid cluttering test output
 			var output bytes.Buffer
 			rootCmd.SetOut(&output)
