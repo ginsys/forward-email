@@ -49,6 +49,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fixed email list/get field mapping: From/To/MessageID now correctly extracted from headers map instead of non-existent root fields.
 - Fixed `domain verify` endpoint to use `/v1/domains/:id/verify-records` and return full domain object with updated verification status (@salmonumbrella).
 - Fixed `domain dns` to generate records locally using domain's verification token instead of calling non-existent API endpoint (@salmonumbrella).
+- Added the root `--version` flag (`forward-email --version`), printing the same version/commit/build-date lines; `-v` still means `--verbose` and the `version` subcommand is unchanged.
 
 ### Dependencies
 - Bump github.com/spf13/cobra from 1.9.1 to 1.10.1.
