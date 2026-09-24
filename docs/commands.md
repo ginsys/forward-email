@@ -276,6 +276,9 @@ Show build and version information.
 # Short version only
 forward-email version
 
+# Version, commit and build date (root flag; -v is --verbose, not --version)
+forward-email --version
+
 # Detailed multi-line info (version, commit, date, Go, OS/arch)
 forward-email version --verbose
 

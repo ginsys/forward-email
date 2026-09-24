@@ -37,6 +37,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Email quota command now correctly uses `/v1/emails/limit` endpoint instead of `/v1/emails/quota`.
 
 ### Fixed
+- `forward-email --version` now works: the root command has a `--version` flag printing the version/commit/build-date lines; `-v` still means `--verbose` and the `version` subcommand is unchanged (#51).
 - `auth verify` now accepts `-p` as shorthand for `--profile`, like the other commands (#50).
 - Reverted golangci-lint from v2.6.2 to v1.64.8 due to incompatible v2.x config schema (exclude-rules, disable-all, linters-settings not supported).
 - Resolved 38 linting issues: named return values (2), removed unused nolint directives (68), error handling (2).
@@ -49,7 +50,6 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Fixed email list/get field mapping: From/To/MessageID now correctly extracted from headers map instead of non-existent root fields.
 - Fixed `domain verify` endpoint to use `/v1/domains/:id/verify-records` and return full domain object with updated verification status (@salmonumbrella).
 - Fixed `domain dns` to generate records locally using domain's verification token instead of calling non-existent API endpoint (@salmonumbrella).
-- Added the root `--version` flag (`forward-email --version`), printing the same version/commit/build-date lines; `-v` still means `--verbose` and the `version` subcommand is unchanged.
 
 ### Dependencies
 - Bump github.com/spf13/cobra from 1.9.1 to 1.10.1.
