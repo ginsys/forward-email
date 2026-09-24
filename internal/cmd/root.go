@@ -57,8 +57,11 @@ func initFlags() {
 	_ = viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	_ = viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
-	// Version template using internal/version package
+	// Version template using internal/version package. Setting Version makes cobra add a
+	// --version flag to the root command; -v is already taken by --verbose above, so cobra
+	// registers --version without a shorthand.
 	v := buildversion.Get()
+	rootCmd.Version = v.Version
 	vt := "forward-email version %s\ncommit: %s\nbuilt: %s\n"
 	rootCmd.SetVersionTemplate(fmt.Sprintf(vt, v.Version, v.Commit, v.Date))
 }
