@@ -48,8 +48,8 @@ func runRealRootCmd(t *testing.T, args ...string) (string, error) {
 		resetChangedFlags(t, rootCmd, rootFlagsTouched)
 		resetChangedFlags(t, versionCmd, versionFlagsTouched)
 	}
-	// Other tests in this package execute rootCmd without restoring it (e.g. a leftover --help
-	// would win over --version), so start from defaults as well as cleaning up afterwards.
+	// Not every test in this package that executes rootCmd restores it (a leftover --help would
+	// win over --version), so start from defaults as well as cleaning up afterwards.
 	resetFlags()
 	t.Cleanup(func() {
 		rootCmd.SetArgs(nil)
