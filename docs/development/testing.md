@@ -827,6 +827,11 @@ The two failure modes are reported separately:
   instance); it is not by itself evidence of a timeout — read the budget/elapsed line, not the
   absence of output.
 
+Only the first failed build runs. Every integration test builds the binary, so once a build has
+failed, later ones in the same `go test` process fail at once with a "not rebuilding" message that
+repeats the first failure, instead of each spending another budget until the package timeout ends
+the run.
+
 What the budget does and does not bound: it bounds the build's own runtime, and `cmd.WaitDelay`
 additionally caps how long `Wait` may keep draining the output pipes afterwards. Neither fixes a
 latest return time for the helper — cancellation, the child's exit and scheduling all take their
