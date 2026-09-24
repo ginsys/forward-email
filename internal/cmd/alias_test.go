@@ -63,7 +63,7 @@ func TestAliasListCommand(t *testing.T) {
 	defer server.Close()
 
 	// Setup test environment
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -180,7 +180,7 @@ func TestAliasGetCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -285,7 +285,7 @@ func TestAliasCreateCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -407,7 +407,7 @@ func TestAliasUpdateCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -490,7 +490,7 @@ func TestAliasDeleteCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -578,7 +578,7 @@ func TestAliasEnableDisableCommands(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -655,7 +655,7 @@ func TestAliasRecipientsCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -827,7 +827,7 @@ func TestAliasPasswordCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -896,7 +896,7 @@ func TestAliasQuotaCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -966,7 +966,7 @@ func TestAliasStatsCommand(t *testing.T) {
 	}))
 	defer server.Close()
 
-	setupTestEnv(server.URL)
+	setupTestEnv(t, server.URL)
 
 	tests := []struct {
 		name        string
@@ -1019,9 +1019,12 @@ func TestAliasStatsCommand(t *testing.T) {
 
 // Helper functions
 
-func setupTestEnv(serverURL string) {
-	// Set up mock client factory
+func setupTestEnv(t *testing.T, serverURL string) {
+	t.Helper()
+	// Set up mock client factory; test mode is package-global, so turn it off again or every
+	// later command in the test binary talks to this (by then closed) server.
 	client.SetTestMode(serverURL, auth.MockProvider("test-api-key"))
+	t.Cleanup(client.ResetTestMode)
 }
 
 func createTestRootCmd() *cobra.Command {
