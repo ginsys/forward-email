@@ -9,6 +9,7 @@
 - Output formats (table/JSON/YAML/CSV/plain)
 - Cross-platform support (Linux/macOS/Windows)
 - Debug utilities
+- Version info: `version` subcommand (`--json`/`--verbose`/`--license`/`--check-update`) and root `--version` flag
 - Integration-test build harness: finite, overridable compile budget (`FORWARDEMAIL_TEST_BUILD_TIMEOUT`, default 5m), separate budget-overrun and compile-failure reports, no rebuild after a failed build
 
 ## Known Issues
